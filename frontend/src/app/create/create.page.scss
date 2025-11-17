@@ -1,0 +1,80 @@
+.create-content {
+  --background: transparent;
+  padding: 1rem;
+}
+
+.content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.status-bar {
+  text-align: center;
+  padding: 0.75rem;
+  color: rgba(232, 236, 242, 0.8);
+  font-size: 0.9rem;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: inset 2px 2px 6px rgba(255, 255, 255, 0.1),
+    2px 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(232, 236, 242, 0.9);
+}
+
+.upload-label:hover {
+  border-color: #00b8ff;
+  background: rgba(0, 184, 255, 0.1);
+}
+
+#audioInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.processing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: rgba(232, 236, 242, 0.8);
+}
+
+ion-button {
+  --border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+ion-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 184, 255, 0.3);
+}

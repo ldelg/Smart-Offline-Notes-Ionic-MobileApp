@@ -1,0 +1,99 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Create Note</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="create-content">
+  <div class="content-wrapper">
+    <div class="status-bar">
+      <ion-text color="light">{{ statusMessage() }}</ion-text>
+    </div>
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Audio Capture</ion-card-subtitle>
+        <ion-card-title>Record or Upload</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="controls">
+          <ion-button
+            expand="block"
+            color="primary"
+            (click)="startRecording()"
+            [disabled]="isRecording()"
+          >
+            <ion-icon slot="start" name="mic-outline"></ion-icon>
+            Start Recording
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            color="danger"
+            (click)="stopRecording()"
+            [disabled]="!isRecording()"
+          >
+            <ion-icon slot="start" name="stop-circle-outline"></ion-icon>
+            Stop Recording
+          </ion-button>
+
+          <label class="upload-label" for="audioInput">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            Upload Audio (WAV/MP3/MP4)
+          </label>
+          <input
+            id="audioInput"
+            type="file"
+            accept="audio/*,video/mp4,video/webm"
+            (change)="handleUpload($event)"
+            aria-label="Upload audio file"
+          />
+
+          @if (store.loading()) {
+          <div class="processing">
+            <ion-spinner name="lines"></ion-spinner>
+            <ion-text>Transcribing...</ion-text>
+          </div>
+          }
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Manual Entry</ion-card-subtitle>
+        <ion-card-title>Type a Note</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
+          <ion-item lines="none">
+            <ion-input
+              formControlName="title"
+              label="Title"
+              labelPlacement="stacked"
+              placeholder="Note title"
+            ></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-textarea
+              formControlName="body"
+              label="Content"
+              labelPlacement="stacked"
+              placeholder="Write your note here..."
+              rows="6"
+              autoGrow="true"
+            ></ion-textarea>
+          </ion-item>
+          <ion-button
+            type="submit"
+            expand="block"
+            [disabled]="noteForm.invalid"
+          >
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Save Note
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
