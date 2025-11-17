@@ -1,0 +1,57 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Notes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="notes-content">
+  <div class="content-wrapper">
+    <ion-searchbar
+      placeholder="Search notes..."
+      (ionInput)="onSearch($event)"
+      debounce="300"
+    ></ion-searchbar>
+
+    <ion-list lines="none" class="notes-list">
+      @if (filteredNotes().length === 0) {
+        <ion-item class="empty-state">
+          <ion-label>
+            <h2>No notes yet</h2>
+            <p>Create your first note in the Create tab</p>
+          </ion-label>
+        </ion-item>
+      }
+
+      @for (note of filteredNotes(); track note.id) {
+        <ion-item class="note-item glass-card">
+          <ion-label>
+            <div class="note-header">
+              <h2>{{ note.title }}</h2>
+              <ion-badge [color]="getBadgeColor(note.source)">{{ note.source }}</ion-badge>
+            </div>
+            <p class="note-body">{{ note.body }}</p>
+            <ion-note class="note-meta">
+              {{ note.createdAt | date: 'medium' }}
+              @if (note.language) {
+                · {{ note.language | uppercase }}
+              }
+              @if (note.duration) {
+                · {{ note.duration | number: '1.0-1' }}s
+              }
+            </ion-note>
+          </ion-label>
+          <ion-button
+            fill="clear"
+            color="danger"
+            slot="end"
+            (click)="deleteNote(note.id)"
+            aria-label="Delete note"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  </div>
+</ion-content>
+

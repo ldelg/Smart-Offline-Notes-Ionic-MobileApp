@@ -1,0 +1,86 @@
+.notes-content {
+  --background: transparent;
+  padding: 1rem;
+}
+
+.content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+ion-searchbar {
+  --background: rgba(255, 255, 255, 0.08);
+  --border-radius: 12px;
+  --box-shadow: none;
+  --placeholder-color: rgba(232, 236, 242, 0.5);
+  padding: 0.5rem 0;
+}
+
+.notes-list {
+  margin-top: 1rem;
+  background: transparent;
+}
+
+.note-item {
+  --background: transparent;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    inset 2px 2px 6px rgba(255, 255, 255, 0.1),
+    2px 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.note-header h2 {
+  margin: 0;
+  color: #e8ecf2;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.note-body {
+  color: rgba(232, 236, 242, 0.85);
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-meta {
+  color: rgba(148, 163, 184, 0.7);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.empty-state h2 {
+  color: rgba(232, 236, 242, 0.9);
+  margin-bottom: 0.5rem;
+}
+
+ion-button {
+  --padding-start: 0.5rem;
+  --padding-end: 0.5rem;
+}
