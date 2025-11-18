@@ -6,52 +6,136 @@
 
 <ion-content class="notes-content">
   <div class="content-wrapper">
-    <ion-searchbar
-      placeholder="Search notes..."
-      (ionInput)="onSearch($event)"
-      debounce="300"
-    ></ion-searchbar>
+    <div class="notes-tab-bar">
+      <button
+        class="tab-chip"
+        type="button"
+        [class.active]="!activeTabId()"
+        (click)="showList()"
+      >
+        Notes
+      </button>
+      <div class="tab-chip-scroll">
+        @for (note of openedNotes(); track note.id) {
+        <button
+          type="button"
+          class="tab-chip"
+          [class.active]="activeTabId() === note.id"
+          (click)="selectTab(note.id)"
+        >
+          <span>{{ note.title }}</span>
+          <ion-button
+            fill="clear"
+            size="small"
+            color="danger"
+            (click)="closeTab(note.id, $event)"
+            aria-label="Close note tab"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </button>
+        }
+      </div>
+    </div>
 
-    <ion-list lines="none" class="notes-list">
-      @if (filteredNotes().length === 0) {
+    @if (!activeTabId()) {
+    <section class="list-panel glass-panel">
+      <ion-searchbar
+        placeholder="Search notes..."
+        (ionInput)="onSearch($event)"
+        debounce="300"
+      ></ion-searchbar>
+
+      <ion-list lines="none" class="notes-list">
+        @if (filteredNotes().length === 0) {
         <ion-item class="empty-state">
           <ion-label>
             <h2>No notes yet</h2>
             <p>Create your first note in the Create tab</p>
           </ion-label>
         </ion-item>
-      }
-
-      @for (note of filteredNotes(); track note.id) {
-        <ion-item class="note-item glass-card">
-          <ion-label>
+        } @for (note of filteredNotes(); track note.id) {
+        <ion-item class="note-item">
+          <ion-label (click)="openNote(note.id)">
             <div class="note-header">
               <h2>{{ note.title }}</h2>
-              <ion-badge [color]="getBadgeColor(note.source)">{{ note.source }}</ion-badge>
             </div>
             <p class="note-body">{{ note.body }}</p>
             <ion-note class="note-meta">
-              {{ note.createdAt | date: 'medium' }}
-              @if (note.language) {
-                · {{ note.language | uppercase }}
-              }
-              @if (note.duration) {
-                · {{ note.duration | number: '1.0-1' }}s
-              }
+              {{ note.createdAt | date: 'medium' }} @if (note.language) { · {{
+              note.language }} } @if (note.duration) { · {{ note.duration |
+              number: '1.0-1' }}s }
             </ion-note>
           </ion-label>
-          <ion-button
-            fill="clear"
-            color="danger"
-            slot="end"
-            (click)="deleteNote(note.id)"
-            aria-label="Delete note"
-          >
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-button>
+          <div class="note-actions">
+            <ion-button
+              fill="clear"
+              color="medium"
+              (click)="openNote(note.id)"
+              aria-label="Open note"
+            >
+              <ion-icon name="expand-outline"></ion-icon>
+            </ion-button>
+            <ion-button
+              fill="clear"
+              color="danger"
+              (click)="deleteNote(note.id)"
+              aria-label="Delete note"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
         </ion-item>
-      }
-    </ion-list>
+        }
+      </ion-list>
+    </section>
+    } @else {
+    <section class="editor-stage glass-panel">
+      <div class="editor-carousel" #noteCarousel (scroll)="onCarouselScroll()">
+        @for (note of openedNotes(); track note.id) {
+        <article class="editor-slide" [attr.data-note-id]="note.id">
+          <div class="editor-header">
+            <div>
+              <p class="eyebrow">Editing</p>
+              <h2>{{ note.title }}</h2>
+            </div>
+          </div>
+
+          @if (activeTabId() === note.id) {
+          <form
+            class="editor-form"
+            [formGroup]="editForm"
+            (ngSubmit)="saveActiveNote()"
+          >
+            <ion-item lines="none">
+              <ion-input
+                label="Title"
+                labelPlacement="stacked"
+                formControlName="title"
+                placeholder="Note title"
+              ></ion-input>
+            </ion-item>
+            <ion-item lines="none">
+              <ion-textarea
+                label="Body"
+                labelPlacement="stacked"
+                formControlName="body"
+                autoGrow="true"
+                rows="14"
+              ></ion-textarea>
+            </ion-item>
+            <div class="editor-actions">
+              <ion-button type="submit" [disabled]="editForm.invalid">
+                <ion-icon slot="start" name="save-outline"></ion-icon>
+                Save changes
+              </ion-button>
+            </div>
+          </form>
+          }
+        </article>
+        }
+      </div>
+    </section>
+    }
   </div>
 </ion-content>
-
