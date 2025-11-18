@@ -60,7 +60,7 @@ export class CreatePage {
   private readonly alertController = inject(AlertController);
 
   protected readonly isRecording = signal(false);
-  protected readonly statusMessage = signal('Ready to create your next note.');
+  protected readonly statusMessage = signal('');
 
   protected readonly noteForm = this.fb.group({
     title: [''],

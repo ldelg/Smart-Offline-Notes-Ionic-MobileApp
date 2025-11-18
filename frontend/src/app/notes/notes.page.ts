@@ -122,6 +122,189 @@ export class NotesPage {
     this.store.deleteNote(id);
   }
 
+  private draggedNoteId: string | null = null;
+  private touchStartY: number = 0;
+  private touchStartX: number = 0;
+  private touchStartElement: HTMLElement | null = null;
+  private touchCurrentElement: HTMLElement | null = null;
+  private isDragging: boolean = false;
+
+  protected onDragStart(event: DragEvent, noteId: string): void {
+    this.draggedNoteId = noteId;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', noteId);
+    }
+    const noteItem = (event.currentTarget as HTMLElement).closest(
+      '.note-item'
+    ) as HTMLElement;
+    if (noteItem) {
+      noteItem.classList.add('dragging');
+    }
+  }
+
+  protected onDragOver(event: DragEvent, noteId: string): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    const target = event.currentTarget as HTMLElement;
+    if (this.draggedNoteId && this.draggedNoteId !== noteId) {
+      target.classList.add('drag-over');
+    }
+  }
+
+  protected onDragLeave(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+  }
+
+  protected onDragEnd(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('dragging');
+    document.querySelectorAll('.note-item').forEach((item) => {
+      item.classList.remove('drag-over', 'dragging');
+    });
+    this.draggedNoteId = null;
+  }
+
+  protected onDrop(event: DragEvent, noteId: string): void {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    target.classList.remove('drag-over');
+
+    if (this.draggedNoteId && this.draggedNoteId !== noteId) {
+      const allNotes = this.store.notes();
+      const fromIndex = allNotes.findIndex((n) => n.id === this.draggedNoteId);
+      const toIndex = allNotes.findIndex((n) => n.id === noteId);
+
+      if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+        this.store.reorderNotes(fromIndex, toIndex);
+      }
+    }
+
+    document.querySelectorAll('.note-item').forEach((item) => {
+      item.classList.remove('dragging', 'drag-over');
+    });
+    this.draggedNoteId = null;
+  }
+
+  protected onTouchStart(event: TouchEvent, noteId: string): void {
+    const touch = event.touches[0];
+    this.touchStartY = touch.clientY;
+    this.touchStartX = touch.clientX;
+    const handle = event.currentTarget as HTMLElement;
+    this.touchStartElement = handle.closest('.note-item') as HTMLElement;
+    if (!this.touchStartElement) return;
+
+    this.draggedNoteId = noteId;
+    this.isDragging = false;
+    // Don't prevent default yet - wait for movement
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (!this.touchStartElement || !this.draggedNoteId) return;
+
+    const touch = event.touches[0];
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+    const deltaX = Math.abs(touch.clientX - this.touchStartX);
+
+    // Only start dragging if moved more than 10px (to distinguish from tap)
+    if (!this.isDragging && (deltaY > 10 || deltaX > 10)) {
+      this.isDragging = true;
+      this.touchStartElement.classList.add('dragging');
+      event.preventDefault();
+    }
+
+    if (!this.isDragging) return;
+
+    const currentY = touch.clientY;
+    const moveDeltaY = currentY - this.touchStartY;
+
+    // Move the dragged element visually
+    this.touchStartElement.style.transform = `translateY(${moveDeltaY}px)`;
+    this.touchStartElement.style.transition = 'none';
+    this.touchStartElement.style.zIndex = '1000';
+
+    // Find which note item is at the touch position
+    const allNoteItems = Array.from(
+      document.querySelectorAll('.note-item')
+    ) as HTMLElement[];
+    let targetItem: HTMLElement | null = null;
+
+    for (const item of allNoteItems) {
+      if (item === this.touchStartElement) continue;
+      const rect = item.getBoundingClientRect();
+
+      // Check if touch is over this item
+      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        targetItem = item;
+        break;
+      }
+    }
+
+    // Remove drag-over from all items
+    allNoteItems.forEach((item) => {
+      if (item !== this.touchStartElement) {
+        item.classList.remove('drag-over');
+      }
+    });
+
+    // Add drag-over to target item
+    if (targetItem) {
+      const targetNoteId = targetItem.getAttribute('data-note-id');
+      if (targetNoteId && targetNoteId !== this.draggedNoteId) {
+        targetItem.classList.add('drag-over');
+        this.touchCurrentElement = targetItem;
+      }
+    } else {
+      this.touchCurrentElement = null;
+    }
+
+    event.preventDefault();
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    if (!this.touchStartElement || !this.draggedNoteId) {
+      this.isDragging = false;
+      return;
+    }
+
+    if (this.isDragging) {
+      const allNotes = this.store.notes();
+      const fromIndex = allNotes.findIndex((n) => n.id === this.draggedNoteId);
+
+      if (this.touchCurrentElement) {
+        const targetNoteId =
+          this.touchCurrentElement.getAttribute('data-note-id');
+        if (targetNoteId) {
+          const toIndex = allNotes.findIndex((n) => n.id === targetNoteId);
+
+          if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+            this.store.reorderNotes(fromIndex, toIndex);
+          }
+        }
+      }
+    }
+
+    // Reset styles
+    if (this.touchStartElement) {
+      this.touchStartElement.style.transform = '';
+      this.touchStartElement.style.transition = '';
+      this.touchStartElement.style.zIndex = '';
+      this.touchStartElement.classList.remove('dragging');
+    }
+
+    document.querySelectorAll('.note-item').forEach((item) => {
+      item.classList.remove('drag-over', 'dragging');
+    });
+
+    this.draggedNoteId = null;
+    this.touchStartElement = null;
+    this.touchCurrentElement = null;
+    this.touchStartY = 0;
+    this.touchStartX = 0;
+    this.isDragging = false;
+  }
+
   protected openNote(id: string): void {
     const current = this.openTabIds();
     if (!current.includes(id)) {
