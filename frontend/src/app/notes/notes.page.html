@@ -55,8 +55,38 @@
           </ion-label>
         </ion-item>
         } @for (note of filteredNotes(); track note.id) {
-        <ion-item class="note-item">
-          <ion-label (click)="openNote(note.id)">
+        <ion-item
+          class="note-item"
+          [attr.data-note-id]="note.id"
+          (dragover)="onDragOver($event, note.id)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event, note.id)"
+        >
+          <div
+            class="drag-handle"
+            aria-label="Drag to reorder"
+            draggable="true"
+            (dragstart)="onDragStart($event, note.id)"
+            (touchstart)="onTouchStart($event, note.id)"
+            (touchmove)="onTouchMove($event)"
+            (touchend)="onTouchEnd($event)"
+          >
+            <svg
+              width="16"
+              height="24"
+              viewBox="0 0 16 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="4" cy="4" r="2" fill="currentColor" />
+              <circle cx="12" cy="4" r="2" fill="currentColor" />
+              <circle cx="4" cy="12" r="2" fill="currentColor" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+              <circle cx="4" cy="20" r="2" fill="currentColor" />
+              <circle cx="12" cy="20" r="2" fill="currentColor" />
+            </svg>
+          </div>
+          <ion-label (click)="openNote(note.id)" style="flex: 1">
             <div class="note-header">
               <h2>{{ note.title }}</h2>
             </div>

@@ -73,6 +73,13 @@ export const NotesStore = signalStore(
       patchState(store, { notes });
       localStorage.setItem('whisper-notes', JSON.stringify(notes));
     },
+    reorderNotes: (fromIndex: number, toIndex: number) => {
+      const notes = [...store.notes()];
+      const [moved] = notes.splice(fromIndex, 1);
+      notes.splice(toIndex, 0, moved);
+      patchState(store, { notes });
+      localStorage.setItem('whisper-notes', JSON.stringify(notes));
+    },
   }))
 );
 
