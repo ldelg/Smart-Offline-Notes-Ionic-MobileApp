@@ -66,6 +66,13 @@ export const NotesStore = signalStore(
         })
       )
     ),
+    updateNote: (id: string, changes: Partial<Omit<Note, 'id'>>) => {
+      const notes = store.notes().map((note) =>
+        note.id === id ? { ...note, ...changes } : note
+      );
+      patchState(store, { notes });
+      localStorage.setItem('whisper-notes', JSON.stringify(notes));
+    },
   }))
 );
 

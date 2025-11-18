@@ -81,3 +81,11 @@ ion-title {
   font-weight: 600;
   color: #e8ecf2;
 }
+
+.sc-ion-searchbar-md-h {
+  background: none !important;
+}
+
+ion-label {
+  max-width: calc(100% - 100px) !important;
+}
