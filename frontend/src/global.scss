@@ -40,46 +40,36 @@
   color-scheme: dark;
   --ion-font-family: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  --ion-background-color: #0a0f24;
-  --ion-toolbar-background: rgba(10, 15, 36, 0.8);
+  --ion-background-color: #0d0d0d;
+  --ion-toolbar-background: #141414;
   --ion-item-background: transparent;
-  --ion-color-primary: #00b8ff;
-  --ion-color-primary-shade: #0099cc;
-  --ion-color-primary-tint: #1abfff;
-  --ion-color-danger: #ff4757;
+  --ion-color-primary: #0a84ff;
+  --ion-color-primary-shade: #096fdb;
+  --ion-color-primary-tint: #2a98ff;
+  --ion-color-secondary: #64d2ff;
+  --ion-color-danger: #ff4c67;
   --ion-color-success: #2ed573;
-  --ion-color-tertiary: #a55eea;
+  --ion-color-tertiary: #a7a7a7;
 }
 
 body {
   font-family: var(--ion-font-family);
-  background: var(--ion-background-color);
-  color: #e8ecf2;
+  background: radial-gradient(circle at top, #1a1a1a, #0d0d0d 55%);
+  color: #ffffff;
 }
 
 ion-content {
-  --background: linear-gradient(135deg, #0a0f24 0%, #1a1f3a 100%),
-    radial-gradient(
-      circle at 20% 30%,
-      rgba(0, 184, 255, 0.15) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      rgba(165, 94, 234, 0.15) 0%,
-      transparent 50%
-    );
+  --background: linear-gradient(180deg, #111111 0%, #0d0d0d 60%, #050505 100%);
 }
 
 ion-toolbar {
-  --background: rgba(10, 15, 36, 0.9);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  --background: #141414;
+  border-bottom: 1px solid #1f1f1f;
 }
 
 ion-title {
   font-weight: 600;
-  color: #e8ecf2;
+  color: #ffffff;
 }
 
 .sc-ion-searchbar-md-h {
@@ -88,4 +78,5 @@ ion-title {
 
 ion-label {
   max-width: calc(100% - 100px) !important;
+  margin: 0;
 }

@@ -6,12 +6,8 @@
 
 <ion-content class="create-content">
   <div class="content-wrapper">
-    <div class="status-bar">
-      <ion-text color="light">{{ statusMessage() }}</ion-text>
-    </div>
-
     <ion-card class="glass-card">
-      <ion-card-header>
+      <ion-card-header class="create-card-header">
         <ion-card-subtitle>Audio Capture</ion-card-subtitle>
         <ion-card-title>Record or Upload</ion-card-title>
       </ion-card-header>
@@ -60,11 +56,11 @@
     </ion-card>
 
     <ion-card class="glass-card">
-      <ion-card-header>
+      <ion-card-header class="create-card-header">
         <ion-card-subtitle>Manual Entry</ion-card-subtitle>
         <ion-card-title>Type a Note</ion-card-title>
       </ion-card-header>
-      <ion-card-content>
+      <ion-card-content class="create-card-content">
         <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
           <ion-item lines="none">
             <ion-input
@@ -85,6 +81,7 @@
             ></ion-textarea>
           </ion-item>
           <ion-button
+            class="create-button"
             type="submit"
             expand="block"
             [disabled]="noteForm.invalid"

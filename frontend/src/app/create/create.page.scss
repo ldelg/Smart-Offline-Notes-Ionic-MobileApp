@@ -1,11 +1,5 @@
 .create-content {
-  --background: radial-gradient(
-      circle at 10% 20%,
-      rgba(74, 93, 255, 0.2),
-      transparent 60%
-    ),
-    radial-gradient(circle at 80% 0%, rgba(0, 212, 255, 0.15), transparent 45%),
-    #06070f;
+  --background: linear-gradient(180deg, #181818 0%, #0d0d0d 65%, #050505 100%);
   --padding-start: clamp(1rem, 3vw, 2.5rem);
   --padding-end: clamp(1rem, 3vw, 2.5rem);
   --padding-top: 1.25rem;
@@ -20,24 +14,11 @@
   gap: 1.5rem;
 }
 
-.status-bar {
-  text-align: center;
-  padding: 0.75rem;
-  color: rgba(232, 236, 242, 0.8);
-  font-size: 0.9rem;
-}
-
 .glass-card {
-  background: linear-gradient(
-    145deg,
-    rgba(18, 24, 45, 0.95),
-    rgba(9, 11, 22, 0.9)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.05),
-    0 14px 30px rgba(4, 5, 12, 0.5);
-  backdrop-filter: blur(14px);
+  background: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
 }
 
 .controls {
@@ -52,16 +33,17 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(232, 236, 242, 0.9);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(18, 18, 18, 0.65);
 }
 
 .upload-label:hover {
-  border-color: #00b8ff;
-  background: rgba(0, 184, 255, 0.1);
+  border-color: #0a84ff;
+  background: rgba(10, 132, 255, 0.12);
 }
 
 #audioInput {
@@ -78,23 +60,24 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem;
-  color: rgba(232, 236, 242, 0.8);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 ion-button {
   --border-radius: 12px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
+  --background: #0a84ff;
 }
 
 ion-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 184, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .create-content ion-item {
   --background: transparent;
-  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color: rgba(255, 255, 255, 0.12);
 }
 
 .create-content ion-input,
@@ -102,9 +85,24 @@ ion-button:hover {
   --background: transparent;
   --padding-start: 0;
   --padding-end: 0;
+  --highlight-color-focused: var(--ion-color-primary);
+  --highlight-color: var(--ion-color-primary);
+  color: #ffffff;
 }
 
 .create-content .native-input,
 .create-content .native-textarea {
   background: transparent !important;
+}
+
+.create-card-content {
+  padding: 5px;
+}
+
+.create-card-header {
+  margin: 0 2px;
+}
+
+.create-button {
+  margin: 15px;
 }
