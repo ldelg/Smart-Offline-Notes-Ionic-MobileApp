@@ -13,33 +13,33 @@
         [class.active]="!activeTabId()"
         (click)="showList()"
       >
-        Notes
+        <span class="tab-label">Notes</span>
       </button>
       <div class="tab-chip-scroll">
         @for (note of openedNotes(); track note.id) {
-        <button
-          type="button"
+        <div
           class="tab-chip"
+          role="button"
+          tabindex="0"
           [class.active]="activeTabId() === note.id"
           (click)="selectTab(note.id)"
         >
-          <span>{{ note.title }}</span>
-          <ion-button
-            fill="clear"
-            size="small"
-            color="danger"
+          <span class="tab-label" [title]="note.title">{{ note.title }}</span>
+          <button
+            type="button"
+            class="chip-close"
             (click)="closeTab(note.id, $event)"
             aria-label="Close note tab"
           >
-            <ion-icon name="close-outline"></ion-icon>
-          </ion-button>
-        </button>
+            ×
+          </button>
+        </div>
         }
       </div>
     </div>
 
     @if (!activeTabId()) {
-    <section class="list-panel glass-panel">
+    <section class="list-panel">
       <ion-searchbar
         placeholder="Search notes..."
         (ionInput)="onSearch($event)"
@@ -120,48 +120,50 @@
       </ion-list>
     </section>
     } @else {
-    <section class="editor-stage glass-panel">
+    <section class="editor-stage">
       <div class="editor-carousel" #noteCarousel (scroll)="onCarouselScroll()">
         @for (note of openedNotes(); track note.id) {
         <article class="editor-slide" [attr.data-note-id]="note.id">
-          <div class="editor-header">
-            <div>
-              <p class="eyebrow">Editing</p>
-              <h2>{{ note.title }}</h2>
+          <div class="editor-card">
+            <div class="editor-header">
+              <div>
+                <p class="eyebrow">Editing</p>
+                <h2>{{ note.title }}</h2>
+              </div>
             </div>
-          </div>
 
-          @if (activeTabId() === note.id) {
-          <form
-            class="editor-form"
-            [formGroup]="editForm"
-            (ngSubmit)="saveActiveNote()"
-          >
-            <ion-item lines="none">
-              <ion-input
-                label="Title"
-                labelPlacement="stacked"
-                formControlName="title"
-                placeholder="Note title"
-              ></ion-input>
-            </ion-item>
-            <ion-item lines="none">
-              <ion-textarea
-                label="Body"
-                labelPlacement="stacked"
-                formControlName="body"
-                autoGrow="true"
-                rows="14"
-              ></ion-textarea>
-            </ion-item>
-            <div class="editor-actions">
-              <ion-button type="submit" [disabled]="editForm.invalid">
-                <ion-icon slot="start" name="save-outline"></ion-icon>
-                Save changes
-              </ion-button>
-            </div>
-          </form>
-          }
+            @if (activeTabId() === note.id) {
+            <form
+              class="editor-form"
+              [formGroup]="editForm"
+              (ngSubmit)="saveActiveNote()"
+            >
+              <ion-item lines="none">
+                <ion-input
+                  label="Title"
+                  labelPlacement="stacked"
+                  formControlName="title"
+                  placeholder="Note title"
+                ></ion-input>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-textarea
+                  label="Body"
+                  labelPlacement="stacked"
+                  formControlName="body"
+                  autoGrow="true"
+                  rows="14"
+                ></ion-textarea>
+              </ion-item>
+              <div class="editor-actions">
+                <ion-button type="submit" [disabled]="editForm.invalid">
+                  <ion-icon slot="start" name="save-outline"></ion-icon>
+                  Save changes
+                </ion-button>
+              </div>
+            </form>
+            }
+          </div>
         </article>
         }
       </div>
