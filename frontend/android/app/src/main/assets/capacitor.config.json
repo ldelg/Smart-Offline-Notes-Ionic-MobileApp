@@ -1,0 +1,11 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "myApp",
+	"webDir": "www",
+	"plugins": {
+		"Keyboard": {
+			"resize": "body",
+			"style": "dark"
+		}
+	}
+}
