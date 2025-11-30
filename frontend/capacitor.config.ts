@@ -2,12 +2,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
-  appName: 'myApp',
+  appName: 'SmartNotes',
   webDir: 'www',
   plugins: {
     Keyboard: {
-      resize: 'body',
+      resize: 'ionic',
       style: 'dark',
+      resizeOnFullScreen: true,
     },
   },
 };
