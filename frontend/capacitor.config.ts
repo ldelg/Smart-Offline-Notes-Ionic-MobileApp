@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'www',
   plugins: {
     Keyboard: {
-      resize: 'ionic',
+      resize: 'body',
       style: 'dark',
       resizeOnFullScreen: true,
     },

@@ -17,6 +17,11 @@ export const routes: Routes = [
           import('./notes/notes.page').then((m) => m.NotesPage),
       },
       {
+        path: 'settings',
+        loadComponent: () =>
+          import('./settings/settings.page').then((m) => m.SettingsPage),
+      },
+      {
         path: '',
         redirectTo: 'create',
         pathMatch: 'full',

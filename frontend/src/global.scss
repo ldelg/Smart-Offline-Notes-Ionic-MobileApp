@@ -76,7 +76,10 @@ ion-title {
   background: none !important;
 }
 
-ion-label {
-  max-width: calc(100% - 100px) !important;
-  margin: 0;
+ion-radio {
+  font-size: 13px !important;
+}
+
+ion-popover {
+  margin-left: 16px;
 }

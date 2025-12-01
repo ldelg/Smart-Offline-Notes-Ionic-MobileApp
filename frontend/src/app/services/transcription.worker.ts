@@ -53,14 +53,31 @@ const transcribe = async (
   }
 
   const p = AutomaticSpeechRecognitionPipelineFactory;
-  if (p.model !== modelName || p.quantized !== quantized) {
-    p.model = modelName;
-    p.quantized = quantized;
+  const oldModel = p.model;
+  const modelChanged = p.model !== modelName;
+  const quantizedChanged = p.quantized !== quantized;
 
+  if (modelChanged || quantizedChanged) {
     if (p.instance !== null) {
-      (await p.getInstance()).dispose();
+      const oldInstance = await p.getInstance();
+      await oldInstance.dispose();
       p.instance = null;
     }
+
+    // Clear cache when switching models
+    if (oldModel && modelChanged && 'caches' in self) {
+      try {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      } catch (error) {
+        console.warn('Failed to clear cache:', error);
+      }
+    }
+
+    p.model = modelName;
+    p.quantized = quantized;
   }
 
   const transcriber = await p.getInstance((data: any) => {

@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { SettingsStore } from '../store/settings.store';
 
 export interface TranscriptionResult {
   text: string;
@@ -18,6 +19,7 @@ export interface TranscriptionUpdate {
 @Injectable({ providedIn: 'root' })
 export class TranscriptionService {
   private worker?: Worker;
+  private readonly settings = inject(SettingsStore);
 
   constructor() {
     if (typeof Worker !== 'undefined') {
@@ -35,6 +37,16 @@ export class TranscriptionService {
     if (!this.worker) {
       updates$.error(
         new Error('Web Workers are not supported in this browser')
+      );
+      return updates$;
+    }
+
+    // Check if online before starting transcription
+    if (!navigator.onLine) {
+      updates$.error(
+        new Error(
+          'No internet connection. Please connect to the internet to download the model. If the model is already cached, try again in a moment.'
+        )
       );
       return updates$;
     }
@@ -151,21 +163,21 @@ export class TranscriptionService {
 
     this.worker.addEventListener('message', messageHandler);
 
-    const model = 'Xenova/whisper-base';
-    const multilingual = false;
-    const quantized = true;
-    const subtask = multilingual ? 'transcribe' : null;
-    const language = multilingual ? 'english' : null;
+    const model = this.settings.model();
+    const multilingual = this.settings.multilingual();
+    const quantized = this.settings.quantized();
+    const language = multilingual ? this.settings.language() : null;
+    const subtask = multilingual ? this.settings.task() : null;
 
     this.worker.postMessage(
       {
         type: 'transcribe',
-        audio: audio,
-        model: model,
-        multilingual: multilingual,
-        quantized: quantized,
-        subtask: subtask,
-        language: language,
+        audio,
+        model,
+        multilingual,
+        quantized,
+        subtask,
+        language,
       },
       [audio.buffer]
     );
