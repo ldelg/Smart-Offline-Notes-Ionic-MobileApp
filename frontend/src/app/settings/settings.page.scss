@@ -1,0 +1,74 @@
+.settings-content {
+  --background: linear-gradient(180deg, #181818 0%, #0d0d0d 65%, #050505 100%);
+  --padding-start: clamp(1rem, 3vw, 2.5rem);
+  --padding-end: clamp(0.5rem, 2vw, 1rem);
+  --padding-top: 1.25rem;
+  --padding-bottom: 1.25rem;
+}
+
+.content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-right: 0;
+}
+
+.glass-card {
+  background: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+.glass-card ion-card-content {
+  padding-left: 0;
+  padding-bottom: 0;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: rgba(255, 255, 255, 0.12);
+}
+
+ion-select {
+  --placeholder-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+}
+
+.toggles-row {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.75rem;
+  margin-left: 16px;
+  margin-bottom: 16px;
+}
+
+.toggle-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 15px;
+  flex: 1;
+}
+
+.toggle-item ion-label {
+  margin-right: 10px;
+}
+
+.toggle-item ion-toggle {
+  width: 36px;
+  height: 20px;
+  --handle-width: 15px;
+  --handle-height: 15px;
+  margin-top: 3px;
+}
+
+ion-item {
+  font-size: 13px !important;
+}
+
+ion-label {
+  font-size: 15px !important;
+}

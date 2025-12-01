@@ -1,0 +1,91 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="settings-content">
+  <div class="content-wrapper">
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Model</ion-card-subtitle>
+        <ion-card-title>Transcription Engine</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="stacked">Select the model to use</ion-label>
+          <ion-select
+            [value]="model()"
+            interface="popover"
+            (ionChange)="onModelChange($event.detail.value)"
+          >
+            @for (option of modelOptions; track option.value) {
+            <ion-select-option [value]="option.value">
+              {{ option.label }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        <div class="toggles-row">
+          <div class="toggle-item">
+            <ion-label>Multilingual</ion-label>
+            <ion-toggle
+              [checked]="multilingual()"
+              (ionChange)="onMultilingualChange($event.detail.checked)"
+            ></ion-toggle>
+          </div>
+
+          <div class="toggle-item">
+            <ion-label>Quantized</ion-label>
+            <ion-toggle
+              [checked]="quantized()"
+              (ionChange)="onQuantizedChange($event.detail.checked)"
+            ></ion-toggle>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    @if (multilingual()) {
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Language & Task</ion-card-subtitle>
+        <ion-card-title>Transcription Mode</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="stacked">Select the source language</ion-label>
+          <ion-select
+            [value]="language()"
+            interface="popover"
+            (ionChange)="onLanguageChange($event.detail.value)"
+          >
+            @for (lang of languages; track lang.id) {
+            <ion-select-option [value]="lang.id">
+              {{ lang.label }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="full">
+          <ion-label position="stacked">Select the task to perform</ion-label>
+          <ion-select
+            [value]="task()"
+            interface="popover"
+            (ionChange)="onTaskChange($event.detail.value)"
+          >
+            <ion-select-option value="transcribe">
+              Transcribe
+            </ion-select-option>
+            <ion-select-option value="translate">
+              Translate to English
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+    }
+  </div>
+</ion-content>

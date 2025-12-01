@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { micOutline, albumsOutline } from 'ionicons/icons';
+import { micOutline, albumsOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
@@ -19,6 +19,6 @@ import { micOutline, albumsOutline } from 'ionicons/icons';
 })
 export class TabsPage {
   constructor() {
-    addIcons({ micOutline, albumsOutline });
+    addIcons({ micOutline, albumsOutline, settingsOutline });
   }
 }
