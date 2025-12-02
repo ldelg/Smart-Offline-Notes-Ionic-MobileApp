@@ -123,6 +123,34 @@ ion-label {
   padding: 0 16px;
 }
 
+.data-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  padding: 0 16px;
+}
+
+.data-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 16px 16px;
+}
+
+.data-button {
+  --border-color: rgba(255, 255, 255, 0.2);
+  --color: #ffffff;
+  --background: transparent;
+  font-weight: 500;
+  margin: 0;
+}
+
+.data-button:hover {
+  --border-color: #0a84ff;
+  --background: rgba(10, 132, 255, 0.1);
+}
+
 .donation-button {
   --background: #0a84ff;
   --color: #ffffff;

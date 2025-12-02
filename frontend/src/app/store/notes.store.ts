@@ -114,5 +114,30 @@ export const NotesStore = signalStore(
       patchState(store, { notes });
       localStorage.setItem('whisper-notes', JSON.stringify(notes));
     },
+    exportNotes: () => {
+      const notes = store.notes();
+      const exportData = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        noteCount: notes.length,
+        notes,
+      };
+      return JSON.stringify(exportData, null, 2);
+    },
+    importNotes: (importedNotes: Note[], merge: boolean = false) => {
+      if (merge) {
+        // Merge: combine with existing, dedupe by ID
+        const existingNotes = store.notes();
+        const existingIds = new Set(existingNotes.map((n) => n.id));
+        const newNotes = importedNotes.filter((n) => !existingIds.has(n.id));
+        const mergedNotes = [...existingNotes, ...newNotes];
+        patchState(store, { notes: mergedNotes });
+        localStorage.setItem('whisper-notes', JSON.stringify(mergedNotes));
+      } else {
+        // Replace: replace all notes
+        patchState(store, { notes: importedNotes });
+        localStorage.setItem('whisper-notes', JSON.stringify(importedNotes));
+      }
+    },
   }))
 );

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ViewChild, ElementRef } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -19,8 +19,14 @@ import {
   IonIcon,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { heartOutline } from 'ionicons/icons';
+import {
+  heartOutline,
+  downloadOutline,
+  cloudUploadOutline,
+} from 'ionicons/icons';
 import { SettingsStore } from '../store/settings.store';
+import { NotesStore } from '../store/notes.store';
+import { Note } from '../models/note.model';
 import { Browser } from '@capacitor/browser';
 import { Platform } from '@ionic/angular';
 
@@ -59,7 +65,10 @@ interface ModelOption {
   ],
 })
 export class SettingsPage {
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+  
   private readonly settings = inject(SettingsStore);
+  private readonly notesStore = inject(NotesStore);
   private readonly alertController = inject(AlertController);
   private readonly platform = inject(Platform);
 
@@ -70,6 +79,8 @@ export class SettingsPage {
   constructor() {
     addIcons({
       heartOutline,
+      downloadOutline,
+      cloudUploadOutline,
     });
   }
 
@@ -178,6 +189,175 @@ export class SettingsPage {
       header: 'Donation Error',
       message:
         'There was an error processing your donation. Please try again later.',
+      buttons: ['OK'],
+    });
+    await alert.present();
+  }
+
+  exportNotes() {
+    try {
+      const jsonData = this.notesStore.exportNotes();
+      const notes = this.notesStore.notes();
+      const filename = `smartnotes-backup-${notes.length}-notes-${new Date()
+        .toISOString()
+        .split('T')[0]}.json`;
+
+      // Create blob and download
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      this.showSuccessAlert(
+        'Export Successful',
+        `Exported ${notes.length} note${notes.length !== 1 ? 's' : ''} to ${filename}`
+      );
+    } catch (error) {
+      console.error('Export error:', error);
+      this.showErrorAlert(
+        'Export Failed',
+        'There was an error exporting your notes. Please try again.'
+      );
+    }
+  }
+
+  triggerImport() {
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  async handleFileImport(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // Reset input
+    input.value = '';
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Validate structure
+      if (!this.validateImportData(data)) {
+        await this.showErrorAlert(
+          'Invalid File',
+          'The selected file is not a valid SmartNotes backup file.'
+        );
+        return;
+      }
+
+      const importedNotes = data.notes || data; // Support both formats
+      const existingCount = this.notesStore.notes().length;
+
+      if (existingCount > 0) {
+        // Ask user: replace or merge
+        const alert = await this.alertController.create({
+          header: 'Import Notes',
+          message: `You currently have ${existingCount} note${
+            existingCount !== 1 ? 's' : ''
+          }. The import file contains ${importedNotes.length} note${
+            importedNotes.length !== 1 ? 's' : ''
+          }. How would you like to proceed?`,
+          buttons: [
+            {
+              text: 'Cancel',
+              role: 'cancel',
+            },
+            {
+              text: 'Replace All',
+              handler: () => {
+                this.importNotes(importedNotes, false);
+              },
+            },
+            {
+              text: 'Merge',
+              handler: () => {
+                this.importNotes(importedNotes, true);
+              },
+            },
+          ],
+        });
+        await alert.present();
+      } else {
+        // No existing notes, just import
+        this.importNotes(importedNotes, false);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      await this.showErrorAlert(
+        'Import Failed',
+        'There was an error reading the file. Please make sure it is a valid JSON file.'
+      );
+    }
+  }
+
+  private validateImportData(data: any): boolean {
+    // Check if it's an array (old format) or has notes property (new format)
+    if (Array.isArray(data)) {
+      return data.every((note) => this.isValidNote(note));
+    }
+
+    if (data && typeof data === 'object' && Array.isArray(data.notes)) {
+      return data.notes.every((note: any) => this.isValidNote(note));
+    }
+
+    return false;
+  }
+
+  private isValidNote(note: any): note is Note {
+    return (
+      note &&
+      typeof note === 'object' &&
+      typeof note.id === 'string' &&
+      typeof note.title === 'string' &&
+      typeof note.body === 'string' &&
+      typeof note.createdAt === 'number' &&
+      ['Recording', 'Upload', 'Typed'].includes(note.source)
+    );
+  }
+
+  private importNotes(notes: Note[], merge: boolean) {
+    try {
+      this.notesStore.importNotes(notes, merge);
+      const finalCount = this.notesStore.notes().length;
+      this.showSuccessAlert(
+        'Import Successful',
+        `Successfully imported ${notes.length} note${
+          notes.length !== 1 ? 's' : ''
+        }. You now have ${finalCount} note${finalCount !== 1 ? 's' : ''} in total.`
+      );
+    } catch (error) {
+      console.error('Import error:', error);
+      this.showErrorAlert(
+        'Import Failed',
+        'There was an error importing the notes. Please try again.'
+      );
+    }
+  }
+
+  private async showSuccessAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK'],
+    });
+    await alert.present();
+  }
+
+  private async showErrorAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
       buttons: ['OK'],
     });
     await alert.present();
