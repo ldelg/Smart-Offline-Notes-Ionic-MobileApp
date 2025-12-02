@@ -1,4 +1,11 @@
-import { Component, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  ViewChild,
+  ElementRef,
+  effect,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -29,6 +36,7 @@ import { NotesStore } from '../store/notes.store';
 import { Note } from '../models/note.model';
 import { Browser } from '@capacitor/browser';
 import { Platform } from '@ionic/angular';
+import { NetworkService } from '../services/network.service';
 
 interface LanguageOption {
   id: string;
@@ -65,14 +73,14 @@ interface ModelOption {
   ],
 })
 export class SettingsPage {
-  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
-  
+  @ViewChild('fileInput', { static: false })
+  fileInput!: ElementRef<HTMLInputElement>;
+
   private readonly settings = inject(SettingsStore);
   private readonly notesStore = inject(NotesStore);
   private readonly alertController = inject(AlertController);
   private readonly platform = inject(Platform);
-
-  // Replace with your Stripe Payment Link URL
+  readonly networkService = inject(NetworkService);
   private readonly STRIPE_PAYMENT_LINK_URL =
     'https://donate.stripe.com/4gweYZ26zbfY25y9AA';
 
@@ -81,6 +89,25 @@ export class SettingsPage {
       heartOutline,
       downloadOutline,
       cloudUploadOutline,
+    });
+
+    // Watch network status and revert model when going offline
+    effect(() => {
+      const isOnline = this.networkService.isOnline();
+      const lastUsed = this.settings.lastUsedModel();
+      const currentModel = this.settings.model();
+      
+      // When going offline, revert to cached model if different
+      if (!isOnline && lastUsed) {
+        const baseModel = lastUsed.endsWith('.en') ? lastUsed.replace('.en', '') : lastUsed;
+        const multilingual = this.settings.multilingual();
+        const isDistilWhisper = currentModel.startsWith('distil-whisper/');
+        const effectiveCurrentModel = (!isDistilWhisper && !multilingual) ? `${currentModel}.en` : currentModel;
+        
+        if (effectiveCurrentModel !== lastUsed) {
+          this.settings.setModel(baseModel);
+        }
+      }
     });
   }
 
@@ -114,22 +141,11 @@ export class SettingsPage {
     { id: 'italian', label: 'Italian' },
   ];
 
-  async onModelChange(model: string) {
-    const oldModel = this.settings.model();
-
-    // Warn if offline and switching to a different model
-    if (!navigator.onLine && oldModel !== model) {
-      const alert = await this.alertController.create({
-        header: 'No Internet Connection',
-        message:
-          'You are currently offline. The new model will need to be downloaded when you have an internet connection. If the model is not cached, transcription will not work until you are online.',
-        buttons: ['OK'],
-      });
-      await alert.present();
+  onModelChange(model: string) {
+    const currentModel = this.settings.model();
+    if (model !== currentModel) {
+      this.settings.setModel(model);
     }
-
-    // Always update the model (user can proceed if they want)
-    this.settings.setModel(model);
   }
 
   onMultilingualChange(enabled: boolean) {
@@ -198,9 +214,9 @@ export class SettingsPage {
     try {
       const jsonData = this.notesStore.exportNotes();
       const notes = this.notesStore.notes();
-      const filename = `smartnotes-backup-${notes.length}-notes-${new Date()
-        .toISOString()
-        .split('T')[0]}.json`;
+      const filename = `smartnotes-backup-${notes.length}-notes-${
+        new Date().toISOString().split('T')[0]
+      }.json`;
 
       // Create blob and download
       const blob = new Blob([jsonData], { type: 'application/json' });
@@ -215,7 +231,9 @@ export class SettingsPage {
 
       this.showSuccessAlert(
         'Export Successful',
-        `Exported ${notes.length} note${notes.length !== 1 ? 's' : ''} to ${filename}`
+        `Exported ${notes.length} note${
+          notes.length !== 1 ? 's' : ''
+        } to ${filename}`
       );
     } catch (error) {
       console.error('Export error:', error);
@@ -334,7 +352,9 @@ export class SettingsPage {
         'Import Successful',
         `Successfully imported ${notes.length} note${
           notes.length !== 1 ? 's' : ''
-        }. You now have ${finalCount} note${finalCount !== 1 ? 's' : ''} in total.`
+        }. You now have ${finalCount} note${
+          finalCount !== 1 ? 's' : ''
+        } in total.`
       );
     } catch (error) {
       console.error('Import error:', error);

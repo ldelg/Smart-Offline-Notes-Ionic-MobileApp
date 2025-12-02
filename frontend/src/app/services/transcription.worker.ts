@@ -42,11 +42,11 @@ const transcribe = async (
   multilingual: boolean,
   quantized: boolean,
   subtask: string | null,
-  language: string | null
+  language: string | null,
+  isOnline: boolean = true
 ) => {
   const isDistilWhisper = model.startsWith('distil-whisper/');
 
-  //  add .en suffix if not multilingual
   let modelName = model;
   if (!isDistilWhisper && !multilingual) {
     modelName += '.en';
@@ -64,8 +64,7 @@ const transcribe = async (
       p.instance = null;
     }
 
-    // Clear cache when switching models
-    if (oldModel && modelChanged && 'caches' in self) {
+    if (oldModel && modelChanged && 'caches' in self && isOnline) {
       try {
         const cacheNames = await caches.keys();
         for (const cacheName of cacheNames) {
@@ -157,15 +156,23 @@ self.addEventListener('message', async (event) => {
 
   if (message.type === 'transcribe') {
     try {
-      const { audio, model, multilingual, quantized, subtask, language } =
-        message;
+      const {
+        audio,
+        model,
+        multilingual,
+        quantized,
+        subtask,
+        language,
+        isOnline,
+      } = message;
       const transcript = await transcribe(
         audio,
         model,
         multilingual,
         quantized,
         subtask,
-        language
+        language,
+        isOnline
       );
 
       if (transcript === null) return;

@@ -14,11 +14,12 @@
       <ion-card-content>
         <ion-item lines="full">
           <ion-label position="stacked">Select the model to use</ion-label>
-          <ion-select
-            [value]="model()"
-            interface="popover"
-            (ionChange)="onModelChange($event.detail.value)"
-          >
+              <ion-select
+                [value]="model()"
+                interface="popover"
+                [disabled]="!networkService.isOnline()"
+                (ionChange)="onModelChange($event.detail.value)"
+              >
             @for (option of modelOptions; track option.value) {
             <ion-select-option [value]="option.value">
               {{ option.label }}
@@ -112,6 +113,19 @@
       </ion-card-content>
     </ion-card>
     }
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Network Status</ion-card-subtitle>
+        <ion-card-title>
+          @if (networkService.isOnline()) {
+          <span style="color: #2ed573">🟢 Online</span>
+          } @else {
+          <span style="color: #ff4c67">🔴 Offline</span>
+          }
+        </ion-card-title>
+      </ion-card-header>
+    </ion-card>
 
     <ion-card class="glass-card">
       <ion-card-header>
