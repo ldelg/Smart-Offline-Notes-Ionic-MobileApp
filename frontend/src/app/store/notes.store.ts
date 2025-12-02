@@ -4,6 +4,7 @@ import { inject } from '@angular/core';
 import { tap, pipe, switchMap, catchError, EMPTY } from 'rxjs';
 import { Note } from '../models/note.model';
 import { TranscriptionService } from '../services/transcription.service';
+import { SettingsStore } from './settings.store';
 
 interface NotesState {
   notes: Note[];
@@ -18,7 +19,7 @@ const initialState: NotesState = {
 export const NotesStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withMethods((store, transcription = inject(TranscriptionService)) => ({
+  withMethods((store, transcription = inject(TranscriptionService), settings = inject(SettingsStore)) => ({
     loadNotes: rxMethod<void>(
       pipe(
         tap(() => patchState(store, { loading: true })),
@@ -54,6 +55,12 @@ export const NotesStore = signalStore(
           const notes = [...store.notes(), initialNote];
           patchState(store, { notes });
           localStorage.setItem('whisper-notes', JSON.stringify(notes));
+
+          // Track the actual model being used
+          const model = settings.model();
+          const multilingual = settings.multilingual();
+          const actualModelName = multilingual ? model : `${model}.en`;
+          settings.setLastUsedModel(actualModelName);
 
           return transcription.transcribe(file).pipe(
             tap((update) => {

@@ -44,6 +44,31 @@
             ></ion-toggle>
           </div>
         </div>
+
+        <div class="model-info">
+          <ion-item lines="none">
+            <ion-label>
+              <h3>Active Model</h3>
+              @if (lastUsedModel()) {
+              <p class="model-name">
+                {{ lastUsedModel() }}
+                @if (quantized()) {
+                <span class="quantized-label">(quantized)</span>
+                }
+              </p>
+              <p class="model-hint">Last used during transcription</p>
+              } @else {
+              <p class="model-name">
+                {{ model() }}{{ multilingual() ? '' : '.en' }}
+                @if (quantized()) {
+                <span class="quantized-label">(quantized)</span>
+                }
+              </p>
+              <p class="model-hint">Will be used on next transcription</p>
+              }
+            </ion-label>
+          </ion-item>
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -87,5 +112,27 @@
       </ion-card-content>
     </ion-card>
     }
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>Support</ion-card-subtitle>
+        <ion-card-title>Support Development</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="donation-description">
+          If you find this app useful, consider making a donation to support
+          continued development and improvements.
+        </p>
+
+        <ion-button
+          expand="block"
+          class="donation-button"
+          (click)="openDonationLink()"
+        >
+          <ion-icon slot="start" name="heart-outline"></ion-icon>
+          Donate
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
   </div>
 </ion-content>
