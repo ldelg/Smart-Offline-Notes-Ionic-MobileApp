@@ -8,14 +8,16 @@ export interface SettingsState {
   quantized: boolean;
   language: string;
   task: TranscriptionTask;
+  lastUsedModel: string | null; // Track the actual model that was last used
 }
 
 const initialState: SettingsState = {
-  model: 'Xenova/whisper-small',
+  model: 'Xenova/whisper-base',
   multilingual: false,
   quantized: true,
   language: 'english',
   task: 'transcribe',
+  lastUsedModel: null,
 };
 
 export const SettingsStore = signalStore(
@@ -37,7 +39,8 @@ export const SettingsStore = signalStore(
     setTask(task: TranscriptionTask) {
       patchState(store, { task });
     },
+    setLastUsedModel(modelName: string) {
+      patchState(store, { lastUsedModel: modelName });
+    },
   }))
 );
-
-
