@@ -115,6 +115,49 @@
 
     <ion-card class="glass-card">
       <ion-card-header>
+        <ion-card-subtitle>Data Management</ion-card-subtitle>
+        <ion-card-title>Export & Import Notes</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="data-description">
+          Export your notes as a JSON file for backup, or import notes from a
+          previous export.
+        </p>
+
+        <div class="data-actions">
+          <ion-button
+            expand="block"
+            fill="outline"
+            class="data-button"
+            (click)="exportNotes()"
+          >
+            <ion-icon slot="start" name="download-outline"></ion-icon>
+            Export Notes
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            class="data-button"
+            (click)="triggerImport()"
+          >
+            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+            Import Notes
+          </ion-button>
+        </div>
+
+        <input
+          type="file"
+          accept=".json"
+          #fileInput
+          (change)="handleFileImport($event)"
+          style="display: none"
+        />
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="glass-card">
+      <ion-card-header>
         <ion-card-subtitle>Support</ion-card-subtitle>
         <ion-card-title>Support Development</ion-card-title>
       </ion-card-header>
