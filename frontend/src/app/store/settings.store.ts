@@ -8,7 +8,7 @@ export interface SettingsState {
   quantized: boolean;
   language: string;
   task: TranscriptionTask;
-  lastUsedModel: string | null; // Track the actual model that was last used
+  lastUsedModel: string | null;
 }
 
 const initialState: SettingsState = {

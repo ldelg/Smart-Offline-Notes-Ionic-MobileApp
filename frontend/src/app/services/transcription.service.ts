@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
+import { NetworkService } from './network.service';
 
 export interface TranscriptionResult {
   text: string;
@@ -20,6 +21,7 @@ export interface TranscriptionUpdate {
 export class TranscriptionService {
   private worker?: Worker;
   private readonly settings = inject(SettingsStore);
+  private readonly networkService = inject(NetworkService);
 
   constructor() {
     if (typeof Worker !== 'undefined') {
@@ -37,16 +39,6 @@ export class TranscriptionService {
     if (!this.worker) {
       updates$.error(
         new Error('Web Workers are not supported in this browser')
-      );
-      return updates$;
-    }
-
-    // Check if online before starting transcription
-    if (!navigator.onLine) {
-      updates$.error(
-        new Error(
-          'No internet connection. Please connect to the internet to download the model. If the model is already cached, try again in a moment.'
-        )
       );
       return updates$;
     }
@@ -168,6 +160,7 @@ export class TranscriptionService {
     const quantized = this.settings.quantized();
     const language = multilingual ? this.settings.language() : null;
     const subtask = multilingual ? this.settings.task() : null;
+    const isOnline = this.networkService.getStatus();
 
     this.worker.postMessage(
       {
@@ -178,6 +171,7 @@ export class TranscriptionService {
         quantized,
         subtask,
         language,
+        isOnline,
       },
       [audio.buffer]
     );
