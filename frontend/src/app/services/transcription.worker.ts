@@ -64,7 +64,7 @@ const transcribe = async (
       p.instance = null;
     }
 
-    if (oldModel && modelChanged && 'caches' in self && isOnline) {
+    if (modelChanged && 'caches' in self && isOnline) {
       try {
         const cacheNames = await caches.keys();
         for (const cacheName of cacheNames) {

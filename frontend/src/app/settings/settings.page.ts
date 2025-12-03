@@ -5,7 +5,9 @@ import {
   ViewChild,
   ElementRef,
   effect,
+  signal,
 } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import {
   IonHeader,
   IonToolbar,
@@ -30,23 +32,24 @@ import {
   heartOutline,
   downloadOutline,
   cloudUploadOutline,
+  trashOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 import { SettingsStore } from '../store/settings.store';
 import { NotesStore } from '../store/notes.store';
 import { Note } from '../models/note.model';
 import { Browser } from '@capacitor/browser';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { Platform } from '@ionic/angular';
 import { NetworkService } from '../services/network.service';
-
-interface LanguageOption {
-  id: string;
-  label: string;
-}
-
-interface ModelOption {
-  value: string;
-  label: string;
-}
+import {
+  LanguageOption,
+  languages,
+  ModelOption,
+  modelOptions,
+} from '../models/settings.model';
 
 @Component({
   selector: 'app-settings',
@@ -72,7 +75,7 @@ interface ModelOption {
     IonIcon,
   ],
 })
-export class SettingsPage {
+export class SettingsPage implements ViewWillEnter {
   @ViewChild('fileInput', { static: false })
   fileInput!: ElementRef<HTMLInputElement>;
 
@@ -84,11 +87,28 @@ export class SettingsPage {
   private readonly STRIPE_PAYMENT_LINK_URL =
     'https://donate.stripe.com/4gweYZ26zbfY25y9AA';
 
+  readonly cacheSize = signal<string>('0 MB');
+  readonly isCalculatingCache = signal(false);
+
   constructor() {
     addIcons({
       heartOutline,
       downloadOutline,
       cloudUploadOutline,
+      trashOutline,
+      refreshOutline,
+    });
+
+    // Calculate cache size on init
+    this.calculateCacheSize();
+
+    // Recalculate cache size when model is used (cache might have grown)
+    effect(() => {
+      const lastUsed = this.settings.lastUsedModel();
+      if (lastUsed) {
+        // Debounce to avoid too many calculations
+        setTimeout(() => this.calculateCacheSize(), 2000);
+      }
     });
 
     // Watch network status and revert model when going offline
@@ -96,19 +116,40 @@ export class SettingsPage {
       const isOnline = this.networkService.isOnline();
       const lastUsed = this.settings.lastUsedModel();
       const currentModel = this.settings.model();
-      
+
       // When going offline, revert to cached model if different
       if (!isOnline && lastUsed) {
-        const baseModel = lastUsed.endsWith('.en') ? lastUsed.replace('.en', '') : lastUsed;
+        const baseModel = lastUsed.endsWith('.en')
+          ? lastUsed.replace('.en', '')
+          : lastUsed;
         const multilingual = this.settings.multilingual();
         const isDistilWhisper = currentModel.startsWith('distil-whisper/');
-        const effectiveCurrentModel = (!isDistilWhisper && !multilingual) ? `${currentModel}.en` : currentModel;
-        
+        const effectiveCurrentModel =
+          !isDistilWhisper && !multilingual
+            ? `${currentModel}.en`
+            : currentModel;
+
         if (effectiveCurrentModel !== lastUsed) {
+          // Reset model to match last used
           this.settings.setModel(baseModel);
+
+          // Reset multilingual toggle to match last used model
+          // If lastUsed ends with .en, it was non-multilingual (multilingual = false)
+          // If lastUsed doesn't end with .en and is not distil, it was multilingual (multilingual = true)
+          const isLastUsedDistil = lastUsed.startsWith('distil-whisper/');
+          const wasMultilingual =
+            !lastUsed.endsWith('.en') && !isLastUsedDistil;
+          if (this.settings.multilingual() !== wasMultilingual) {
+            this.settings.setMultilingual(wasMultilingual);
+          }
         }
       }
     });
+  }
+
+  ionViewWillEnter() {
+    // Recalculate cache size every time the page is entered
+    this.calculateCacheSize();
   }
 
   readonly model = computed(() => this.settings.model());
@@ -118,28 +159,8 @@ export class SettingsPage {
   readonly task = computed(() => this.settings.task());
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
 
-  readonly modelOptions: ModelOption[] = [
-    { value: 'Xenova/whisper-tiny', label: 'Xenova/whisper-tiny (41MB)' },
-    { value: 'Xenova/whisper-base', label: 'Xenova/whisper-base (77MB)' },
-    { value: 'Xenova/whisper-small', label: 'Xenova/whisper-small (249MB)' },
-    // { value: 'Xenova/whisper-medium', label: 'Xenova/whisper-medium (776MB)' },
-    // {
-    //   value: 'distil-whisper/distil-medium.en',
-    //   label: 'distil-whisper/distil-medium.en (402MB)',
-    // },
-    // {
-    //   value: 'distil-whisper/distil-large-v2',
-    //   label: 'distil-whisper/distil-large-v2 (767MB)',
-    // },
-  ];
-
-  readonly languages: LanguageOption[] = [
-    { id: 'english', label: 'English' },
-    { id: 'spanish', label: 'Spanish' },
-    { id: 'french', label: 'French' },
-    { id: 'german', label: 'German' },
-    { id: 'italian', label: 'Italian' },
-  ];
+  readonly modelOptions: ModelOption[] = modelOptions;
+  readonly languages: LanguageOption[] = languages;
 
   onModelChange(model: string) {
     const currentModel = this.settings.model();
@@ -150,10 +171,6 @@ export class SettingsPage {
 
   onMultilingualChange(enabled: boolean) {
     this.settings.setMultilingual(enabled);
-  }
-
-  onQuantizedChange(enabled: boolean) {
-    this.settings.setQuantized(enabled);
   }
 
   onLanguageChange(language: string) {
@@ -167,11 +184,6 @@ export class SettingsPage {
   }
 
   async openDonationLink() {
-    if (!this.STRIPE_PAYMENT_LINK_URL) {
-      await this.showDonationSetupError();
-      return;
-    }
-
     try {
       await this.openStripeUrl(this.STRIPE_PAYMENT_LINK_URL);
     } catch (error) {
@@ -190,16 +202,6 @@ export class SettingsPage {
     }
   }
 
-  private async showDonationSetupError() {
-    const alert = await this.alertController.create({
-      header: 'Donation Setup Required',
-      message:
-        'Please set your Stripe Payment Link URL in the STRIPE_PAYMENT_LINK_URL constant.',
-      buttons: ['OK'],
-    });
-    await alert.present();
-  }
-
   private async showDonationError() {
     const alert = await this.alertController.create({
       header: 'Donation Error',
@@ -210,7 +212,7 @@ export class SettingsPage {
     await alert.present();
   }
 
-  exportNotes() {
+  async exportNotes() {
     try {
       const jsonData = this.notesStore.exportNotes();
       const notes = this.notesStore.notes();
@@ -218,26 +220,84 @@ export class SettingsPage {
         new Date().toISOString().split('T')[0]
       }.json`;
 
-      // Create blob and download
+      // Try to save directly to Downloads folder on native platforms
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Try ExternalStorage with Downloads path (may work without permission on Android 10+)
+          const result = await Filesystem.writeFile({
+            path: `Download/${filename}`,
+            data: jsonData,
+            directory: Directory.ExternalStorage,
+            encoding: Encoding.UTF8,
+          });
+
+          await this.showSuccessAlert(
+            'Export Successful',
+            `File saved to Downloads folder: ${filename}`
+          );
+          return;
+        } catch (error: any) {
+          console.error('Direct save failed, trying Share:', error);
+          
+          // Fallback: Save to Cache and use Share
+          try {
+            const cacheResult = await Filesystem.writeFile({
+              path: filename,
+              data: jsonData,
+              directory: Directory.Cache,
+              encoding: Encoding.UTF8,
+            });
+
+            await Share.share({
+              title: 'SmartNotes Backup',
+              text: `Backup of ${notes.length} note${
+                notes.length !== 1 ? 's' : ''
+              }`,
+              url: cacheResult.uri,
+              dialogTitle: 'Save SmartNotes Backup',
+            });
+
+            await this.showSuccessAlert(
+              'Export Successful',
+              `Choose where to save the file from the share dialog.`
+            );
+            return;
+          } catch (shareError: any) {
+            // User cancelled share - that's fine
+            if (
+              shareError.message?.includes('cancel') ||
+              shareError.message?.includes('User')
+            ) {
+              return;
+            }
+            throw shareError;
+          }
+        }
+      }
+
+      // Fallback for web: trigger a download
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
-      this.showSuccessAlert(
+      // Wait a bit before cleaning up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      await this.showSuccessAlert(
         'Export Successful',
-        `Exported ${notes.length} note${
-          notes.length !== 1 ? 's' : ''
-        } to ${filename}`
+        `File downloaded as ${filename}. Check your Downloads folder.`
       );
     } catch (error) {
       console.error('Export error:', error);
-      this.showErrorAlert(
+      await this.showErrorAlert(
         'Export Failed',
         'There was an error exporting your notes. Please try again.'
       );
@@ -381,5 +441,91 @@ export class SettingsPage {
       buttons: ['OK'],
     });
     await alert.present();
+  }
+
+  async calculateCacheSize() {
+    this.isCalculatingCache.set(true);
+    try {
+      let totalSize = 0;
+
+      if ('caches' in self) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          const cache = await caches.open(cacheName);
+          const keys = await cache.keys();
+          for (const request of keys) {
+            const response = await cache.match(request);
+            if (response) {
+              const blob = await response.blob();
+              totalSize += blob.size;
+            }
+          }
+        }
+      }
+
+      this.cacheSize.set(this.formatBytes(totalSize));
+    } catch (error) {
+      console.error('Error calculating cache size:', error);
+      this.cacheSize.set('Unknown');
+    } finally {
+      this.isCalculatingCache.set(false);
+    }
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 MB';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  async clearCache() {
+    const alert = await this.alertController.create({
+      header: 'Clear Model Cache',
+      message: `This will delete all cached models (${this.cacheSize()}). You will need to download them again when you transcribe. Continue?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Clear Cache',
+          role: 'destructive',
+          handler: async () => {
+            await this.performCacheClear();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async performCacheClear() {
+    try {
+      if ('caches' in self) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      }
+
+      // Reset last used model since cache is cleared
+      this.settings.setLastUsedModel(null);
+
+      // Recalculate size
+      await this.calculateCacheSize();
+
+      await this.showSuccessAlert(
+        'Cache Cleared',
+        'All cached models have been deleted successfully.'
+      );
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      await this.showErrorAlert(
+        'Clear Failed',
+        'There was an error clearing the cache. Please try again.'
+      );
+    }
   }
 }

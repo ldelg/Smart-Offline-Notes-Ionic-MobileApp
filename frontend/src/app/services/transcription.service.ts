@@ -2,20 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
 import { NetworkService } from './network.service';
-
-export interface TranscriptionResult {
-  text: string;
-  language?: string;
-  duration?: number;
-}
-
-export interface TranscriptionUpdate {
-  text: string;
-  chunks?: any[];
-  isComplete: boolean;
-  language?: string;
-  duration?: number;
-}
+import { TranscriptionUpdate } from '../models/transcription.service.model';
 
 @Injectable({ providedIn: 'root' })
 export class TranscriptionService {
