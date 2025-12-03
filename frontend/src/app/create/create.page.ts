@@ -28,6 +28,8 @@ import {
   cloudUploadOutline,
   createOutline,
 } from 'ionicons/icons';
+import { NetworkService } from '../services/network.service';
+import { SettingsStore } from '../store/settings.store';
 
 @Component({
   selector: 'app-create',
@@ -56,9 +58,10 @@ import {
 })
 export class CreatePage {
   protected readonly store = inject(NotesStore);
-  private readonly fb = inject(FormBuilder);
+  private readonly networkService = inject(NetworkService);
+  private readonly settings = inject(SettingsStore);
   private readonly alertController = inject(AlertController);
-
+  private readonly fb = inject(FormBuilder);
   protected readonly isRecording = signal(false);
   protected readonly statusMessage = signal('');
 
@@ -99,11 +102,25 @@ export class CreatePage {
     });
   }
 
+  noModelDownloaded(): boolean {
+    const isOnline = this.networkService.isOnline();
+    const isModelCached = this.settings.lastUsedModel() !== null;
+    return !isOnline && !isModelCached;
+  }
+
   protected async startRecording(): Promise<void> {
     if (!navigator.mediaDevices?.getUserMedia) {
       await this.showAlert(
         'Recording Not Supported',
         'Your device does not support audio recording. Please use the upload option instead.'
+      );
+      return;
+    }
+
+    if (this.noModelDownloaded()) {
+      await this.showAlert(
+        'No Model Available Offline',
+        'You are currently offline and no model is downloaded. Please connect to the internet to download the model once'
       );
       return;
     }

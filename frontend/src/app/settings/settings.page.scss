@@ -11,7 +11,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   padding-right: 0;
 }
 
@@ -35,6 +35,16 @@ ion-item {
 ion-select {
   --placeholder-color: rgba(255, 255, 255, 0.6);
   color: #ffffff;
+}
+
+ion-card-header {
+  padding-left: 13px !important;
+  padding-bottom: 0;
+}
+
+.clear-button {
+  padding-left: 13px;
+  padding-bottom: 16px;
 }
 
 .toggles-row {
@@ -98,7 +108,7 @@ ion-label {
   font-weight: 600;
   color: #ffffff;
   margin: 8px 0;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   word-break: break-all;
 }
 

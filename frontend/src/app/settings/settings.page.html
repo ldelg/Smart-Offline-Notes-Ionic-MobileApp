@@ -14,12 +14,12 @@
       <ion-card-content>
         <ion-item lines="full">
           <ion-label position="stacked">Select the model to use</ion-label>
-              <ion-select
-                [value]="model()"
-                interface="popover"
-                [disabled]="!networkService.isOnline()"
-                (ionChange)="onModelChange($event.detail.value)"
-              >
+          <ion-select
+            [value]="model()"
+            interface="popover"
+            [disabled]="!networkService.isOnline()"
+            (ionChange)="onModelChange($event.detail.value)"
+          >
             @for (option of modelOptions; track option.value) {
             <ion-select-option [value]="option.value">
               {{ option.label }}
@@ -34,14 +34,7 @@
             <ion-toggle
               [checked]="multilingual()"
               (ionChange)="onMultilingualChange($event.detail.checked)"
-            ></ion-toggle>
-          </div>
-
-          <div class="toggle-item">
-            <ion-label>Quantized</ion-label>
-            <ion-toggle
-              [checked]="quantized()"
-              (ionChange)="onQuantizedChange($event.detail.checked)"
+              [disabled]="!networkService.isOnline()"
             ></ion-toggle>
           </div>
         </div>
@@ -51,17 +44,13 @@
             <ion-label>
               <h3>Active Model</h3>
               @if (lastUsedModel()) {
-              <p class="model-name">
-                {{ lastUsedModel() }}
-                @if (quantized()) {
-                <span class="quantized-label">(quantized)</span>
-                }
-              </p>
+              <p class="model-name">{{ lastUsedModel() }}</p>
+              <span class="quantized-label">(quantized)</span>
               <p class="model-hint">Last used during transcription</p>
               } @else {
               <p class="model-name">
-                {{ model() }}{{ multilingual() ? '' : '.en' }}
-                @if (quantized()) {
+                {{ model() }}{{ multilingual() ? '' : '.en' }} @if (quantized())
+                {
                 <span class="quantized-label">(quantized)</span>
                 }
               </p>
@@ -125,6 +114,31 @@
           }
         </ion-card-title>
       </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label>
+            <h3>Model Cache</h3>
+            <p>
+              @if (isCalculatingCache()) {
+              <span>Calculating...</span>
+              } @else {
+              <span>{{ cacheSize() }}</span>
+              }
+            </p>
+          </ion-label>
+        </ion-item>
+        <ion-button
+          class="clear-button"
+          expand="block"
+          fill="outline"
+          color="danger"
+          (click)="clearCache()"
+          [disabled]="isCalculatingCache() || cacheSize() === '0 MB'"
+        >
+          <ion-icon slot="start" name="trash-outline"></ion-icon>
+          Clear Model Cache
+        </ion-button>
+      </ion-card-content>
     </ion-card>
 
     <ion-card class="glass-card">
