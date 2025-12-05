@@ -1,0 +1,2 @@
+Speech-to-notes app with offline AI transcription - download models once, use forever offline
+

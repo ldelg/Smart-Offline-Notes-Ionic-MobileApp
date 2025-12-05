@@ -45,12 +45,8 @@ const transcribe = async (
   language: string | null,
   isOnline: boolean = true
 ) => {
-  const isDistilWhisper = model.startsWith('distil-whisper/');
-
-  let modelName = model;
-  if (!isDistilWhisper && !multilingual) {
-    modelName += '.en';
-  }
+  // Use model name as-is from dropdown (no appending .en)
+  const modelName = model;
 
   const p = AutomaticSpeechRecognitionPipelineFactory;
   const oldModel = p.model;
@@ -128,6 +124,7 @@ const transcribe = async (
   }
 
   // include language and task parameters (even if null)
+  const isDistilWhisper = modelName.startsWith('distil-whisper/');
   const output = await transcriber(audio, {
     top_k: 0,
     do_sample: false,
