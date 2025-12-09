@@ -144,10 +144,10 @@ export class TranscriptionService {
 
     const model = this.settings.model();
     const multilingual = this.settings.multilingual();
-    const quantized = this.settings.quantized();
     const language = multilingual ? this.settings.language() : null;
     const subtask = multilingual ? this.settings.task() : null;
     const isOnline = this.networkService.getStatus();
+    const lastUsedModel = this.settings.lastUsedModel();
 
     this.worker.postMessage(
       {
@@ -155,10 +155,10 @@ export class TranscriptionService {
         audio,
         model,
         multilingual,
-        quantized,
         subtask,
         language,
         isOnline,
+        lastUsedModel,
       },
       [audio.buffer]
     );

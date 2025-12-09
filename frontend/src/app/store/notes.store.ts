@@ -61,9 +61,7 @@ export const NotesStore = signalStore(
             patchState(store, { notes });
             localStorage.setItem('whisper-notes', JSON.stringify(notes));
 
-            // Track the actual model being used (use model as-is from dropdown)
             const model = settings.model();
-            settings.setLastUsedModel(model);
 
             return transcription.transcribe(file).pipe(
               tap((update) => {
@@ -90,6 +88,7 @@ export const NotesStore = signalStore(
 
                 if (update.isComplete) {
                   patchState(store, { loading: false });
+                  settings.setLastUsedModel(model);
                 }
               }),
               catchError((error) => {
