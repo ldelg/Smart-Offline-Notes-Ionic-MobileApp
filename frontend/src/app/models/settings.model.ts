@@ -26,18 +26,34 @@ export interface ModelOption {
 }
 
 export const modelOptions: ModelOption[] = [
-  { value: 'Xenova/whisper-tiny', label: 'Xenova/whisper-tiny (41MB)' },
-  { value: 'Xenova/whisper-base', label: 'Xenova/whisper-base (77MB)' },
-  { value: 'Xenova/whisper-small', label: 'Xenova/whisper-small (249MB)' },
-  // { value: 'Xenova/whisper-medium', label: 'Xenova/whisper-medium (776MB)' },
-  // {
-  //   value: 'distil-whisper/distil-medium.en',
-  //   label: 'distil-whisper/distil-medium.en (402MB)',
-  // },
-  // {
-  //   value: 'distil-whisper/distil-large-v2',
-  //   label: 'distil-whisper/distil-large-v2 (767MB)',
-  // },
+  {
+    value: 'Xenova/whisper-tiny',
+    label: 'Xenova/whisper-tiny (41MB, multilingual)',
+  },
+  {
+    value: 'Xenova/whisper-base',
+    label: 'Xenova/whisper-base (77MB, multilingual)',
+  },
+  {
+    value: 'Xenova/whisper-small',
+    label: 'Xenova/whisper-small (249MB, multilingual)',
+  },
+  {
+    value: 'Xenova/whisper-tiny.en',
+    label: 'Xenova/whisper-tiny.en (41MB, English only)',
+  },
+  {
+    value: 'Xenova/whisper-base.en',
+    label: 'Xenova/whisper-base.en (77MB, English only)',
+  },
+  {
+    value: 'distil-whisper/distil-small.en',
+    label: 'distil-whisper/distil-small.en (~125MB, 6x faster, English only)',
+  },
+  {
+    value: 'distil-whisper/distil-medium.en',
+    label: 'distil-whisper/distil-medium.en (402MB, English only)',
+  },
 ];
 
 export const languages: LanguageOption[] = [
