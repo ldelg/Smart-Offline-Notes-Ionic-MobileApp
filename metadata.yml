@@ -1,0 +1,78 @@
+Categories:
+  - Productivity
+License: MIT
+Name: Smart Offline Notes
+Summary: Speech-to-notes app with offline AI transcription - download models once, use forever offline
+Description: |
+  Smart Offline Notes is a powerful speech-to-notes application that converts your voice recordings into text using advanced AI models running entirely on your device. After an initial one-time download, the app works completely offline, ensuring your data never leaves your phone and your privacy is protected.
+
+  Search Keywords: offline notes, AI notes, speech to text, voice transcription, offline AI, local AI, privacy notes, voice notes, audio transcription, offline transcription, speech recognition, voice recorder, note taking, AI transcription, offline speech recognition
+
+  Key Features:
+  • Speech-to-Text Transcription: Record audio and get instant, accurate transcriptions using local AI models
+  • Offline Operation: Download AI models once with an internet connection, then use the app completely offline
+  • Model Management: Select from multiple AI models to download, view cache size, and manage storage in settings
+  • Text Notes: Create and edit notes directly with text input
+  • Translation: Translate your notes to different languages
+  • Import/Export: Import and export your notes for backup or sharing
+  • Privacy-First: All processing happens locally on your device - no data is sent to external servers
+  • Storage Management: Monitor and control cache size to optimize device storage
+
+  Perfect for students, professionals, journalists, and anyone who needs to quickly convert speech to text while maintaining complete privacy and offline functionality.
+AuthorName: ldelg
+AuthorEmail:
+AuthorWebSite: https://github.com/ldelg
+SourceCode: https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp
+IssueTracker: https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/issues
+Changelog: https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases
+Translation:
+Donate: https://donate.stripe.com/4gweYZ26zbfY25y9AA
+Bitcoin: bc1q6t4yj7ks59dq8r45t3gjrdk7t3n73qxnw2c860
+FlattrID:
+LiberapayID:
+OpenCollective:
+Repo: https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp
+RepoType: git
+Builds:
+  - versionName: "1.0"
+    versionCode: 1
+    commit: v1.0
+    subdir: frontend
+    gradle:
+      - yes
+    prebuild: |
+      npm ci
+      npm run build
+      npx cap sync android
+    build: |
+      cd android
+      ./gradlew assembleRelease
+    output: android/app/build/outputs/apk/release/app-release-unsigned.apk
+    srclibs:
+      - name: Capacitor
+        version: 7.4.4
+        url: https://github.com/ionic-team/capacitor
+      - name: Ionic Angular
+        version: 8.0.0
+        url: https://github.com/ionic-team/ionic-framework
+      - name: Angular
+        version: 20.0.0
+        url: https://github.com/angular/angular
+      - name: Transformers.js
+        version: 2.7.0
+        url: https://github.com/xenova/transformers.js
+    rm:
+      - node_modules
+      - www
+    scanignore:
+      - node_modules
+      - www
+      - .angular
+      - android/.gradle
+      - android/app/build
+      - android/build
+      - android/capacitor-cordova-android-plugins/build
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: "1.0"
+CurrentVersionCode: 1

@@ -28,6 +28,7 @@
           </ion-select>
         </ion-item>
 
+        @if (isMultilingualModel()) {
         <div class="toggles-row">
           <div class="toggle-item">
             <ion-label>Multilingual</ion-label>
@@ -38,22 +39,17 @@
             ></ion-toggle>
           </div>
         </div>
+        }
 
         <div class="model-info">
           <ion-item lines="none">
             <ion-label>
               <h3>Active Model</h3>
               @if (lastUsedModel()) {
-              <p class="model-name">{{ lastUsedModel() }}</p>
-              <span class="quantized-label">(quantized)</span>
+              <p class="model-name">{{ lastUsedModelLabel() }}</p>
               <p class="model-hint">Last used during transcription</p>
               } @else {
-              <p class="model-name">
-                {{ model() }}{{ multilingual() ? '' : '.en' }} @if (quantized())
-                {
-                <span class="quantized-label">(quantized)</span>
-                }
-              </p>
+              <p class="model-name">{{ currentModelLabel() }}</p>
               <p class="model-hint">Will be used on next transcription</p>
               }
             </ion-label>

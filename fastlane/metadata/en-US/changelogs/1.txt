@@ -1,0 +1,11 @@
+Initial release of Smart Offline Notes.
+
+Features:
+- Speech-to-text transcription using local AI models
+- Complete offline operation after initial model download
+- Multiple AI model options (tiny, base, small, distil variants)
+- Multilingual support
+- Text note creation and editing
+- Import/Export functionality
+- Privacy-first: all processing happens on-device
+
