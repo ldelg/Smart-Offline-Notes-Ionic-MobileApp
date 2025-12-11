@@ -2,7 +2,7 @@ Categories:
   - Productivity
 License: MIT
 Name: Smart Offline Notes
-Summary: Speech-to-notes app with offline AI transcription - download models once, use forever offline
+Summary: Offline speech-to-notes with AI. Download models once, use forever.
 Description: |
   Smart Offline Notes is a powerful speech-to-notes application that converts your voice recordings into text using advanced AI models running entirely on your device. After an initial one-time download, the app works completely offline, ensuring your data never leaves your phone and your privacy is protected.
 
