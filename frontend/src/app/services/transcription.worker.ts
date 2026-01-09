@@ -10,16 +10,15 @@ if (typeof self !== 'undefined' && env.backends?.onnx) {
 class PipelineFactory {
   static task: string | null = null;
   static model: string | null = null;
-  static quantized: boolean | null = null;
   static instance: any = null;
 
   static async getInstance(progress_callback: any = null) {
     if (this.instance === null) {
-      if (!this.task || !this.model || this.quantized === null) {
-        throw new Error('Pipeline task, model, and quantized must be set');
+      if (!this.task || !this.model) {
+        throw new Error('Pipeline task and model must be set');
       }
       this.instance = pipeline(this.task as any, this.model, {
-        quantized: this.quantized,
+        quantized: true,
         progress_callback,
         revision: this.model.includes('/whisper-medium')
           ? 'no_attentions'
@@ -33,51 +32,44 @@ class PipelineFactory {
 class AutomaticSpeechRecognitionPipelineFactory extends PipelineFactory {
   static override task: string = 'automatic-speech-recognition';
   static override model: string | null = null;
-  static override quantized: boolean | null = null;
 }
 
 const transcribe = async (
   audio: Float32Array,
   model: string,
   multilingual: boolean,
-  quantized: boolean,
   subtask: string | null,
   language: string | null,
-  isOnline: boolean = true
+  isOnline: boolean = true,
+  lastUsedModel: string | null = null
 ) => {
-  const isDistilWhisper = model.startsWith('distil-whisper/');
-
-  let modelName = model;
-  if (!isDistilWhisper && !multilingual) {
-    modelName += '.en';
-  }
+  const modelName = model;
 
   const p = AutomaticSpeechRecognitionPipelineFactory;
-  const oldModel = p.model;
-  const modelChanged = p.model !== modelName;
-  const quantizedChanged = p.quantized !== quantized;
+  const modelChanged = p.model !== null && p.model !== modelName;
 
-  if (modelChanged || quantizedChanged) {
+  if (modelChanged) {
     if (p.instance !== null) {
       const oldInstance = await p.getInstance();
       await oldInstance.dispose();
       p.instance = null;
     }
-
-    if (modelChanged && 'caches' in self && isOnline) {
-      try {
-        const cacheNames = await caches.keys();
-        for (const cacheName of cacheNames) {
-          await caches.delete(cacheName);
-        }
-      } catch (error) {
-        console.warn('Failed to clear cache:', error);
-      }
-    }
-
-    p.model = modelName;
-    p.quantized = quantized;
   }
+
+  const switchingToDifferentModel =
+    lastUsedModel !== null && lastUsedModel !== modelName;
+  if (switchingToDifferentModel && 'caches' in self && isOnline) {
+    try {
+      const cacheNames = await caches.keys();
+      for (const cacheName of cacheNames) {
+        await caches.delete(cacheName);
+      }
+    } catch (error) {
+      console.warn('Failed to clear cache:', error);
+    }
+  }
+
+  p.model = modelName;
 
   const transcriber = await p.getInstance((data: any) => {
     self.postMessage(data);
@@ -127,7 +119,7 @@ const transcribe = async (
     });
   }
 
-  // include language and task parameters (even if null)
+  const isDistilWhisper = modelName.startsWith('distil-whisper/');
   const output = await transcriber(audio, {
     top_k: 0,
     do_sample: false,
@@ -160,19 +152,19 @@ self.addEventListener('message', async (event) => {
         audio,
         model,
         multilingual,
-        quantized,
         subtask,
         language,
         isOnline,
+        lastUsedModel,
       } = message;
       const transcript = await transcribe(
         audio,
         model,
         multilingual,
-        quantized,
         subtask,
         language,
-        isOnline
+        isOnline,
+        lastUsedModel
       );
 
       if (transcript === null) return;
