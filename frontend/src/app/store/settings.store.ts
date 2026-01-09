@@ -10,10 +10,7 @@ const loadSettings = (): Partial<SettingsState> => {
     const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as SettingsState;
-      if (parsed.lastUsedModel) {
-        const baseModel = parsed.lastUsedModel.replace('.en', '');
-        return { ...parsed, model: baseModel };
-      }
+      // Model name is used as-is from dropdown (no appending)
       return parsed;
     }
   } catch (e) {

@@ -118,31 +118,9 @@ export class SettingsPage implements ViewWillEnter {
       const currentModel = this.settings.model();
 
       // When going offline, revert to cached model if different
-      if (!isOnline && lastUsed) {
-        const baseModel = lastUsed.endsWith('.en')
-          ? lastUsed.replace('.en', '')
-          : lastUsed;
-        const multilingual = this.settings.multilingual();
-        const isDistilWhisper = currentModel.startsWith('distil-whisper/');
-        const effectiveCurrentModel =
-          !isDistilWhisper && !multilingual
-            ? `${currentModel}.en`
-            : currentModel;
-
-        if (effectiveCurrentModel !== lastUsed) {
-          // Reset model to match last used
-          this.settings.setModel(baseModel);
-
-          // Reset multilingual toggle to match last used model
-          // If lastUsed ends with .en, it was non-multilingual (multilingual = false)
-          // If lastUsed doesn't end with .en and is not distil, it was multilingual (multilingual = true)
-          const isLastUsedDistil = lastUsed.startsWith('distil-whisper/');
-          const wasMultilingual =
-            !lastUsed.endsWith('.en') && !isLastUsedDistil;
-          if (this.settings.multilingual() !== wasMultilingual) {
-            this.settings.setMultilingual(wasMultilingual);
-          }
-        }
+      if (!isOnline && lastUsed && currentModel !== lastUsed) {
+        // Use lastUsed model as-is (it's the exact model name from dropdown)
+        this.settings.setModel(lastUsed);
       }
     });
   }
@@ -162,10 +140,40 @@ export class SettingsPage implements ViewWillEnter {
   readonly modelOptions: ModelOption[] = modelOptions;
   readonly languages: LanguageOption[] = languages;
 
+  // Get the label for lastUsedModel
+  readonly lastUsedModelLabel = computed(() => {
+    const lastUsed = this.lastUsedModel();
+    if (!lastUsed) return '';
+    const option = modelOptions.find((opt) => opt.value === lastUsed);
+    return option ? option.label : lastUsed;
+  });
+
+  // Get the label for current model
+  readonly currentModelLabel = computed(() => {
+    const current = this.model();
+    if (!current) return '';
+    const option = modelOptions.find((opt) => opt.value === current);
+    return option ? option.label : current;
+  });
+
+  // Helper to check if a model supports multilingual
+  private isModelMultilingual(model: string): boolean {
+    return !model.endsWith('.en') && !model.startsWith('distil-whisper/');
+  }
+
+  // Check if current model supports multilingual (not .en models or distil)
+  readonly isMultilingualModel = computed(() => {
+    return this.isModelMultilingual(this.model());
+  });
+
   onModelChange(model: string) {
     const currentModel = this.settings.model();
     if (model !== currentModel) {
       this.settings.setModel(model);
+      // If switching to a non-multilingual model, disable multilingual
+      if (!this.isModelMultilingual(model)) {
+        this.settings.setMultilingual(false);
+      }
     }
   }
 
@@ -238,7 +246,7 @@ export class SettingsPage implements ViewWillEnter {
           return;
         } catch (error: any) {
           console.error('Direct save failed, trying Share:', error);
-          
+
           // Fallback: Save to Cache and use Share
           try {
             const cacheResult = await Filesystem.writeFile({

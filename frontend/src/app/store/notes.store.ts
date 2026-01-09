@@ -61,13 +61,7 @@ export const NotesStore = signalStore(
             patchState(store, { notes });
             localStorage.setItem('whisper-notes', JSON.stringify(notes));
 
-            // Track the actual model being used
             const model = settings.model();
-            const multilingual = settings.multilingual();
-            const isDistilWhisper = model.startsWith('distil-whisper/');
-            const actualModelName =
-              !isDistilWhisper && !multilingual ? `${model}.en` : model;
-            settings.setLastUsedModel(actualModelName);
 
             return transcription.transcribe(file).pipe(
               tap((update) => {
@@ -94,6 +88,7 @@ export const NotesStore = signalStore(
 
                 if (update.isComplete) {
                   patchState(store, { loading: false });
+                  settings.setLastUsedModel(model);
                 }
               }),
               catchError((error) => {
