@@ -176,6 +176,17 @@ ion-searchbar {
   overflow: hidden;
 }
 
+.note-item ion-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
 .note-meta {
   color: #a7a7a7;
   font-size: 0.9rem;
@@ -186,6 +197,7 @@ ion-searchbar {
   flex-direction: column;
   gap: 0.35rem;
   margin-left: 15px;
+  flex-shrink: 0;
 }
 
 .note-actions ion-button:hover {
