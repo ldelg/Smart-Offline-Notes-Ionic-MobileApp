@@ -241,7 +241,7 @@ export class SettingsPage implements ViewWillEnter {
 
           await this.showSuccessAlert(
             'Export Successful',
-            `File saved to Downloads folder: ${filename}`
+            `File saved to Downloads folder: ${filename}`,
           );
           return;
         } catch (error: any) {
@@ -267,7 +267,7 @@ export class SettingsPage implements ViewWillEnter {
 
             await this.showSuccessAlert(
               'Export Successful',
-              `Choose where to save the file from the share dialog.`
+              `Choose where to save the file from the share dialog.`,
             );
             return;
           } catch (shareError: any) {
@@ -301,13 +301,13 @@ export class SettingsPage implements ViewWillEnter {
 
       await this.showSuccessAlert(
         'Export Successful',
-        `File downloaded as ${filename}. Check your Downloads folder.`
+        `File downloaded as ${filename}. Check your Downloads folder.`,
       );
     } catch (error) {
       console.error('Export error:', error);
       await this.showErrorAlert(
         'Export Failed',
-        'There was an error exporting your notes. Please try again.'
+        'There was an error exporting your notes. Please try again.',
       );
     }
   }
@@ -337,7 +337,7 @@ export class SettingsPage implements ViewWillEnter {
       if (!this.validateImportData(data)) {
         await this.showErrorAlert(
           'Invalid File',
-          'The selected file is not a valid SmartNotes backup file.'
+          'The selected file is not a valid SmartNotes backup file.',
         );
         return;
       }
@@ -382,7 +382,7 @@ export class SettingsPage implements ViewWillEnter {
       console.error('Import error:', error);
       await this.showErrorAlert(
         'Import Failed',
-        'There was an error reading the file. Please make sure it is a valid JSON file.'
+        'There was an error reading the file. Please make sure it is a valid JSON file.',
       );
     }
   }
@@ -422,13 +422,13 @@ export class SettingsPage implements ViewWillEnter {
           notes.length !== 1 ? 's' : ''
         }. You now have ${finalCount} note${
           finalCount !== 1 ? 's' : ''
-        } in total.`
+        } in total.`,
       );
     } catch (error) {
       console.error('Import error:', error);
       this.showErrorAlert(
         'Import Failed',
-        'There was an error importing the notes. Please try again.'
+        'There was an error importing the notes. Please try again.',
       );
     }
   }
@@ -526,13 +526,13 @@ export class SettingsPage implements ViewWillEnter {
 
       await this.showSuccessAlert(
         'Cache Cleared',
-        'All cached models have been deleted successfully.'
+        'All cached models have been deleted successfully.',
       );
     } catch (error) {
       console.error('Error clearing cache:', error);
       await this.showErrorAlert(
         'Clear Failed',
-        'There was an error clearing the cache. Please try again.'
+        'There was an error clearing the cache. Please try again.',
       );
     }
   }

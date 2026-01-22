@@ -7,15 +7,13 @@ import {
   IonButton,
   IonIcon,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
   IonCardContent,
   IonItem,
   IonInput,
   IonTextarea,
   IonSpinner,
   IonText,
+  IonToggle,
   AlertController,
 } from '@ionic/angular/standalone';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,6 +28,7 @@ import {
 } from 'ionicons/icons';
 import { NetworkService } from '../services/network.service';
 import { SettingsStore } from '../store/settings.store';
+import { TranscriptionService } from '../services/transcription.service';
 
 @Component({
   selector: 'app-create',
@@ -44,15 +43,13 @@ import { SettingsStore } from '../store/settings.store';
     IonButton,
     IonIcon,
     IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
     IonCardContent,
     IonItem,
     IonInput,
     IonTextarea,
     IonSpinner,
     IonText,
+    IonToggle,
     ReactiveFormsModule,
   ],
 })
@@ -60,10 +57,12 @@ export class CreatePage {
   protected readonly store = inject(NotesStore);
   private readonly networkService = inject(NetworkService);
   private readonly settings = inject(SettingsStore);
+  private readonly transcriptionService = inject(TranscriptionService);
   private readonly alertController = inject(AlertController);
   private readonly fb = inject(FormBuilder);
   protected readonly isRecording = signal(false);
   protected readonly statusMessage = signal('');
+  protected readonly isManualEntry = signal(false);
 
   protected readonly noteForm = this.fb.group({
     title: [''],
@@ -229,5 +228,19 @@ export class CreatePage {
       cssClass: 'error-alert',
     });
     await alert.present();
+  }
+
+  protected modelStatusLine(): string {
+    const service = this.transcriptionService as any;
+    const status = service.modelStatus?.();
+    if (status) return status;
+    return `Model: ${this.settings.model()}`;
+  }
+
+  protected modelProgressLabel(): string | null {
+    const service = this.transcriptionService as any;
+    const progress = service.modelProgress?.();
+    if (typeof progress !== 'number') return null;
+    return `${Math.round(progress)}%`;
   }
 }

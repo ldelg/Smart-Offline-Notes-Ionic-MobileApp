@@ -21,29 +21,194 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
 }
 
-.controls {
+.record-card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 34px;
+}
+
+.waveform .bar {
+  width: 4px;
+  border-radius: 999px;
+  background: rgba(118, 214, 255, 0.9);
+  height: 12px;
+  opacity: 0.8;
+}
+
+.waveform--active .bar {
+  animation: waveform-pulse 1.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.waveform--active .bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.waveform--active .bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.waveform--active .bar:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.waveform--active .bar:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.waveform--active .bar:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
+.waveform--active .bar:nth-child(7) {
+  animation-delay: 0.6s;
+}
+
+.waveform--active .bar:nth-child(8) {
+  animation-delay: 0.7s;
+}
+
+.waveform--active .bar:nth-child(9) {
+  animation-delay: 0.6s;
+}
+
+.waveform--active .bar:nth-child(10) {
+  animation-delay: 0.5s;
+}
+
+.waveform--active .bar:nth-child(11) {
+  animation-delay: 0.4s;
+}
+
+.waveform--active .bar:nth-child(12) {
+  animation-delay: 0.3s;
+}
+
+.waveform--active .bar:nth-child(13) {
+  animation-delay: 0.2s;
+}
+
+.waveform--active .bar:nth-child(14) {
+  animation-delay: 0.1s;
+}
+
+@keyframes waveform-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waveform--active .bar {
+    animation: none;
+  }
+}
+
+.waveform .bar:nth-child(2),
+.waveform .bar:nth-child(14) {
+  height: 16px;
+}
+
+.waveform .bar:nth-child(3),
+.waveform .bar:nth-child(13) {
+  height: 20px;
+}
+
+.waveform .bar:nth-child(4),
+.waveform .bar:nth-child(12) {
+  height: 26px;
+}
+
+.waveform .bar:nth-child(5),
+.waveform .bar:nth-child(11) {
+  height: 30px;
+}
+
+.waveform .bar:nth-child(6),
+.waveform .bar:nth-child(10) {
+  height: 24px;
+}
+
+.waveform .bar:nth-child(7),
+.waveform .bar:nth-child(9) {
+  height: 18px;
+}
+
+.record-button {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid rgba(118, 214, 255, 0.8);
+  background: rgba(8, 8, 8, 0.6);
+  display: grid;
+  place-items: center;
+  color: #7ad8ff;
+  font-size: 42px;
+  box-shadow: 0 0 0 8px rgba(122, 216, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.record-button ion-icon {
+  font-size: 40px;
+}
+
+.record-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 0 12px rgba(122, 216, 255, 0.18);
+}
+
+.instruction-pill {
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.upload-panel {
+  width: 100%;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
 }
 
 .upload-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  width: 100%;
+  text-align: center;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: rgba(18, 18, 18, 0.8);
+  color: #7ad8ff;
+  font-weight: 600;
+  border: 1px solid rgba(122, 216, 255, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(18, 18, 18, 0.65);
 }
 
 .upload-label:hover {
-  border-color: #0a84ff;
-  background: rgba(10, 132, 255, 0.12);
+  background: rgba(122, 216, 255, 0.1);
+}
+
+.upload-caption {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
 }
 
 #audioInput {
@@ -59,20 +224,42 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: 1rem 0 0;
   color: rgba(255, 255, 255, 0.85);
 }
 
-ion-button {
-  --border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  --background: #0a84ff;
+.processing-meta {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-ion-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+.processing-meta__progress {
+  color: rgba(122, 216, 255, 0.8);
+  font-weight: 600;
+}
+
+.manual-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.manual-title {
+  font-size: 1rem;
+}
+
+.manual-form {
+  margin-top: 0.5rem;
 }
 
 .create-content ion-item {
@@ -96,13 +283,9 @@ ion-button:hover {
 }
 
 .create-card-content {
-  padding: 5px;
-}
-
-.create-card-header {
-  margin: 0 2px;
+  padding: 12px 16px 18px;
 }
 
 .create-button {
-  margin: 15px;
+  margin: 15px 0 0;
 }

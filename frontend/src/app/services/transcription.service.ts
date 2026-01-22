@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
 import { NetworkService } from './network.service';
@@ -9,6 +9,8 @@ export class TranscriptionService {
   private worker?: Worker;
   private readonly settings = inject(SettingsStore);
   private readonly networkService = inject(NetworkService);
+  readonly modelStatus = signal<string | null>(null);
+  readonly modelProgress = signal<number | null>(null);
 
   constructor() {
     if (typeof Worker !== 'undefined') {
@@ -67,7 +69,12 @@ export class TranscriptionService {
     console.log(`Transcribing ${audioDuration.toFixed(1)}s of audio`);
 
     const messageHandler = (event: MessageEvent) => {
-      const { status, data, error } = event.data;
+      const payload = event.data;
+      const { status, data, error } = payload || {};
+
+      if (this.handleModelProgress(payload)) {
+        return;
+      }
 
       if (status === 'update') {
         const updateData = data as [string, { chunks: any[] }];
@@ -162,5 +169,39 @@ export class TranscriptionService {
       },
       [audio.buffer]
     );
+  }
+
+  private handleModelProgress(payload: any): boolean {
+    if (!payload) return false;
+    const status = payload.status;
+    const isTranscriptionEvent =
+      status === 'update' || status === 'complete' || status === 'error';
+    if (isTranscriptionEvent) return false;
+
+    const hasProgress = typeof payload.progress === 'number';
+    if (!status && !hasProgress) return false;
+
+    const message = this.formatModelStatus(payload);
+    if (message) {
+      this.modelStatus.set(message);
+    }
+    this.modelProgress.set(hasProgress ? payload.progress : null);
+    return true;
+  }
+
+  private formatModelStatus(payload: any): string | null {
+    const status = payload.status;
+    const file = this.formatModelFile(payload.file || payload.name);
+    if (status && file) return `${status}: ${file}`;
+    if (status) return String(status);
+    if (file) return `Loading model: ${file}`;
+    return null;
+  }
+
+  private formatModelFile(value: any): string | null {
+    if (!value || typeof value !== 'string') return null;
+    const parts = value.split('/');
+    const file = parts[parts.length - 1] || value;
+    return file.length > 40 ? `…${file.slice(-40)}` : file;
   }
 }
