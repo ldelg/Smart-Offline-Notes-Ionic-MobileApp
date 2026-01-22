@@ -7,61 +7,87 @@
 <ion-content class="create-content">
   <div class="content-wrapper">
     <ion-card class="glass-card">
-      <ion-card-header class="create-card-header">
-        <ion-card-subtitle>Audio Capture</ion-card-subtitle>
-        <ion-card-title>Record or Upload</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="controls">
-          <ion-button
-            expand="block"
-            color="primary"
-            (click)="startRecording()"
-            [disabled]="isRecording()"
+      <ion-card-content class="record-card">
+        <div class="waveform" [class.waveform--active]="isRecording()">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+
+        <button
+          class="record-button"
+          type="button"
+          (click)="isRecording() ? stopRecording() : startRecording()"
+          [attr.aria-pressed]="isRecording()"
+        >
+          <ion-icon
+            [name]="isRecording() ? 'stop-circle-outline' : 'mic-outline'"
+          ></ion-icon>
+        </button>
+
+        <div class="instruction-pill">
+          {{ isRecording() ? 'Recording... Tap to stop' : 'Tap the record button
+          to start recording.' }}
+        </div>
+
+        <div class="upload-panel">
+          <label class="upload-label" for="audioInput"> Upload </label>
+          <div class="upload-caption">Upload an audio file</div>
+        </div>
+
+        <input
+          id="audioInput"
+          type="file"
+          accept="audio/*,video/mp4,video/webm"
+          (change)="handleUpload($event)"
+          aria-label="Upload audio file"
+        />
+
+        @if (store.loading()) {
+        <div class="processing">
+          <ion-spinner name="lines"></ion-spinner>
+          <ion-text>Transcribing...</ion-text>
+        </div>
+        <div class="processing-meta">
+          <span>{{ modelStatusLine() }}</span>
+          @if (modelProgressLabel()) {
+          <span class="processing-meta__progress"
+            >{{ modelProgressLabel() }}</span
           >
-            <ion-icon slot="start" name="mic-outline"></ion-icon>
-            Start Recording
-          </ion-button>
-
-          <ion-button
-            expand="block"
-            color="danger"
-            (click)="stopRecording()"
-            [disabled]="!isRecording()"
-          >
-            <ion-icon slot="start" name="stop-circle-outline"></ion-icon>
-            Stop Recording
-          </ion-button>
-
-          <label class="upload-label" for="audioInput">
-            <ion-icon name="cloud-upload-outline"></ion-icon>
-            Upload Audio (WAV/MP3/MP4)
-          </label>
-          <input
-            id="audioInput"
-            type="file"
-            accept="audio/*,video/mp4,video/webm"
-            (change)="handleUpload($event)"
-            aria-label="Upload audio file"
-          />
-
-          @if (store.loading()) {
-          <div class="processing">
-            <ion-spinner name="lines"></ion-spinner>
-            <ion-text>Transcribing...</ion-text>
-          </div>
           }
         </div>
+        }
       </ion-card-content>
     </ion-card>
 
     <ion-card class="glass-card">
-      <ion-card-header class="create-card-header">
-        <ion-card-subtitle>Manual Entry</ion-card-subtitle>
-        <ion-card-title>Type a Note</ion-card-title>
-      </ion-card-header>
       <ion-card-content class="create-card-content">
-        <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
+        <div class="manual-toggle">
+          <div class="manual-title">Manual Entry</div>
+          <ion-toggle
+            [checked]="isManualEntry()"
+            (ionChange)="isManualEntry.set($event.detail.checked)"
+          ></ion-toggle>
+        </div>
+
+        @if (isManualEntry()) {
+        <form
+          [formGroup]="noteForm"
+          (ngSubmit)="saveNote()"
+          class="manual-form"
+        >
           <ion-item lines="none">
             <ion-input
               formControlName="title"
@@ -90,6 +116,7 @@
             Save Note
           </ion-button>
         </form>
+        }
       </ion-card-content>
     </ion-card>
   </div>
