@@ -19,12 +19,9 @@ log.txt
 
 # Ionic
 /.ionic
-/www
-/platforms
-/plugins
+/node_modules
 
 # Compiled output
-/dist
 /tmp
 /out-tsc
 /bazel-out
