@@ -20,7 +20,7 @@ const loadSettings = (): Partial<SettingsState> => {
 };
 
 const initialState: SettingsState = {
-  model: 'Xenova/whisper-base',
+  model: 'Xenova/whisper-tiny',
   multilingual: false,
   quantized: true,
   language: 'english',
