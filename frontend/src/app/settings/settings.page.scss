@@ -37,9 +37,21 @@ ion-select {
   color: #ffffff;
 }
 
+ion-select-option {
+  --color: #ffffff;
+}
+
 ion-card-header {
   padding-left: 13px !important;
   padding-bottom: 0;
+}
+
+ion-card-title {
+  color: #ffffff !important;
+}
+
+ion-card-subtitle {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .clear-button {
@@ -81,6 +93,7 @@ ion-item {
 
 ion-label {
   font-size: 15px !important;
+  color: #ffffff !important;
 }
 
 .model-info {
