@@ -1,0 +1,181 @@
+{
+  "languages": {
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés",
+    "de": "Alemán",
+    "it": "Italiano"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "model": {
+      "subtitle": "Modelo",
+      "title": "Motor de transcripción",
+      "selectModel": "Seleccione el modelo a usar",
+      "multilingual": "Multilingüe",
+      "activeModel": "Modelo activo",
+      "lastUsedHint": "Usado por última vez durante la transcripción",
+      "willBeUsedHint": "Se usará en la próxima transcripción"
+    },
+    "interface": {
+      "subtitle": "Interfaz",
+      "title": "Idioma de la app",
+      "select": "Seleccione el idioma de la app"
+    },
+    "transcription": {
+      "subtitle": "Idioma y tarea",
+      "title": "Modo de transcripción",
+      "selectSource": "Seleccione el idioma de origen",
+      "selectTask": "Seleccione la tarea a realizar",
+      "transcribe": "Transcribir",
+      "translate": "Traducir al inglés"
+    },
+    "network": {
+      "subtitle": "Estado de la red",
+      "online": "En línea",
+      "offline": "Sin conexión",
+      "modelCache": "Caché del modelo",
+      "calculating": "Calculando...",
+      "clearCache": "Borrar caché de modelos"
+    },
+    "data": {
+      "subtitle": "Gestión de datos",
+      "title": "Exportar e importar notas",
+      "description": "Exporte sus notas como un archivo JSON para respaldo, o importe notas desde una exportación previa.",
+      "export": "Exportar notas",
+      "import": "Importar notas"
+    },
+    "support": {
+      "subtitle": "Soporte",
+      "title": "Apoyar el desarrollo",
+      "description": "Si encuentra útil esta app, considere hacer una donación para apoyar el desarrollo y las mejoras.",
+      "donate": "Donar"
+    },
+    "messages": {
+      "common": {
+        "ok": "OK",
+        "cancel": "Cancelar",
+        "note": "nota",
+        "notes": "notas"
+      },
+      "donation": {
+        "errorHeader": "Error de donación",
+        "errorMessage": "Hubo un error al procesar tu donación. Inténtalo de nuevo más tarde."
+      },
+      "export": {
+        "successHeader": "Exportación completada",
+        "errorHeader": "Exportación fallida",
+        "errorMessage": "Hubo un error al exportar tus notas. Inténtalo de nuevo.",
+        "savedToDownloads": "Archivo guardado en la carpeta Descargas:",
+        "shareTitle": "Copia de seguridad de SmartNotes",
+        "shareTextPrefix": "Copia de seguridad de",
+        "shareDialogTitle": "Guardar copia de seguridad de SmartNotes",
+        "chooseWhere": "Elige dónde guardar el archivo desde el cuadro de compartir.",
+        "downloadedAs": "Archivo descargado como",
+        "checkDownloads": "Revisa tu carpeta Descargas."
+      },
+      "import": {
+        "header": "Importar notas",
+        "invalidHeader": "Archivo no válido",
+        "invalidMessage": "El archivo seleccionado no es una copia de seguridad válida de SmartNotes.",
+        "errorHeader": "Importación fallida",
+        "readErrorMessage": "Hubo un error al leer el archivo. Asegúrate de que sea un archivo JSON válido.",
+        "importErrorMessage": "Hubo un error al importar las notas. Inténtalo de nuevo.",
+        "successHeader": "Importación completada",
+        "currentlyHave": "Actualmente tienes",
+        "fileContains": "El archivo de importación contiene",
+        "howProceed": "¿Cómo quieres continuar?",
+        "replaceAll": "Reemplazar todo",
+        "merge": "Combinar",
+        "importedPrefix": "Se importaron correctamente",
+        "totalNow": "Ahora tienes"
+      },
+      "network": {
+        "unknown": "Desconocido",
+        "clearCacheHeader": "Borrar caché del modelo",
+        "clearCacheMessagePrefix": "Esto eliminará todos los modelos en caché",
+        "clearCacheMessageSuffix": "Tendrás que descargarlos otra vez cuando transcribas. ¿Continuar?",
+        "clearCacheAction": "Borrar caché",
+        "clearedHeader": "Caché borrada",
+        "clearedMessage": "Todos los modelos en caché se eliminaron correctamente.",
+        "clearFailedHeader": "Error al borrar",
+        "clearFailedMessage": "Hubo un error al borrar la caché. Inténtalo de nuevo."
+      }
+    }
+  },
+  "create": {
+    "title": "Crear nota",
+    "recording": "Grabando... Toca para detener",
+    "recordToStart": "Toca el botón de grabar para iniciar la grabación.",
+    "saved": "Nota guardada con éxito.",
+    "modelLabel": "Modelo",
+    "upload": {
+      "label": "Subir",
+      "caption": "Sube un archivo de audio",
+      "aria": "Subir archivo de audio"
+    },
+    "transcribing": "Transcribiendo...",
+    "status": {
+      "transcriptionComplete": "¡Transcripción completada!",
+      "ready": "Listo para crear tu próxima nota."
+    },
+    "manual": {
+      "title": "Entrada manual"
+    },
+    "input": {
+      "titleLabel": "Título",
+      "titlePlaceholder": "Título de la nota",
+      "contentLabel": "Contenido",
+      "contentPlaceholder": "Escribe tu nota aquí..."
+    },
+    "defaults": {
+      "untitled": "Nota sin título"
+    },
+    "errors": {
+      "emptyNote": "Escribe algo antes de guardar.",
+      "recordingNotSupportedHeader": "Grabación no compatible",
+      "recordingNotSupportedMessage": "Tu dispositivo no admite grabación de audio. Usa la opción de subir en su lugar.",
+      "noModelOfflineHeader": "No hay modelo disponible sin conexión",
+      "noModelOfflineMessage": "Estás sin conexión y no hay ningún modelo descargado. Conéctate a internet para descargar el modelo una vez.",
+      "microphonePermissionHeader": "Se requiere permiso del micrófono",
+      "microphonePermissionMessage": "Permite el acceso al micrófono en la configuración del navegador para grabar audio. También puedes subir archivos de audio en su lugar."
+    },
+    "save": "Guardar nota",
+    "alerts": {
+      "transcriptionCompleteHeader": "Transcripción completada",
+      "transcriptionCompleteMessage": "¡Tu audio ha sido transcrito y guardado como nota!",
+      "readyMessage": "Listo para crear tu próxima nota.",
+      "ok": "OK",
+      "noteCreatedHeader": "Nota creada",
+      "noteCreatedMessage": "¡Tu nota ha sido guardada con éxito!"
+    }
+  },
+  "tabs": {
+    "create": "Crear",
+    "notes": "Notas",
+    "settings": "Ajustes"
+  },
+  "notes": {
+    "title": "Notas",
+    "search": {
+      "placeholder": "Buscar notas..."
+    },
+    "empty": {
+      "title": "Aun no hay notas",
+      "description": "Crea tu primera nota en la pestaña Crear"
+    },
+    "actions": {
+      "closeTab": "Cerrar pestaña de nota",
+      "dragReorder": "Arrastra para reordenar",
+      "open": "Abrir nota",
+      "delete": "Eliminar nota"
+    },
+    "editor": {
+      "editing": "Editando",
+      "titleLabel": "Titulo",
+      "titlePlaceholder": "Titulo de la nota",
+      "bodyLabel": "Contenido",
+      "save": "Guardar cambios"
+    }
+  }
+}

@@ -10,7 +10,6 @@ const loadSettings = (): Partial<SettingsState> => {
     const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as SettingsState;
-      // Model name is used as-is from dropdown (no appending)
       return parsed;
     }
   } catch (e) {
@@ -24,6 +23,7 @@ const initialState: SettingsState = {
   multilingual: false,
   quantized: true,
   language: 'english',
+  uiLanguage: 'en',
   task: 'transcribe',
   lastUsedModel: null,
   ...loadSettings(),
@@ -41,12 +41,13 @@ export const SettingsStore = signalStore(
           multilingual: store.multilingual(),
           quantized: store.quantized(),
           language: store.language(),
+          uiLanguage: store.uiLanguage(),
           task: store.task(),
           lastUsedModel: store.lastUsedModel(),
         };
         localStorage.setItem(
           SETTINGS_STORAGE_KEY,
-          JSON.stringify(currentState)
+          JSON.stringify(currentState),
         );
       } catch (e) {
         console.warn('Failed to save settings', e);
@@ -63,6 +64,9 @@ export const SettingsStore = signalStore(
       setLanguage(language: string) {
         updateSettings({ language });
       },
+      setUiLanguage(uiLanguage: string) {
+        updateSettings({ uiLanguage });
+      },
       setTask(task: TranscriptionTask) {
         updateSettings({ task });
       },
@@ -70,5 +74,5 @@ export const SettingsStore = signalStore(
         updateSettings({ lastUsedModel: modelName });
       },
     };
-  })
+  }),
 );

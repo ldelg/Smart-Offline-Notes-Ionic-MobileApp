@@ -29,6 +29,8 @@ import {
 import { NetworkService } from '../services/network.service';
 import { SettingsStore } from '../store/settings.store';
 import { TranscriptionService } from '../services/transcription.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
+import { TranslationStore } from '../store/translation.store';
 
 @Component({
   selector: 'app-create',
@@ -51,6 +53,7 @@ import { TranscriptionService } from '../services/transcription.service';
     IonText,
     IonToggle,
     ReactiveFormsModule,
+    TranslatePipe,
   ],
 })
 export class CreatePage {
@@ -59,6 +62,7 @@ export class CreatePage {
   private readonly settings = inject(SettingsStore);
   private readonly transcriptionService = inject(TranscriptionService);
   private readonly alertController = inject(AlertController);
+  private readonly translationStore = inject(TranslationStore);
   private readonly fb = inject(FormBuilder);
   protected readonly isRecording = signal(false);
   protected readonly statusMessage = signal('');
@@ -81,21 +85,26 @@ export class CreatePage {
       createOutline,
     });
     this.store.loadNotes();
-
-    // Update status when transcription completes
     effect(() => {
       if (
         !this.store.loading() &&
-        this.statusMessage() === 'Transcribing audio...'
+        this.statusMessage() === this.translationStore.t('create.transcribing')
       ) {
-        this.statusMessage.set('Transcription complete!');
+        this.statusMessage.set(
+          this.translationStore.t('create.status.transcriptionComplete'),
+        );
         this.showSuccessAlert(
-          'Transcription Complete',
-          'Your audio has been transcribed and saved as a note!'
+          this.translationStore.t(
+            'create.alerts.transcriptionCompleteHeader',
+          ),
+          this.translationStore.t(
+            'create.alerts.transcriptionCompleteMessage',
+          ),
         ).catch(console.error);
         setTimeout(
-          () => this.statusMessage.set('Ready to create your next note.'),
-          2000
+          () =>
+            this.statusMessage.set(this.translationStore.t('create.status.ready')),
+          2000,
         );
       }
     });
@@ -110,16 +119,16 @@ export class CreatePage {
   protected async startRecording(): Promise<void> {
     if (!navigator.mediaDevices?.getUserMedia) {
       await this.showAlert(
-        'Recording Not Supported',
-        'Your device does not support audio recording. Please use the upload option instead.'
+        this.translationStore.t('create.errors.recordingNotSupportedHeader'),
+        this.translationStore.t('create.errors.recordingNotSupportedMessage'),
       );
       return;
     }
 
     if (this.noModelDownloaded()) {
       await this.showAlert(
-        'No Model Available Offline',
-        'You are currently offline and no model is downloaded. Please connect to the internet to download the model once'
+        this.translationStore.t('create.errors.noModelOfflineHeader'),
+        this.translationStore.t('create.errors.noModelOfflineMessage'),
       );
       return;
     }
@@ -139,19 +148,19 @@ export class CreatePage {
         const blob = new Blob(this.chunks, { type: 'audio/webm' });
         this.processFile(
           new File([blob], 'recording.webm', { type: blob.type }),
-          'Recording'
+          'Recording',
         );
         this.chunks = [];
       };
 
       this.mediaRecorder.start();
       this.isRecording.set(true);
-      this.statusMessage.set('Recording... Tap stop when done.');
+      this.statusMessage.set(this.translationStore.t('create.recording'));
     } catch (error) {
       console.error(error);
       await this.showAlert(
-        'Microphone Permission Required',
-        'Please allow microphone access in your browser settings to record audio. You can also upload audio files instead.'
+        this.translationStore.t('create.errors.microphonePermissionHeader'),
+        this.translationStore.t('create.errors.microphonePermissionMessage'),
       );
     }
   }
@@ -181,13 +190,13 @@ export class CreatePage {
     const { title, body } = this.noteForm.value;
     const trimmedBody = (body || '').trim();
     if (!trimmedBody) {
-      this.statusMessage.set('Please write something before saving.');
+      this.statusMessage.set(this.translationStore.t('create.errors.emptyNote'));
       return;
     }
 
     const note: Note = {
       id: crypto.randomUUID(),
-      title: (title || 'Untitled note').trim(),
+      title: (title || this.translationStore.t('create.defaults.untitled')).trim(),
       body: trimmedBody,
       createdAt: Date.now(),
       source: 'Typed',
@@ -195,26 +204,26 @@ export class CreatePage {
 
     this.store.addNote(note);
     this.noteForm.reset();
-    this.statusMessage.set('Note saved successfully.');
+    this.statusMessage.set(this.translationStore.t('create.saved'));
     await this.showSuccessAlert(
-      'Note Created',
-      'Your note has been saved successfully!'
+      this.translationStore.t('create.alerts.noteCreatedHeader'),
+      this.translationStore.t('create.alerts.noteCreatedMessage'),
     );
   }
 
   private processFile(file: File, source: Note['source']): void {
-    this.statusMessage.set('Transcribing audio...');
+    this.statusMessage.set(this.translationStore.t('create.transcribing'));
     this.store.transcribe({ file, source });
   }
 
   private async showSuccessAlert(
     header: string,
-    message: string
+    message: string,
   ): Promise<void> {
     const alert = await this.alertController.create({
       header,
       message,
-      buttons: ['OK'],
+      buttons: [this.translationStore.t('create.alerts.ok')],
       cssClass: 'success-alert',
     });
     await alert.present();
@@ -224,7 +233,7 @@ export class CreatePage {
     const alert = await this.alertController.create({
       header,
       message,
-      buttons: ['OK'],
+      buttons: [this.translationStore.t('create.alerts.ok')],
       cssClass: 'error-alert',
     });
     await alert.present();
@@ -234,7 +243,7 @@ export class CreatePage {
     const service = this.transcriptionService as any;
     const status = service.modelStatus?.();
     if (status) return status;
-    return `Model: ${this.settings.model()}`;
+    return `${this.translationStore.t('create.modelLabel')}: ${this.settings.model()}`;
   }
 
   protected modelProgressLabel(): string | null {

@@ -1,5 +1,3 @@
-//Store
-
 export type TranscriptionTask = 'transcribe' | 'translate';
 
 export interface SettingsState {
@@ -7,15 +5,19 @@ export interface SettingsState {
   multilingual: boolean;
   quantized: boolean;
   language: string;
+  uiLanguage: string;
   task: TranscriptionTask;
   lastUsedModel: string | null;
 }
 
 export const SETTINGS_STORAGE_KEY = 'whisper-settings';
 
-// Component
-
 export interface LanguageOption {
+  id: string;
+  label: string;
+}
+
+export interface UiLanguageOption {
   id: string;
   label: string;
 }
@@ -62,4 +64,12 @@ export const languages: LanguageOption[] = [
   { id: 'french', label: 'French' },
   { id: 'german', label: 'German' },
   { id: 'italian', label: 'Italian' },
+];
+
+export const uiLanguages: UiLanguageOption[] = [
+  { id: 'en', label: 'English' },
+  { id: 'es', label: 'Español' },
+  { id: 'fr', label: 'Français' },
+  { id: 'de', label: 'Deutsch' },
+  { id: 'it', label: 'Italiano' },
 ];

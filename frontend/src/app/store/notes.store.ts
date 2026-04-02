@@ -23,7 +23,7 @@ export const NotesStore = signalStore(
     (
       store,
       transcription = inject(TranscriptionService),
-      settings = inject(SettingsStore)
+      settings = inject(SettingsStore),
     ) => ({
       loadNotes: rxMethod<void>(
         pipe(
@@ -32,8 +32,8 @@ export const NotesStore = signalStore(
             const stored = localStorage.getItem('whisper-notes');
             const notes = stored ? JSON.parse(stored) : [];
             patchState(store, { notes, loading: false });
-          })
-        )
+          }),
+        ),
       ),
       addNote: (note: Note) => {
         const notes = [...store.notes(), note];
@@ -83,7 +83,7 @@ export const NotesStore = signalStore(
                 patchState(store, { notes: updatedNotes });
                 localStorage.setItem(
                   'whisper-notes',
-                  JSON.stringify(updatedNotes)
+                  JSON.stringify(updatedNotes),
                 );
 
                 if (update.isComplete) {
@@ -97,10 +97,10 @@ export const NotesStore = signalStore(
                 patchState(store, { notes, loading: false });
                 localStorage.setItem('whisper-notes', JSON.stringify(notes));
                 return EMPTY;
-              })
+              }),
             );
-          })
-        )
+          }),
+        ),
       ),
       updateNote: (id: string, changes: Partial<Omit<Note, 'id'>>) => {
         const notes = store
@@ -128,7 +128,6 @@ export const NotesStore = signalStore(
       },
       importNotes: (importedNotes: Note[], merge: boolean = false) => {
         if (merge) {
-          // Merge: combine with existing, dedupe by ID
           const existingNotes = store.notes();
           const existingIds = new Set(existingNotes.map((n) => n.id));
           const newNotes = importedNotes.filter((n) => !existingIds.has(n.id));
@@ -136,11 +135,10 @@ export const NotesStore = signalStore(
           patchState(store, { notes: mergedNotes });
           localStorage.setItem('whisper-notes', JSON.stringify(mergedNotes));
         } else {
-          // Replace: replace all notes
           patchState(store, { notes: importedNotes });
           localStorage.setItem('whisper-notes', JSON.stringify(importedNotes));
         }
       },
-    })
-  )
+    }),
+  ),
 );

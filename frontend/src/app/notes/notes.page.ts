@@ -31,6 +31,7 @@ import {
 } from '@angular/forms';
 import { NotesStore } from '../store/notes.store';
 import { Note } from '../models/note.model';
+import { TranslationStore } from '../store/translation.store';
 import { addIcons } from 'ionicons';
 import {
   trashOutline,
@@ -66,6 +67,7 @@ import {
 })
 export class NotesPage {
   private readonly store = inject(NotesStore);
+  protected readonly translationStore = inject(TranslationStore);
   private readonly fb = inject(FormBuilder);
   protected readonly searchTerm = signal('');
   protected readonly openTabIds = signal<string[]>([]);
@@ -86,7 +88,7 @@ export class NotesPage {
       .filter(
         (note) =>
           note.title.toLowerCase().includes(term) ||
-          note.body.toLowerCase().includes(term)
+          note.body.toLowerCase().includes(term),
       );
   });
 
@@ -105,7 +107,7 @@ export class NotesPage {
       if (note) {
         this.editForm.patchValue(
           { title: note.title, body: note.body },
-          { emitEvent: false }
+          { emitEvent: false },
         );
       } else {
         this.editForm.reset();
@@ -136,7 +138,7 @@ export class NotesPage {
       event.dataTransfer.setData('text/plain', noteId);
     }
     const noteItem = (event.currentTarget as HTMLElement).closest(
-      '.note-item'
+      '.note-item',
     ) as HTMLElement;
     if (noteItem) {
       noteItem.classList.add('dragging');
@@ -226,7 +228,7 @@ export class NotesPage {
 
     // Find which note item is at the touch position
     const allNoteItems = Array.from(
-      document.querySelectorAll('.note-item')
+      document.querySelectorAll('.note-item'),
     ) as HTMLElement[];
     let targetItem: HTMLElement | null = null;
 
@@ -398,7 +400,7 @@ export class NotesPage {
 
     // Find the slide element for the active note
     const slideElement = container.querySelector(
-      `[data-note-id="${activeId}"]`
+      `[data-note-id="${activeId}"]`,
     ) as HTMLElement;
     if (slideElement) {
       this.isScrollingProgrammatically = true;
@@ -422,7 +424,7 @@ export class NotesPage {
     } else {
       // Fallback to index-based scrolling if element not found
       const index = this.openedNotes().findIndex(
-        (note) => note.id === activeId
+        (note) => note.id === activeId,
       );
       if (index >= 0) {
         const scrollPosition = index * container.offsetWidth;

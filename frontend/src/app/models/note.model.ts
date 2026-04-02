@@ -7,4 +7,3 @@ export interface Note {
   language?: string;
   duration?: number;
 }
-

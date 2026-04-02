@@ -1,2 +1,0 @@
-Offline speech-to-notes with AI. Download models once, use forever.
-
