@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Create Note</ion-title>
+    <ion-title>{{ 'create.title' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -38,13 +38,17 @@
         </button>
 
         <div class="instruction-pill">
-          {{ isRecording() ? 'Recording... Tap to stop' : 'Tap the record button
-          to start recording.' }}
+          {{ isRecording() ? ('create.recording' | translate) :
+          ('create.recordToStart' | translate) }}
         </div>
 
         <div class="upload-panel">
-          <label class="upload-label" for="audioInput"> Upload </label>
-          <div class="upload-caption">Upload an audio file</div>
+          <label class="upload-label" for="audioInput"
+            >{{ 'create.upload.label' | translate }}</label
+          >
+          <div class="upload-caption">
+            {{ 'create.upload.caption' | translate }}
+          </div>
         </div>
 
         <input
@@ -52,13 +56,13 @@
           type="file"
           accept="audio/*,video/mp4,video/webm"
           (change)="handleUpload($event)"
-          aria-label="Upload audio file"
+          aria-label="{{ 'create.upload.aria' | translate }}"
         />
 
         @if (store.loading()) {
         <div class="processing">
           <ion-spinner name="lines"></ion-spinner>
-          <ion-text>Transcribing...</ion-text>
+          <ion-text>{{ 'create.transcribing' | translate }}</ion-text>
         </div>
         <div class="processing-meta">
           <span>{{ modelStatusLine() }}</span>
@@ -75,7 +79,9 @@
     <ion-card class="glass-card">
       <ion-card-content class="create-card-content">
         <div class="manual-toggle">
-          <div class="manual-title">Manual Entry</div>
+          <div class="manual-title">
+            {{ 'create.manual.title' | translate }}
+          </div>
           <ion-toggle
             [checked]="isManualEntry()"
             (ionChange)="isManualEntry.set($event.detail.checked)"
@@ -91,17 +97,17 @@
           <ion-item lines="none">
             <ion-input
               formControlName="title"
-              label="Title"
+              [label]="'create.input.titleLabel' | translate"
               labelPlacement="stacked"
-              placeholder="Note title"
+              [placeholder]="'create.input.titlePlaceholder' | translate"
             ></ion-input>
           </ion-item>
           <ion-item lines="none">
             <ion-textarea
               formControlName="body"
-              label="Content"
+              [label]="'create.input.contentLabel' | translate"
               labelPlacement="stacked"
-              placeholder="Write your note here..."
+              [placeholder]="'create.input.contentPlaceholder' | translate"
               rows="6"
               autoGrow="true"
             ></ion-textarea>
@@ -113,7 +119,7 @@
             [disabled]="noteForm.invalid"
           >
             <ion-icon slot="start" name="create-outline"></ion-icon>
-            Save Note
+            {{ 'create.save' | translate }}
           </ion-button>
         </form>
         }

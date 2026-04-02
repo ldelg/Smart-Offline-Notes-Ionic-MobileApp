@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   IonTabs,
   IonTabBar,
@@ -9,6 +9,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { micOutline, albumsOutline, settingsOutline } from 'ionicons/icons';
+import { TranslationStore } from '../store/translation.store';
 
 @Component({
   selector: 'app-tabs',
@@ -18,6 +19,8 @@ import { micOutline, albumsOutline, settingsOutline } from 'ionicons/icons';
   imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, RouterLink],
 })
 export class TabsPage {
+  protected readonly translationStore = inject(TranslationStore);
+
   constructor() {
     addIcons({ micOutline, albumsOutline, settingsOutline });
   }

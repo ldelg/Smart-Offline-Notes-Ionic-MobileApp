@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Settings</ion-title>
+    <ion-title>{{ 'settings.title' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -8,15 +8,22 @@
   <div class="content-wrapper">
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-subtitle>Model</ion-card-subtitle>
-        <ion-card-title>Transcription Engine</ion-card-title>
+        <ion-card-subtitle
+          >{{ 'settings.model.subtitle' | translate }}</ion-card-subtitle
+        >
+        <ion-card-title
+          >{{ 'settings.model.title' | translate }}</ion-card-title
+        >
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="full">
-          <ion-label position="stacked">Select the model to use</ion-label>
+          <ion-label position="stacked"
+            >{{ 'settings.model.selectModel' | translate }}</ion-label
+          >
           <ion-select
             [value]="model()"
             interface="popover"
+            [interfaceOptions]="settingsSelectInterfaceOptions"
             [disabled]="!networkService.isOnline()"
             (ionChange)="onModelChange($event.detail.value)"
           >
@@ -31,7 +38,9 @@
         @if (isMultilingualModel()) {
         <div class="toggles-row">
           <div class="toggle-item">
-            <ion-label>Multilingual</ion-label>
+            <ion-label
+              >{{ 'settings.model.multilingual' | translate }}</ion-label
+            >
             <ion-toggle
               [checked]="multilingual()"
               (ionChange)="onMultilingualChange($event.detail.checked)"
@@ -44,13 +53,17 @@
         <div class="model-info">
           <ion-item lines="none">
             <ion-label>
-              <h3>Active Model</h3>
+              <h3>{{ 'settings.model.activeModel' | translate }}</h3>
               @if (lastUsedModel()) {
               <p class="model-name">{{ lastUsedModelLabel() }}</p>
-              <p class="model-hint">Last used during transcription</p>
+              <p class="model-hint">
+                {{ 'settings.model.lastUsedHint' | translate }}
+              </p>
               } @else {
               <p class="model-name">{{ currentModelLabel() }}</p>
-              <p class="model-hint">Will be used on next transcription</p>
+              <p class="model-hint">
+                {{ 'settings.model.willBeUsedHint' | translate }}
+              </p>
               }
             </ion-label>
           </ion-item>
@@ -58,18 +71,56 @@
       </ion-card-content>
     </ion-card>
 
-    @if (multilingual()) {
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-subtitle>Language & Task</ion-card-subtitle>
-        <ion-card-title>Transcription Mode</ion-card-title>
+        <ion-card-subtitle
+          >{{ 'settings.interface.subtitle' | translate }}</ion-card-subtitle
+        >
+        <ion-card-title
+          >{{ 'settings.interface.title' | translate }}</ion-card-title
+        >
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="full">
-          <ion-label position="stacked">Select the source language</ion-label>
+          <ion-label position="stacked"
+            >{{ 'settings.interface.select' | translate }}</ion-label
+          >
+          <ion-select
+            [value]="uiLanguage()"
+            interface="popover"
+            [interfaceOptions]="settingsSelectInterfaceOptions"
+            (ionChange)="onUiLanguageChange($event.detail.value)"
+          >
+            @for (lang of translatedUiLanguages(); track lang.id) {
+            <ion-select-option [value]="lang.id">
+              {{ lang.label }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    @if (multilingual()) {
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle
+          >{{ 'settings.transcription.subtitle' | translate
+          }}</ion-card-subtitle
+        >
+        <ion-card-title
+          >{{ 'settings.transcription.title' | translate }}</ion-card-title
+        >
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="stacked"
+            >{{ 'settings.transcription.selectSource' | translate }}</ion-label
+          >
           <ion-select
             [value]="language()"
             interface="popover"
+            [interfaceOptions]="settingsSelectInterfaceOptions"
             (ionChange)="onLanguageChange($event.detail.value)"
           >
             @for (lang of languages; track lang.id) {
@@ -81,17 +132,20 @@
         </ion-item>
 
         <ion-item lines="full">
-          <ion-label position="stacked">Select the task to perform</ion-label>
+          <ion-label position="stacked"
+            >{{ 'settings.transcription.selectTask' | translate }}</ion-label
+          >
           <ion-select
             [value]="task()"
             interface="popover"
+            [interfaceOptions]="settingsSelectInterfaceOptions"
             (ionChange)="onTaskChange($event.detail.value)"
           >
             <ion-select-option value="transcribe">
-              Transcribe
+              {{ 'settings.transcription.transcribe' | translate }}
             </ion-select-option>
             <ion-select-option value="translate">
-              Translate to English
+              {{ 'settings.transcription.translate' | translate }}
             </ion-select-option>
           </ion-select>
         </ion-item>
@@ -101,22 +155,28 @@
 
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-subtitle>Network Status</ion-card-subtitle>
+        <ion-card-subtitle
+          >{{ 'settings.network.subtitle' | translate }}</ion-card-subtitle
+        >
         <ion-card-title>
           @if (networkService.isOnline()) {
-          <span style="color: #2ed573">🟢 Online</span>
+          <span style="color: #2ed573"
+            >🟢 {{ 'settings.network.online' | translate }}</span
+          >
           } @else {
-          <span style="color: #ff4c67">🔴 Offline</span>
+          <span style="color: #ff4c67"
+            >🔴 {{ 'settings.network.offline' | translate }}</span
+          >
           }
         </ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="none">
           <ion-label>
-            <h3>Model Cache</h3>
+            <h3>{{ 'settings.network.modelCache' | translate }}</h3>
             <p>
               @if (isCalculatingCache()) {
-              <span>Calculating...</span>
+              <span>{{ 'settings.network.calculating' | translate }}</span>
               } @else {
               <span>{{ cacheSize() }}</span>
               }
@@ -132,20 +192,21 @@
           [disabled]="isCalculatingCache() || cacheSize() === '0 MB'"
         >
           <ion-icon slot="start" name="trash-outline"></ion-icon>
-          Clear Model Cache
+          {{ 'settings.network.clearCache' | translate }}
         </ion-button>
       </ion-card-content>
     </ion-card>
 
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-subtitle>Data Management</ion-card-subtitle>
-        <ion-card-title>Export & Import Notes</ion-card-title>
+        <ion-card-subtitle
+          >{{ 'settings.data.subtitle' | translate }}</ion-card-subtitle
+        >
+        <ion-card-title>{{ 'settings.data.title' | translate }}</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <p class="data-description">
-          Export your notes as a JSON file for backup, or import notes from a
-          previous export.
+          {{ 'settings.data.description' | translate }}
         </p>
 
         <div class="data-actions">
@@ -156,7 +217,7 @@
             (click)="exportNotes()"
           >
             <ion-icon slot="start" name="download-outline"></ion-icon>
-            Export Notes
+            {{ 'settings.data.export' | translate }}
           </ion-button>
 
           <ion-button
@@ -166,7 +227,7 @@
             (click)="triggerImport()"
           >
             <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
-            Import Notes
+            {{ 'settings.data.import' | translate }}
           </ion-button>
         </div>
 
@@ -182,13 +243,16 @@
 
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-subtitle>Support</ion-card-subtitle>
-        <ion-card-title>Support Development</ion-card-title>
+        <ion-card-subtitle
+          >{{ 'settings.support.subtitle' | translate }}</ion-card-subtitle
+        >
+        <ion-card-title
+          >{{ 'settings.support.title' | translate }}</ion-card-title
+        >
       </ion-card-header>
       <ion-card-content>
         <p class="donation-description">
-          If you find this app useful, consider making a donation to support
-          continued development and improvements.
+          {{ 'settings.support.description' | translate }}
         </p>
 
         <ion-button
@@ -197,7 +261,7 @@
           (click)="openDonationLink()"
         >
           <ion-icon slot="start" name="heart-outline"></ion-icon>
-          Donate
+          {{ 'settings.support.donate' | translate }}
         </ion-button>
       </ion-card-content>
     </ion-card>

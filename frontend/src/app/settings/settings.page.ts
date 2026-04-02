@@ -47,9 +47,13 @@ import { NetworkService } from '../services/network.service';
 import {
   LanguageOption,
   languages,
+  UiLanguageOption,
+  uiLanguages,
   ModelOption,
   modelOptions,
 } from '../models/settings.model';
+import { TranslationStore } from '../store/translation.store';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -73,6 +77,7 @@ import {
     IonToggle,
     IonButton,
     IonIcon,
+    TranslatePipe,
   ],
 })
 export class SettingsPage implements ViewWillEnter {
@@ -84,11 +89,21 @@ export class SettingsPage implements ViewWillEnter {
   private readonly alertController = inject(AlertController);
   private readonly platform = inject(Platform);
   readonly networkService = inject(NetworkService);
+  private readonly translationStore = inject(TranslationStore);
   private readonly STRIPE_PAYMENT_LINK_URL =
     'https://donate.stripe.com/4gweYZ26zbfY25y9AA';
 
   readonly cacheSize = signal<string>('0 MB');
   readonly isCalculatingCache = signal(false);
+  readonly settingsSelectInterfaceOptions = {
+    cssClass: 'settings-select-popover',
+    side: 'bottom' as const,
+    alignment: 'start' as const,
+  };
+
+  private t(key: string): string {
+    return this.translationStore.t(key);
+  }
 
   constructor() {
     addIcons({
@@ -98,38 +113,29 @@ export class SettingsPage implements ViewWillEnter {
       trashOutline,
       refreshOutline,
     });
-
-    // Calculate cache size on init
     this.calculateCacheSize();
 
-    // Recalculate cache size when model is used (cache might have grown)
     effect(() => {
       const lastUsed = this.settings.lastUsedModel();
       if (lastUsed) {
-        // Debounce to avoid too many calculations
         setTimeout(() => this.calculateCacheSize(), 2000);
       }
     });
 
-    // Watch network status and revert model when going offline
     effect(() => {
       const isOnline = this.networkService.isOnline();
       const lastUsed = this.settings.lastUsedModel();
       const currentModel = this.settings.model();
-
-      // When going offline, revert to cached model if different
       if (!isOnline && lastUsed && currentModel !== lastUsed) {
-        // Use lastUsed model as-is (it's the exact model name from dropdown)
         this.settings.setModel(lastUsed);
       }
     });
-  }
 
+    this.translationStore.setLanguage(this.settings.uiLanguage());
+  }
   ionViewWillEnter() {
-    // Recalculate cache size every time the page is entered
     this.calculateCacheSize();
   }
-
   readonly model = computed(() => this.settings.model());
   readonly multilingual = computed(() => this.settings.multilingual());
   readonly quantized = computed(() => this.settings.quantized());
@@ -139,8 +145,17 @@ export class SettingsPage implements ViewWillEnter {
 
   readonly modelOptions: ModelOption[] = modelOptions;
   readonly languages: LanguageOption[] = languages;
+  readonly uiLanguages: UiLanguageOption[] = uiLanguages;
 
-  // Get the label for lastUsedModel
+  readonly uiLanguage = computed(() => this.settings.uiLanguage());
+  readonly translatedUiLanguages = computed(() => {
+    this.translationStore.t('languages.en');
+    return this.uiLanguages.map((language) => ({
+      ...language,
+      label: this.translationStore.t(`languages.${language.id}`),
+    }));
+  });
+
   readonly lastUsedModelLabel = computed(() => {
     const lastUsed = this.lastUsedModel();
     if (!lastUsed) return '';
@@ -148,7 +163,6 @@ export class SettingsPage implements ViewWillEnter {
     return option ? option.label : lastUsed;
   });
 
-  // Get the label for current model
   readonly currentModelLabel = computed(() => {
     const current = this.model();
     if (!current) return '';
@@ -156,12 +170,10 @@ export class SettingsPage implements ViewWillEnter {
     return option ? option.label : current;
   });
 
-  // Helper to check if a model supports multilingual
   private isModelMultilingual(model: string): boolean {
     return !model.endsWith('.en') && !model.startsWith('distil-whisper/');
   }
 
-  // Check if current model supports multilingual (not .en models or distil)
   readonly isMultilingualModel = computed(() => {
     return this.isModelMultilingual(this.model());
   });
@@ -169,8 +181,6 @@ export class SettingsPage implements ViewWillEnter {
   onModelChange(model: string) {
     const currentModel = this.settings.model();
     if (model !== currentModel) {
-      this.settings.setModel(model);
-      // If switching to a non-multilingual model, disable multilingual
       if (!this.isModelMultilingual(model)) {
         this.settings.setMultilingual(false);
       }
@@ -191,6 +201,11 @@ export class SettingsPage implements ViewWillEnter {
     }
   }
 
+  onUiLanguageChange(lang: string) {
+    this.settings.setUiLanguage(lang);
+    this.translationStore.setLanguage(lang);
+  }
+
   async openDonationLink() {
     try {
       await this.openStripeUrl(this.STRIPE_PAYMENT_LINK_URL);
@@ -202,20 +217,17 @@ export class SettingsPage implements ViewWillEnter {
 
   private async openStripeUrl(url: string) {
     if (this.platform.is('capacitor')) {
-      // Use Capacitor Browser plugin for mobile
       await Browser.open({ url, windowName: '_system' });
     } else {
-      // Use window.open for web
       window.open(url, '_blank');
     }
   }
 
   private async showDonationError() {
     const alert = await this.alertController.create({
-      header: 'Donation Error',
-      message:
-        'There was an error processing your donation. Please try again later.',
-      buttons: ['OK'],
+      header: this.t('settings.messages.donation.errorHeader'),
+      message: this.t('settings.messages.donation.errorMessage'),
+      buttons: [this.t('settings.messages.common.ok')],
     });
     await alert.present();
   }
@@ -228,10 +240,8 @@ export class SettingsPage implements ViewWillEnter {
         new Date().toISOString().split('T')[0]
       }.json`;
 
-      // Try to save directly to Downloads folder on native platforms
       if (Capacitor.isNativePlatform()) {
         try {
-          // Try ExternalStorage with Downloads path (may work without permission on Android 10+)
           const result = await Filesystem.writeFile({
             path: `Download/${filename}`,
             data: jsonData,
@@ -240,14 +250,12 @@ export class SettingsPage implements ViewWillEnter {
           });
 
           await this.showSuccessAlert(
-            'Export Successful',
-            `File saved to Downloads folder: ${filename}`,
+            this.t('settings.messages.export.successHeader'),
+            `${this.t('settings.messages.export.savedToDownloads')} ${filename}`,
           );
           return;
         } catch (error: any) {
           console.error('Direct save failed, trying Share:', error);
-
-          // Fallback: Save to Cache and use Share
           try {
             const cacheResult = await Filesystem.writeFile({
               path: filename,
@@ -257,21 +265,18 @@ export class SettingsPage implements ViewWillEnter {
             });
 
             await Share.share({
-              title: 'SmartNotes Backup',
-              text: `Backup of ${notes.length} note${
-                notes.length !== 1 ? 's' : ''
-              }`,
+              title: this.t('settings.messages.export.shareTitle'),
+              text: `${this.t('settings.messages.export.shareTextPrefix')} ${notes.length} ${this.t(notes.length === 1 ? 'settings.messages.common.note' : 'settings.messages.common.notes')}`,
               url: cacheResult.uri,
-              dialogTitle: 'Save SmartNotes Backup',
+              dialogTitle: this.t('settings.messages.export.shareDialogTitle'),
             });
 
             await this.showSuccessAlert(
-              'Export Successful',
-              `Choose where to save the file from the share dialog.`,
+              this.t('settings.messages.export.successHeader'),
+              this.t('settings.messages.export.chooseWhere'),
             );
             return;
           } catch (shareError: any) {
-            // User cancelled share - that's fine
             if (
               shareError.message?.includes('cancel') ||
               shareError.message?.includes('User')
@@ -283,7 +288,6 @@ export class SettingsPage implements ViewWillEnter {
         }
       }
 
-      // Fallback for web: trigger a download
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -293,21 +297,20 @@ export class SettingsPage implements ViewWillEnter {
       document.body.appendChild(link);
       link.click();
 
-      // Wait a bit before cleaning up
       setTimeout(() => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }, 100);
 
       await this.showSuccessAlert(
-        'Export Successful',
-        `File downloaded as ${filename}. Check your Downloads folder.`,
+        this.t('settings.messages.export.successHeader'),
+        `${this.t('settings.messages.export.downloadedAs')} ${filename}. ${this.t('settings.messages.export.checkDownloads')}`,
       );
     } catch (error) {
       console.error('Export error:', error);
       await this.showErrorAlert(
-        'Export Failed',
-        'There was an error exporting your notes. Please try again.',
+        this.t('settings.messages.export.errorHeader'),
+        this.t('settings.messages.export.errorMessage'),
       );
     }
   }
@@ -326,47 +329,40 @@ export class SettingsPage implements ViewWillEnter {
       return;
     }
 
-    // Reset input
     input.value = '';
 
     try {
       const text = await file.text();
       const data = JSON.parse(text);
 
-      // Validate structure
       if (!this.validateImportData(data)) {
         await this.showErrorAlert(
-          'Invalid File',
-          'The selected file is not a valid SmartNotes backup file.',
+          this.t('settings.messages.import.invalidHeader'),
+          this.t('settings.messages.import.invalidMessage'),
         );
         return;
       }
 
-      const importedNotes = data.notes || data; // Support both formats
+      const importedNotes = data.notes || data;
       const existingCount = this.notesStore.notes().length;
 
       if (existingCount > 0) {
-        // Ask user: replace or merge
         const alert = await this.alertController.create({
-          header: 'Import Notes',
-          message: `You currently have ${existingCount} note${
-            existingCount !== 1 ? 's' : ''
-          }. The import file contains ${importedNotes.length} note${
-            importedNotes.length !== 1 ? 's' : ''
-          }. How would you like to proceed?`,
+          header: this.t('settings.messages.import.header'),
+          message: `${this.t('settings.messages.import.currentlyHave')} ${existingCount} ${this.t(existingCount === 1 ? 'settings.messages.common.note' : 'settings.messages.common.notes')}. ${this.t('settings.messages.import.fileContains')} ${importedNotes.length} ${this.t(importedNotes.length === 1 ? 'settings.messages.common.note' : 'settings.messages.common.notes')}. ${this.t('settings.messages.import.howProceed')}`,
           buttons: [
             {
-              text: 'Cancel',
+              text: this.t('settings.messages.common.cancel'),
               role: 'cancel',
             },
             {
-              text: 'Replace All',
+              text: this.t('settings.messages.import.replaceAll'),
               handler: () => {
                 this.importNotes(importedNotes, false);
               },
             },
             {
-              text: 'Merge',
+              text: this.t('settings.messages.import.merge'),
               handler: () => {
                 this.importNotes(importedNotes, true);
               },
@@ -375,20 +371,18 @@ export class SettingsPage implements ViewWillEnter {
         });
         await alert.present();
       } else {
-        // No existing notes, just import
         this.importNotes(importedNotes, false);
       }
     } catch (error) {
       console.error('Import error:', error);
       await this.showErrorAlert(
-        'Import Failed',
-        'There was an error reading the file. Please make sure it is a valid JSON file.',
+        this.t('settings.messages.import.errorHeader'),
+        this.t('settings.messages.import.readErrorMessage'),
       );
     }
   }
 
   private validateImportData(data: any): boolean {
-    // Check if it's an array (old format) or has notes property (new format)
     if (Array.isArray(data)) {
       return data.every((note) => this.isValidNote(note));
     }
@@ -417,18 +411,14 @@ export class SettingsPage implements ViewWillEnter {
       this.notesStore.importNotes(notes, merge);
       const finalCount = this.notesStore.notes().length;
       this.showSuccessAlert(
-        'Import Successful',
-        `Successfully imported ${notes.length} note${
-          notes.length !== 1 ? 's' : ''
-        }. You now have ${finalCount} note${
-          finalCount !== 1 ? 's' : ''
-        } in total.`,
+        this.t('settings.messages.import.successHeader'),
+        `${this.t('settings.messages.import.importedPrefix')} ${notes.length} ${this.t(notes.length === 1 ? 'settings.messages.common.note' : 'settings.messages.common.notes')}. ${this.t('settings.messages.import.totalNow')} ${finalCount} ${this.t(finalCount === 1 ? 'settings.messages.common.note' : 'settings.messages.common.notes')}.`,
       );
     } catch (error) {
       console.error('Import error:', error);
       this.showErrorAlert(
-        'Import Failed',
-        'There was an error importing the notes. Please try again.',
+        this.t('settings.messages.import.errorHeader'),
+        this.t('settings.messages.import.importErrorMessage'),
       );
     }
   }
@@ -437,7 +427,7 @@ export class SettingsPage implements ViewWillEnter {
     const alert = await this.alertController.create({
       header,
       message,
-      buttons: ['OK'],
+      buttons: [this.t('settings.messages.common.ok')],
     });
     await alert.present();
   }
@@ -446,7 +436,7 @@ export class SettingsPage implements ViewWillEnter {
     const alert = await this.alertController.create({
       header,
       message,
-      buttons: ['OK'],
+      buttons: [this.t('settings.messages.common.ok')],
     });
     await alert.present();
   }
@@ -474,7 +464,7 @@ export class SettingsPage implements ViewWillEnter {
       this.cacheSize.set(this.formatBytes(totalSize));
     } catch (error) {
       console.error('Error calculating cache size:', error);
-      this.cacheSize.set('Unknown');
+      this.cacheSize.set(this.t('settings.messages.network.unknown'));
     } finally {
       this.isCalculatingCache.set(false);
     }
@@ -490,15 +480,15 @@ export class SettingsPage implements ViewWillEnter {
 
   async clearCache() {
     const alert = await this.alertController.create({
-      header: 'Clear Model Cache',
-      message: `This will delete all cached models (${this.cacheSize()}). You will need to download them again when you transcribe. Continue?`,
+      header: this.t('settings.messages.network.clearCacheHeader'),
+      message: `${this.t('settings.messages.network.clearCacheMessagePrefix')} (${this.cacheSize()}). ${this.t('settings.messages.network.clearCacheMessageSuffix')}`,
       buttons: [
         {
-          text: 'Cancel',
+          text: this.t('settings.messages.common.cancel'),
           role: 'cancel',
         },
         {
-          text: 'Clear Cache',
+          text: this.t('settings.messages.network.clearCacheAction'),
           role: 'destructive',
           handler: async () => {
             await this.performCacheClear();
@@ -518,21 +508,18 @@ export class SettingsPage implements ViewWillEnter {
         }
       }
 
-      // Reset last used model since cache is cleared
       this.settings.setLastUsedModel(null);
-
-      // Recalculate size
       await this.calculateCacheSize();
 
       await this.showSuccessAlert(
-        'Cache Cleared',
-        'All cached models have been deleted successfully.',
+        this.t('settings.messages.network.clearedHeader'),
+        this.t('settings.messages.network.clearedMessage'),
       );
     } catch (error) {
       console.error('Error clearing cache:', error);
       await this.showErrorAlert(
-        'Clear Failed',
-        'There was an error clearing the cache. Please try again.',
+        this.t('settings.messages.network.clearFailedHeader'),
+        this.t('settings.messages.network.clearFailedMessage'),
       );
     }
   }

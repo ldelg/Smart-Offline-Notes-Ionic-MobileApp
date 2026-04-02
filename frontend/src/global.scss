@@ -84,6 +84,20 @@ ion-popover {
   margin-left: 16px;
 }
 
+ion-popover.settings-select-popover {
+  margin-left: 0;
+  --width: min(560px, calc(100vw - 24px));
+}
+
+ion-popover.settings-select-popover::part(content) {
+  max-width: calc(100vw - 24px);
+}
+
+ion-popover.settings-select-popover ion-item,
+ion-popover.settings-select-popover .select-interface-option {
+  white-space: normal;
+}
+
 ion-title {
   padding-top: 50px !important;
   padding-bottom: 20px !important;
