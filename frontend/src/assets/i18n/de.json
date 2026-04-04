@@ -14,7 +14,9 @@
       "selectModel": "Wählen Sie das zu verwendende Modell",
       "multilingual": "Mehrsprachig",
       "activeModel": "Aktives Modell",
+      "noActiveModel": "Noch kein aktives Modell",
       "lastUsedHint": "Zuletzt bei Transkription verwendet",
+      "downloadedHint": "Bereits heruntergeladen und einsatzbereit",
       "willBeUsedHint": "Wird bei der nächsten Transkription verwendet"
     },
     "interface": {
@@ -133,6 +135,12 @@
     },
     "errors": {
       "emptyNote": "Bitte schreiben Sie etwas, bevor Sie speichern.",
+      "transcriptionFailed": "Transkription fehlgeschlagen.",
+      "transcriptionFailedHeader": "Transkription fehlgeschlagen",
+      "transcriptionFailedMessage": "Das Modell konnte nicht fertig geladen werden oder die Audiodatei konnte nicht transkribiert werden. Bitte versuchen Sie es erneut.",
+      "rateLimited": "Modelldownload vorübergehend blockiert.",
+      "rateLimitedHeader": "Modelldownload vorübergehend blockiert",
+      "rateLimitedMessage": "Die App funktioniert, aber der Modell-Host hat wiederholte Downloads aus Ihrem Netzwerk vorübergehend blockiert. Versuchen Sie es später erneut oder verwenden Sie ein anderes Netzwerk oder ein VPN.",
       "recordingNotSupportedHeader": "Aufnahme nicht unterstützt",
       "recordingNotSupportedMessage": "Ihr Gerät unterstützt keine Audioaufnahme. Verwenden Sie stattdessen die Upload-Option.",
       "noModelOfflineHeader": "Kein Modell offline verfügbar",

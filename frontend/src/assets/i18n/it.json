@@ -14,7 +14,9 @@
       "selectModel": "Seleziona il modello da usare",
       "multilingual": "Multilingue",
       "activeModel": "Modello attivo",
+      "noActiveModel": "Nessun modello attivo per ora",
       "lastUsedHint": "Ultimo utilizzo durante la trascrizione",
+      "downloadedHint": "Già scaricato e pronto all'uso",
       "willBeUsedHint": "Sarà usato alla prossima trascrizione"
     },
     "interface": {
@@ -133,6 +135,12 @@
     },
     "errors": {
       "emptyNote": "Scrivi qualcosa prima di salvare.",
+      "transcriptionFailed": "Trascrizione non riuscita.",
+      "transcriptionFailedHeader": "Trascrizione non riuscita",
+      "transcriptionFailedMessage": "Il modello non ha potuto completare il caricamento o l'audio non ha potuto essere trascritto. Riprova.",
+      "rateLimited": "Download del modello temporaneamente bloccato.",
+      "rateLimitedHeader": "Download del modello temporaneamente bloccato",
+      "rateLimitedMessage": "L'app funziona, ma l'host del modello ha temporaneamente bloccato i download ripetuti dalla tua rete. Riprova più tardi oppure usa un'altra rete o una VPN.",
       "recordingNotSupportedHeader": "Registrazione non supportata",
       "recordingNotSupportedMessage": "Il tuo dispositivo non supporta la registrazione audio. Usa invece l'opzione di caricamento.",
       "noModelOfflineHeader": "Nessun modello disponibile offline",

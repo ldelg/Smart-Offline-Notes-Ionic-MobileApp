@@ -33,6 +33,7 @@
             </ion-select-option>
             }
           </ion-select>
+          <p class="model-hint">{{ selectedModelHintKey() | translate }}</p>
         </ion-item>
 
         @if (isMultilingualModel()) {
@@ -54,17 +55,7 @@
           <ion-item lines="none">
             <ion-label>
               <h3>{{ 'settings.model.activeModel' | translate }}</h3>
-              @if (lastUsedModel()) {
-              <p class="model-name">{{ lastUsedModelLabel() }}</p>
-              <p class="model-hint">
-                {{ 'settings.model.lastUsedHint' | translate }}
-              </p>
-              } @else {
-              <p class="model-name">{{ currentModelLabel() }}</p>
-              <p class="model-hint">
-                {{ 'settings.model.willBeUsedHint' | translate }}
-              </p>
-              }
+              <p class="model-name">{{ activeModelLabel() }}</p>
             </ion-label>
           </ion-item>
         </div>
@@ -241,7 +232,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card class="glass-card">
+    <!-- <ion-card class="glass-card">
       <ion-card-header>
         <ion-card-subtitle
           >{{ 'settings.support.subtitle' | translate }}</ion-card-subtitle
@@ -264,6 +255,6 @@
           {{ 'settings.support.donate' | translate }}
         </ion-button>
       </ion-card-content>
-    </ion-card>
+    </ion-card> -->
   </div>
 </ion-content>
