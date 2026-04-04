@@ -14,7 +14,9 @@
       "selectModel": "Select the model to use",
       "multilingual": "Multilingual",
       "activeModel": "Active Model",
+      "noActiveModel": "No active model yet",
       "lastUsedHint": "Last used during transcription",
+      "downloadedHint": "Already downloaded and ready to use",
       "willBeUsedHint": "Will be used on next transcription"
     },
     "interface": {
@@ -140,6 +142,12 @@
     },
     "errors": {
       "emptyNote": "Please write something before saving.",
+      "transcriptionFailed": "Transcription failed.",
+      "transcriptionFailedHeader": "Transcription Failed",
+      "transcriptionFailedMessage": "The model could not finish loading or the audio could not be transcribed. Please try again.",
+      "rateLimited": "Model download temporarily blocked.",
+      "rateLimitedHeader": "Model Download Temporarily Blocked",
+      "rateLimitedMessage": "The app is working, but the model host temporarily blocked repeated downloads from your network. Please try again later, or try another network or VPN.",
       "recordingNotSupportedHeader": "Recording Not Supported",
       "recordingNotSupportedMessage": "Your device does not support audio recording. Please use the upload option instead.",
       "noModelOfflineHeader": "No Model Available Offline",

@@ -88,25 +88,57 @@ export class CreatePage {
     effect(() => {
       if (
         !this.store.loading() &&
+        !this.store.error() &&
         this.statusMessage() === this.translationStore.t('create.transcribing')
       ) {
         this.statusMessage.set(
           this.translationStore.t('create.status.transcriptionComplete'),
         );
         this.showSuccessAlert(
-          this.translationStore.t(
-            'create.alerts.transcriptionCompleteHeader',
-          ),
-          this.translationStore.t(
-            'create.alerts.transcriptionCompleteMessage',
-          ),
+          this.translationStore.t('create.alerts.transcriptionCompleteHeader'),
+          this.translationStore.t('create.alerts.transcriptionCompleteMessage'),
         ).catch(console.error);
         setTimeout(
           () =>
-            this.statusMessage.set(this.translationStore.t('create.status.ready')),
+            this.statusMessage.set(
+              this.translationStore.t('create.status.ready'),
+            ),
           2000,
         );
       }
+    });
+
+    effect(() => {
+      const error = this.store.error();
+      if (!error) return;
+
+      const errorMessage = error.toLowerCase();
+      const isRateLimited =
+        errorMessage.includes('429') ||
+        errorMessage.includes('too many requests') ||
+        errorMessage.includes('rate limit') ||
+        errorMessage.includes('huggingface');
+
+      this.statusMessage.set(
+        this.translationStore.t(
+          isRateLimited
+            ? 'create.errors.rateLimited'
+            : 'create.errors.transcriptionFailed',
+        ),
+      );
+      this.showAlert(
+        this.translationStore.t(
+          isRateLimited
+            ? 'create.errors.rateLimitedHeader'
+            : 'create.errors.transcriptionFailedHeader',
+        ),
+        this.translationStore.t(
+          isRateLimited
+            ? 'create.errors.rateLimitedMessage'
+            : 'create.errors.transcriptionFailedMessage',
+        ),
+      ).catch(console.error);
+      this.store.clearError();
     });
   }
 
@@ -190,13 +222,17 @@ export class CreatePage {
     const { title, body } = this.noteForm.value;
     const trimmedBody = (body || '').trim();
     if (!trimmedBody) {
-      this.statusMessage.set(this.translationStore.t('create.errors.emptyNote'));
+      this.statusMessage.set(
+        this.translationStore.t('create.errors.emptyNote'),
+      );
       return;
     }
 
     const note: Note = {
       id: crypto.randomUUID(),
-      title: (title || this.translationStore.t('create.defaults.untitled')).trim(),
+      title: (
+        title || this.translationStore.t('create.defaults.untitled')
+      ).trim(),
       body: trimmedBody,
       createdAt: Date.now(),
       source: 'Typed',

@@ -16,7 +16,7 @@ export class TranscriptionService {
     if (typeof Worker !== 'undefined') {
       this.worker = new Worker(
         new URL('./transcription.worker', import.meta.url),
-        { type: 'module' }
+        { type: 'module' },
       );
     }
   }
@@ -25,9 +25,12 @@ export class TranscriptionService {
     const updates$ = new Subject<TranscriptionUpdate>();
     const start = performance.now();
 
+    this.modelStatus.set(null);
+    this.modelProgress.set(null);
+
     if (!this.worker) {
       updates$.error(
-        new Error('Web Workers are not supported in this browser')
+        new Error('Web Workers are not supported in this browser'),
       );
       return updates$;
     }
@@ -42,7 +45,7 @@ export class TranscriptionService {
   private async processAudioAndTranscribe(
     file: File,
     updates$: Subject<TranscriptionUpdate>,
-    start: number
+    start: number,
   ): Promise<void> {
     if (!this.worker) {
       throw new Error('Worker not available');
@@ -89,6 +92,8 @@ export class TranscriptionService {
       } else if (status === 'complete') {
         const result = data;
         this.worker?.removeEventListener('message', messageHandler);
+        this.modelStatus.set(null);
+        this.modelProgress.set(null);
 
         const chunksCount = result?.chunks?.length || 0;
         console.log(`Chunks: ${chunksCount}`);
@@ -97,7 +102,7 @@ export class TranscriptionService {
           result.chunks.forEach((chunk: any, index: number) => {
             console.log(
               `Chunk ${index + 1}/${chunksCount}:`,
-              chunk.text?.trim() || ''
+              chunk.text?.trim() || '',
             );
           });
         }
@@ -143,6 +148,8 @@ export class TranscriptionService {
         updates$.complete();
       } else if (status === 'error') {
         this.worker?.removeEventListener('message', messageHandler);
+        this.modelStatus.set(null);
+        this.modelProgress.set(null);
         updates$.error(new Error(error || 'Transcription failed'));
       }
     };
@@ -167,7 +174,7 @@ export class TranscriptionService {
         isOnline,
         lastUsedModel,
       },
-      [audio.buffer]
+      [audio.buffer],
     );
   }
 

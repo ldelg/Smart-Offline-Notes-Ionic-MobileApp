@@ -14,7 +14,9 @@
       "selectModel": "Sélectionnez le modèle à utiliser",
       "multilingual": "Multilingue",
       "activeModel": "Modèle actif",
+      "noActiveModel": "Aucun modèle actif pour le moment",
       "lastUsedHint": "Dernière utilisation lors de la transcription",
+      "downloadedHint": "Déjà téléchargé et prêt à l'emploi",
       "willBeUsedHint": "Sera utilisé lors de la prochaine transcription"
     },
     "interface": {
@@ -133,6 +135,12 @@
     },
     "errors": {
       "emptyNote": "Veuillez écrire quelque chose avant d'enregistrer.",
+      "transcriptionFailed": "La transcription a échoué.",
+      "transcriptionFailedHeader": "Échec de la transcription",
+      "transcriptionFailedMessage": "Le modèle n'a pas pu terminer son chargement ou l'audio n'a pas pu être transcrit. Veuillez réessayer.",
+      "rateLimited": "Téléchargement du modèle temporairement bloqué.",
+      "rateLimitedHeader": "Téléchargement du modèle temporairement bloqué",
+      "rateLimitedMessage": "L'application fonctionne, mais l'hébergeur du modèle a temporairement bloqué les téléchargements répétés depuis votre réseau. Réessayez plus tard ou utilisez un autre réseau ou un VPN.",
       "recordingNotSupportedHeader": "Enregistrement non pris en charge",
       "recordingNotSupportedMessage": "Votre appareil ne prend pas en charge l'enregistrement audio. Utilisez plutôt l'option de téléversement.",
       "noModelOfflineHeader": "Aucun modèle disponible hors ligne",

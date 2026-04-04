@@ -9,11 +9,13 @@ import { SettingsStore } from './settings.store';
 interface NotesState {
   notes: Note[];
   loading: boolean;
+  error: string | null;
 }
 
 const initialState: NotesState = {
   notes: [],
   loading: false,
+  error: null,
 };
 
 export const NotesStore = signalStore(
@@ -27,11 +29,11 @@ export const NotesStore = signalStore(
     ) => ({
       loadNotes: rxMethod<void>(
         pipe(
-          tap(() => patchState(store, { loading: true })),
+          tap(() => patchState(store, { loading: true, error: null })),
           tap(() => {
             const stored = localStorage.getItem('whisper-notes');
             const notes = stored ? JSON.parse(stored) : [];
-            patchState(store, { notes, loading: false });
+            patchState(store, { notes, loading: false, error: null });
           }),
         ),
       ),
@@ -47,7 +49,7 @@ export const NotesStore = signalStore(
       },
       transcribe: rxMethod<{ file: File; source: Note['source'] }>(
         pipe(
-          tap(() => patchState(store, { loading: true })),
+          tap(() => patchState(store, { loading: true, error: null })),
           switchMap(({ file, source }) => {
             const noteId = crypto.randomUUID();
             const initialNote: Note = {
@@ -87,14 +89,21 @@ export const NotesStore = signalStore(
                 );
 
                 if (update.isComplete) {
-                  patchState(store, { loading: false });
+                  patchState(store, { loading: false, error: null });
                   settings.setLastUsedModel(model);
                 }
               }),
               catchError((error) => {
                 console.error('Transcription failed', error);
                 const notes = store.notes().filter((n) => n.id !== noteId);
-                patchState(store, { notes, loading: false });
+                patchState(store, {
+                  notes,
+                  loading: false,
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : 'Transcription failed',
+                });
                 localStorage.setItem('whisper-notes', JSON.stringify(notes));
                 return EMPTY;
               }),
@@ -138,6 +147,9 @@ export const NotesStore = signalStore(
           patchState(store, { notes: importedNotes });
           localStorage.setItem('whisper-notes', JSON.stringify(importedNotes));
         }
+      },
+      clearError: () => {
+        patchState(store, { error: null });
       },
     }),
   ),

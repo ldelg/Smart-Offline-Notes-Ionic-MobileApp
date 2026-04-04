@@ -156,9 +156,11 @@ export class SettingsPage implements ViewWillEnter {
     }));
   });
 
-  readonly lastUsedModelLabel = computed(() => {
+  readonly activeModelLabel = computed(() => {
     const lastUsed = this.lastUsedModel();
-    if (!lastUsed) return '';
+    if (!lastUsed) {
+      return this.t('settings.model.noActiveModel');
+    }
     const option = modelOptions.find((opt) => opt.value === lastUsed);
     return option ? option.label : lastUsed;
   });
@@ -168,6 +170,14 @@ export class SettingsPage implements ViewWillEnter {
     if (!current) return '';
     const option = modelOptions.find((opt) => opt.value === current);
     return option ? option.label : current;
+  });
+
+  readonly selectedModelHintKey = computed(() => {
+    const current = this.model();
+    const lastUsed = this.lastUsedModel();
+    return current && lastUsed && current === lastUsed
+      ? 'settings.model.downloadedHint'
+      : 'settings.model.willBeUsedHint';
   });
 
   private isModelMultilingual(model: string): boolean {
@@ -181,6 +191,7 @@ export class SettingsPage implements ViewWillEnter {
   onModelChange(model: string) {
     const currentModel = this.settings.model();
     if (model !== currentModel) {
+      this.settings.setModel(model);
       if (!this.isModelMultilingual(model)) {
         this.settings.setMultilingual(false);
       }
