@@ -1,0 +1,181 @@
+{
+  "languages": {
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français",
+    "de": "Allemand",
+    "it": "Italien"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "model": {
+      "subtitle": "Modèle",
+      "title": "Moteur de transcription",
+      "selectModel": "Sélectionnez le modèle à utiliser",
+      "multilingual": "Multilingue",
+      "activeModel": "Modèle actif",
+      "lastUsedHint": "Dernière utilisation lors de la transcription",
+      "willBeUsedHint": "Sera utilisé lors de la prochaine transcription"
+    },
+    "interface": {
+      "subtitle": "Interface",
+      "title": "Langue de l'application",
+      "select": "Sélectionnez la langue de l'application"
+    },
+    "transcription": {
+      "subtitle": "Langue et tâche",
+      "title": "Mode de transcription",
+      "selectSource": "Sélectionnez la langue source",
+      "selectTask": "Sélectionnez la tâche à effectuer",
+      "transcribe": "Transcrire",
+      "translate": "Traduire en anglais"
+    },
+    "network": {
+      "subtitle": "État du réseau",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "modelCache": "Cache du modèle",
+      "calculating": "Calcul en cours...",
+      "clearCache": "Effacer le cache du modèle"
+    },
+    "data": {
+      "subtitle": "Gestion des données",
+      "title": "Exporter et importer des notes",
+      "description": "Exportez vos notes au format JSON pour sauvegarde, ou importez des notes depuis une exportation précédente.",
+      "export": "Exporter les notes",
+      "import": "Importer des notes"
+    },
+    "support": {
+      "subtitle": "Support",
+      "title": "Soutenir le développement",
+      "description": "Si cette application vous est utile, envisagez de faire un don pour soutenir le développement et les améliorations.",
+      "donate": "Faire un don"
+    },
+    "messages": {
+      "common": {
+        "ok": "OK",
+        "cancel": "Annuler",
+        "note": "note",
+        "notes": "notes"
+      },
+      "donation": {
+        "errorHeader": "Erreur de don",
+        "errorMessage": "Une erreur s'est produite lors du traitement de votre don. Veuillez réessayer plus tard."
+      },
+      "export": {
+        "successHeader": "Export réussi",
+        "errorHeader": "Échec de l'export",
+        "errorMessage": "Une erreur s'est produite lors de l'exportation de vos notes. Veuillez réessayer.",
+        "savedToDownloads": "Fichier enregistré dans le dossier Téléchargements :",
+        "shareTitle": "Sauvegarde SmartNotes",
+        "shareTextPrefix": "Sauvegarde de",
+        "shareDialogTitle": "Enregistrer la sauvegarde SmartNotes",
+        "chooseWhere": "Choisissez où enregistrer le fichier depuis la boîte de partage.",
+        "downloadedAs": "Fichier téléchargé sous",
+        "checkDownloads": "Vérifiez votre dossier Téléchargements."
+      },
+      "import": {
+        "header": "Importer des notes",
+        "invalidHeader": "Fichier invalide",
+        "invalidMessage": "Le fichier sélectionné n'est pas une sauvegarde SmartNotes valide.",
+        "errorHeader": "Échec de l'import",
+        "readErrorMessage": "Une erreur s'est produite lors de la lecture du fichier. Assurez-vous qu'il s'agit d'un fichier JSON valide.",
+        "importErrorMessage": "Une erreur s'est produite lors de l'importation des notes. Veuillez réessayer.",
+        "successHeader": "Import réussi",
+        "currentlyHave": "Vous avez actuellement",
+        "fileContains": "Le fichier d'import contient",
+        "howProceed": "Comment souhaitez-vous continuer ?",
+        "replaceAll": "Remplacer tout",
+        "merge": "Fusionner",
+        "importedPrefix": "Importées avec succès",
+        "totalNow": "Vous avez maintenant"
+      },
+      "network": {
+        "unknown": "Inconnu",
+        "clearCacheHeader": "Effacer le cache des modèles",
+        "clearCacheMessagePrefix": "Cela supprimera tous les modèles en cache",
+        "clearCacheMessageSuffix": "Vous devrez les télécharger à nouveau lors de la transcription. Continuer ?",
+        "clearCacheAction": "Effacer le cache",
+        "clearedHeader": "Cache effacé",
+        "clearedMessage": "Tous les modèles en cache ont été supprimés avec succès.",
+        "clearFailedHeader": "Échec de l'effacement",
+        "clearFailedMessage": "Une erreur s'est produite lors de l'effacement du cache. Veuillez réessayer."
+      }
+    }
+  },
+  "create": {
+    "title": "Créer une note",
+    "recording": "Enregistrement... Touchez pour arrêter",
+    "recordToStart": "Touchez le bouton d'enregistrement pour commencer.",
+    "saved": "Note enregistrée avec succès.",
+    "modelLabel": "Modèle",
+    "upload": {
+      "label": "Téléverser",
+      "caption": "Téléverser un fichier audio",
+      "aria": "Téléverser un fichier audio"
+    },
+    "transcribing": "Transcription en cours...",
+    "status": {
+      "transcriptionComplete": "Transcription terminée !",
+      "ready": "Prêt à créer votre prochaine note."
+    },
+    "manual": {
+      "title": "Saisie manuelle"
+    },
+    "input": {
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Titre de la note",
+      "contentLabel": "Contenu",
+      "contentPlaceholder": "Écrivez votre note ici..."
+    },
+    "defaults": {
+      "untitled": "Note sans titre"
+    },
+    "errors": {
+      "emptyNote": "Veuillez écrire quelque chose avant d'enregistrer.",
+      "recordingNotSupportedHeader": "Enregistrement non pris en charge",
+      "recordingNotSupportedMessage": "Votre appareil ne prend pas en charge l'enregistrement audio. Utilisez plutôt l'option de téléversement.",
+      "noModelOfflineHeader": "Aucun modèle disponible hors ligne",
+      "noModelOfflineMessage": "Vous êtes actuellement hors ligne et aucun modèle n'est téléchargé. Veuillez vous connecter à Internet pour télécharger le modèle une fois.",
+      "microphonePermissionHeader": "Autorisation du microphone requise",
+      "microphonePermissionMessage": "Veuillez autoriser l'accès au microphone dans les paramètres de votre navigateur pour enregistrer l'audio. Vous pouvez également téléverser des fichiers audio à la place."
+    },
+    "save": "Enregistrer la note",
+    "alerts": {
+      "transcriptionCompleteHeader": "Transcription terminée",
+      "transcriptionCompleteMessage": "Votre audio a été transcrit et enregistré en tant que note !",
+      "readyMessage": "Prêt à créer votre prochaine note.",
+      "ok": "OK",
+      "noteCreatedHeader": "Note créée",
+      "noteCreatedMessage": "Votre note a été enregistrée avec succès !"
+    }
+  },
+  "tabs": {
+    "create": "Créer",
+    "notes": "Notes",
+    "settings": "Paramètres"
+  },
+  "notes": {
+    "title": "Notes",
+    "search": {
+      "placeholder": "Rechercher des notes..."
+    },
+    "empty": {
+      "title": "Aucune note pour l'instant",
+      "description": "Créez votre première note dans l'onglet Créer"
+    },
+    "actions": {
+      "closeTab": "Fermer l'onglet de note",
+      "dragReorder": "Glisser pour réorganiser",
+      "open": "Ouvrir la note",
+      "delete": "Supprimer la note"
+    },
+    "editor": {
+      "editing": "Modification",
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Titre de la note",
+      "bodyLabel": "Contenu",
+      "save": "Enregistrer les modifications"
+    }
+  }
+}

@@ -7,7 +7,7 @@ export interface TranslationState {
 }
 
 const initialState: TranslationState = {
-  currentLang: 'en',
+  currentLang: '',
   translations: {},
   loading: false,
 };
@@ -31,7 +31,14 @@ export const TranslationStore = signalStore(
   withState(initialState),
   withMethods((store) => ({
     async setLanguage(lang: string) {
-      if (!lang || lang === store.currentLang()) return;
+      if (!lang) return;
+
+      const currentLang = store.currentLang();
+      const translations = store.translations();
+      const hasTranslations = Object.keys(translations).length > 0;
+
+      if (lang === currentLang && hasTranslations) return;
+
       patchState(store, { loading: true });
       try {
         const resp = await fetch(`assets/i18n/${lang}.json`);
