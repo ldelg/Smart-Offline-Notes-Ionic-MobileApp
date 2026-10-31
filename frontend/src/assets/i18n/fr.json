@@ -117,6 +117,12 @@
       "aria": "Téléverser un fichier audio"
     },
     "transcribing": "Transcription en cours...",
+    "modelDownload": {
+      "header": "Télécharger le modèle vocal ?",
+      "message": "{model} sera téléchargé une seule fois depuis huggingface.co et enregistré sur cet appareil. L'audio et les notes restent sur l'appareil. Après le téléchargement, la transcription fonctionne hors ligne.",
+      "cancel": "Annuler",
+      "confirm": "Télécharger"
+    },
     "status": {
       "transcriptionComplete": "Transcription terminée !",
       "ready": "Prêt à créer votre prochaine note."

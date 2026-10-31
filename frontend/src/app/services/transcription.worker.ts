@@ -1,10 +1,23 @@
 /* eslint-disable camelcase */
+// Adapted from xenova/whisper-web (MIT), Copyright (c) 2023 Xenova.
+// See the NOTICE file at the repository root.
 import { pipeline, env } from '@xenova/transformers';
 
 env.allowLocalModels = false;
 
 if (typeof self !== 'undefined' && env.backends?.onnx) {
-  (env.backends.onnx as any)['executionProviders'] = ['wasm'];
+  const onnx = env.backends.onnx as {
+    executionProviders?: string[];
+    wasm?: { wasmPaths?: string; numThreads?: number };
+  };
+  onnx.executionProviders = ['wasm'];
+  // Load the ONNX Runtime .wasm bundled in the app (copied by angular.json)
+  // instead of transformers.js' default https://cdn.jsdelivr.net/... URL.
+  onnx.wasm = onnx.wasm ?? {};
+  onnx.wasm.wasmPaths = new URL('assets/ort/', `${self.location.origin}/`).href;
+  // Android WebView is not cross-origin isolated, so the threaded builds are
+  // never used; only ort-wasm.wasm / ort-wasm-simd.wasm are bundled.
+  onnx.wasm.numThreads = 1;
 }
 
 class PipelineFactory {
@@ -34,6 +47,25 @@ class AutomaticSpeechRecognitionPipelineFactory extends PipelineFactory {
   static override model: string | null = null;
 }
 
+const errorText = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === 'string' && error.trim()) return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return 'Transcription failed';
+};
+
+const postError = (jobId: number, error: unknown): void => {
+  self.postMessage({
+    status: 'error',
+    task: 'automatic-speech-recognition',
+    jobId,
+    data: { message: errorText(error) },
+  });
+};
+
 const transcribe = async (
   audio: Float32Array,
   model: string,
@@ -41,7 +73,8 @@ const transcribe = async (
   subtask: string | null,
   language: string | null,
   isOnline: boolean = true,
-  lastUsedModel: string | null = null
+  lastUsedModel: string | null = null,
+  jobId: number,
 ) => {
   const modelName = model;
 
@@ -72,7 +105,7 @@ const transcribe = async (
   p.model = modelName;
 
   const transcriber = await p.getInstance((data: any) => {
-    self.postMessage(data);
+    self.postMessage({ ...data, jobId });
   });
 
   const time_precision =
@@ -115,6 +148,7 @@ const transcribe = async (
     self.postMessage({
       status: 'update',
       task: 'automatic-speech-recognition',
+      jobId,
       data: data,
     });
   }
@@ -131,55 +165,57 @@ const transcribe = async (
     force_full_sequences: false,
     callback_function: callback_function,
     chunk_callback: chunk_callback,
-  }).catch((error: any) => {
-    self.postMessage({
-      status: 'error',
-      task: 'automatic-speech-recognition',
-      data: error,
-    });
+  }).catch((error: unknown) => {
+    postError(jobId, error);
     return null;
   });
 
   return output;
 };
 
-self.addEventListener('message', async (event) => {
+let jobChain: Promise<void> = Promise.resolve();
+
+self.addEventListener('message', (event: MessageEvent) => {
   const message = event.data;
+  if (!message || message.type !== 'transcribe') return;
 
-  if (message.type === 'transcribe') {
-    try {
-      const {
-        audio,
-        model,
-        multilingual,
-        subtask,
-        language,
-        isOnline,
-        lastUsedModel,
-      } = message;
-      const transcript = await transcribe(
-        audio,
-        model,
-        multilingual,
-        subtask,
-        language,
-        isOnline,
-        lastUsedModel
-      );
+  const jobId = Number(message.jobId);
+  jobChain = jobChain
+    .then(async () => {
+      try {
+        const {
+          audio,
+          model,
+          multilingual,
+          subtask,
+          language,
+          isOnline,
+          lastUsedModel,
+        } = message;
+        const transcript = await transcribe(
+          audio,
+          model,
+          multilingual,
+          subtask,
+          language,
+          isOnline,
+          lastUsedModel,
+          jobId,
+        );
 
-      if (transcript === null) return;
+        if (transcript === null) return;
 
-      self.postMessage({
-        status: 'complete',
-        task: 'automatic-speech-recognition',
-        data: transcript,
-      });
-    } catch (error: any) {
-      self.postMessage({
-        status: 'error',
-        task: 'automatic-speech-recognition',
-        data: error,
-      });
-    }
-  }
+        self.postMessage({
+          status: 'complete',
+          task: 'automatic-speech-recognition',
+          jobId,
+          data: transcript,
+        });
+      } catch (error: unknown) {
+        postError(jobId, error);
+      }
+    })
+    .catch((error: unknown) => {
+      postError(jobId, error);
+    });
 });

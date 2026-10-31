@@ -1,8 +1,27 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
 import { NetworkService } from './network.service';
 import { TranscriptionUpdate } from '../models/transcription.service.model';
+
+const workerErrorMessage = (payload: any): string => {
+  const candidates = [payload?.error, payload?.data];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate;
+    if (candidate instanceof Error && candidate.message.trim()) {
+      return candidate.message;
+    }
+    if (
+      candidate &&
+      typeof candidate === 'object' &&
+      typeof candidate.message === 'string' &&
+      candidate.message.trim()
+    ) {
+      return candidate.message;
+    }
+  }
+  return 'Transcription failed';
+};
 
 @Injectable({ providedIn: 'root' })
 export class TranscriptionService {
@@ -11,6 +30,8 @@ export class TranscriptionService {
   private readonly networkService = inject(NetworkService);
   readonly modelStatus = signal<string | null>(null);
   readonly modelProgress = signal<number | null>(null);
+  private requestSeq = 0;
+  private activeHandler?: (event: MessageEvent) => void;
 
   constructor() {
     if (typeof Worker !== 'undefined') {
@@ -22,30 +43,67 @@ export class TranscriptionService {
   }
 
   transcribe(file: File): Observable<TranscriptionUpdate> {
-    const updates$ = new Subject<TranscriptionUpdate>();
-    const start = performance.now();
+    return new Observable((subscriber) => {
+      const requestId = ++this.requestSeq;
+      const start = performance.now();
 
-    this.modelStatus.set(null);
-    this.modelProgress.set(null);
+      this.modelStatus.set(null);
+      this.modelProgress.set(null);
 
-    if (!this.worker) {
-      updates$.error(
-        new Error('Web Workers are not supported in this browser'),
+      if (!this.worker) {
+        subscriber.error(
+          new Error('Web Workers are not supported in this browser'),
+        );
+        return;
+      }
+
+      this.detachActiveHandler();
+
+      let disposed = false;
+      const messageHandler = (event: MessageEvent) => {
+        if (disposed || event.data?.jobId !== requestId) return;
+        this.handleWorkerMessage(event.data, subscriber, start, () => {
+          disposed = true;
+          this.detach(messageHandler);
+        });
+      };
+      this.activeHandler = messageHandler;
+      this.worker.addEventListener('message', messageHandler);
+
+      this.processAudioAndTranscribe(file, requestId, () => disposed).catch(
+        (error) => {
+          if (disposed || requestId !== this.requestSeq) return;
+          this.detach(messageHandler);
+          this.modelStatus.set(null);
+          this.modelProgress.set(null);
+          subscriber.error(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        },
       );
-      return updates$;
-    }
 
-    this.processAudioAndTranscribe(file, updates$, start).catch((error) => {
-      updates$.error(error);
+      return () => {
+        disposed = true;
+        this.detach(messageHandler);
+      };
     });
+  }
 
-    return updates$.asObservable();
+  private detachActiveHandler(): void {
+    if (!this.activeHandler) return;
+    this.worker?.removeEventListener('message', this.activeHandler);
+    this.activeHandler = undefined;
+  }
+
+  private detach(handler: (event: MessageEvent) => void): void {
+    this.worker?.removeEventListener('message', handler);
+    if (this.activeHandler === handler) this.activeHandler = undefined;
   }
 
   private async processAudioAndTranscribe(
     file: File,
-    updates$: Subject<TranscriptionUpdate>,
-    start: number,
+    requestId: number,
+    isDisposed: () => boolean,
   ): Promise<void> {
     if (!this.worker) {
       throw new Error('Worker not available');
@@ -53,108 +111,33 @@ export class TranscriptionService {
 
     const arrayBuffer = await file.arrayBuffer();
     const audioContext = new AudioContext({ sampleRate: 16000 });
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
     let audio: Float32Array;
-    if (audioBuffer.numberOfChannels === 2) {
-      const SCALING_FACTOR = Math.sqrt(2);
-      const left = audioBuffer.getChannelData(0);
-      const right = audioBuffer.getChannelData(1);
-      audio = new Float32Array(left.length);
-      for (let i = 0; i < audioBuffer.length; ++i) {
-        audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
+    try {
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      if (audioBuffer.numberOfChannels === 2) {
+        const SCALING_FACTOR = Math.sqrt(2);
+        const left = audioBuffer.getChannelData(0);
+        const right = audioBuffer.getChannelData(1);
+        audio = new Float32Array(left.length);
+        for (let i = 0; i < audioBuffer.length; ++i) {
+          audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
+        }
+      } else {
+        audio = audioBuffer.getChannelData(0);
       }
-    } else {
-      audio = audioBuffer.getChannelData(0);
+    } finally {
+      try {
+        await audioContext.close();
+      } catch (closeError) {
+        console.warn('Failed to close AudioContext', closeError);
+      }
     }
+
+    if (isDisposed()) return;
 
     const audioDuration = audio.length / 16000;
     console.log(`Transcribing ${audioDuration.toFixed(1)}s of audio`);
-
-    const messageHandler = (event: MessageEvent) => {
-      const payload = event.data;
-      const { status, data, error } = payload || {};
-
-      if (this.handleModelProgress(payload)) {
-        return;
-      }
-
-      if (status === 'update') {
-        const updateData = data as [string, { chunks: any[] }];
-        const text = updateData[0] || '';
-        const chunks = updateData[1]?.chunks || [];
-
-        updates$.next({
-          text: text,
-          chunks: chunks,
-          isComplete: false,
-        });
-      } else if (status === 'complete') {
-        const result = data;
-        this.worker?.removeEventListener('message', messageHandler);
-        this.modelStatus.set(null);
-        this.modelProgress.set(null);
-
-        const chunksCount = result?.chunks?.length || 0;
-        console.log(`Chunks: ${chunksCount}`);
-
-        if (result?.chunks && Array.isArray(result.chunks)) {
-          result.chunks.forEach((chunk: any, index: number) => {
-            console.log(
-              `Chunk ${index + 1}/${chunksCount}:`,
-              chunk.text?.trim() || '',
-            );
-          });
-        }
-
-        let text = '';
-        if (result?.text && result.text.trim().length > 0) {
-          text = result.text;
-          console.log(`result.text length: ${text.length} chars`);
-
-          if (result?.chunks && result.chunks.length > 1) {
-            const chunkTexts = result.chunks
-              .map((chunk: any) => chunk.text?.trim() || '')
-              .filter((t: string) => t.length > 0);
-            const mergedFromChunks = chunkTexts.join(' ').trim();
-            if (mergedFromChunks.length > text.length) {
-              text = mergedFromChunks;
-              console.log(`Using merged chunks (${text.length} chars)`);
-            }
-          }
-        } else if (
-          result?.chunks &&
-          Array.isArray(result.chunks) &&
-          result.chunks.length > 0
-        ) {
-          const chunkTexts = result.chunks
-            .map((chunk: any) => chunk.text?.trim() || '')
-            .filter((t: string) => t.length > 0);
-          text = chunkTexts.join(' ').trim();
-          console.log(`Merged from chunks: ${text.length} chars`);
-        } else if (typeof result === 'string') {
-          text = result;
-        }
-
-        console.log(`Final text: ${text.length} chars`);
-
-        updates$.next({
-          text: text.trim(),
-          chunks: result?.chunks || [],
-          isComplete: true,
-          language: result?.language ?? result?.language_detection?.language,
-          duration: Math.round((performance.now() - start) / 100) / 10,
-        });
-        updates$.complete();
-      } else if (status === 'error') {
-        this.worker?.removeEventListener('message', messageHandler);
-        this.modelStatus.set(null);
-        this.modelProgress.set(null);
-        updates$.error(new Error(error || 'Transcription failed'));
-      }
-    };
-
-    this.worker.addEventListener('message', messageHandler);
 
     const model = this.settings.model();
     const multilingual = this.settings.multilingual();
@@ -166,6 +149,7 @@ export class TranscriptionService {
     this.worker.postMessage(
       {
         type: 'transcribe',
+        jobId: requestId,
         audio,
         model,
         multilingual,
@@ -176,6 +160,97 @@ export class TranscriptionService {
       },
       [audio.buffer],
     );
+  }
+
+  private handleWorkerMessage(
+    payload: any,
+    subscriber: {
+      next: (value: TranscriptionUpdate) => void;
+      error: (error: unknown) => void;
+      complete: () => void;
+    },
+    start: number,
+    finish: () => void,
+  ): void {
+    const { status, data } = payload || {};
+
+    if (this.handleModelProgress(payload)) {
+      return;
+    }
+
+    if (status === 'update') {
+      const updateData = data as [string, { chunks: any[] }];
+      const text = updateData[0] || '';
+      const chunks = updateData[1]?.chunks || [];
+
+      subscriber.next({
+        text: text,
+        chunks: chunks,
+        isComplete: false,
+      });
+    } else if (status === 'complete') {
+      const result = data;
+      finish();
+      this.modelStatus.set(null);
+      this.modelProgress.set(null);
+
+      const chunksCount = result?.chunks?.length || 0;
+      console.log(`Chunks: ${chunksCount}`);
+
+      if (result?.chunks && Array.isArray(result.chunks)) {
+        result.chunks.forEach((chunk: any, index: number) => {
+          console.log(
+            `Chunk ${index + 1}/${chunksCount}:`,
+            chunk.text?.trim() || '',
+          );
+        });
+      }
+
+      let text = '';
+      if (result?.text && result.text.trim().length > 0) {
+        text = result.text;
+        console.log(`result.text length: ${text.length} chars`);
+
+        if (result?.chunks && result.chunks.length > 1) {
+          const chunkTexts = result.chunks
+            .map((chunk: any) => chunk.text?.trim() || '')
+            .filter((t: string) => t.length > 0);
+          const mergedFromChunks = chunkTexts.join(' ').trim();
+          if (mergedFromChunks.length > text.length) {
+            text = mergedFromChunks;
+            console.log(`Using merged chunks (${text.length} chars)`);
+          }
+        }
+      } else if (
+        result?.chunks &&
+        Array.isArray(result.chunks) &&
+        result.chunks.length > 0
+      ) {
+        const chunkTexts = result.chunks
+          .map((chunk: any) => chunk.text?.trim() || '')
+          .filter((t: string) => t.length > 0);
+        text = chunkTexts.join(' ').trim();
+        console.log(`Merged from chunks: ${text.length} chars`);
+      } else if (typeof result === 'string') {
+        text = result;
+      }
+
+      console.log(`Final text: ${text.length} chars`);
+
+      subscriber.next({
+        text: text.trim(),
+        chunks: result?.chunks || [],
+        isComplete: true,
+        language: result?.language ?? result?.language_detection?.language,
+        duration: Math.round((performance.now() - start) / 100) / 10,
+      });
+      subscriber.complete();
+    } else if (status === 'error') {
+      finish();
+      this.modelStatus.set(null);
+      this.modelProgress.set(null);
+      subscriber.error(new Error(workerErrorMessage(payload)));
+    }
   }
 
   private handleModelProgress(payload: any): boolean {

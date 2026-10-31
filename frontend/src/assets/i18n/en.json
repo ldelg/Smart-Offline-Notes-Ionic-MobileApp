@@ -124,6 +124,12 @@
       "aria": "Upload audio file"
     },
     "transcribing": "Transcribing...",
+    "modelDownload": {
+      "header": "Download speech model?",
+      "message": "{model} will be downloaded once from huggingface.co and saved on this device. Your audio and notes stay on the device. After the download, transcription works offline.",
+      "cancel": "Cancel",
+      "confirm": "Download"
+    },
     "status": {
       "transcriptionComplete": "Transcription complete!",
       "ready": "Ready to create your next note."
