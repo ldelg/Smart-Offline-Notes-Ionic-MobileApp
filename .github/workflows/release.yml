@@ -1,0 +1,94 @@
+name: Release APK
+
+# Tags only. A normal push does not run this workflow, so a missing keystore
+# secret cannot fail CI on main.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - name: Install npm dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web app
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+      - name: Capacitor sync
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Assemble unsigned release APK
+        working-directory: frontend/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Sign APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEY_ALIAS}" ] || [ -z "${KEY_PASSWORD}" ]; then
+            echo "Missing signing secret. Add KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
+            exit 1
+          fi
+          KEYSTORE="$(mktemp)"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          echo "${KEYSTORE_BASE64}" | base64 -d > "$KEYSTORE"
+          UNSIGNED="frontend/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          if [ ! -f "$UNSIGNED" ]; then
+            echo "Unsigned release APK not found at $UNSIGNED"
+            find frontend/android/app/build/outputs/apk -name '*.apk' -print
+            exit 1
+          fi
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          SIGNED="Smart-Offline-Notes-${GITHUB_REF_NAME}.apk"
+          "$BUILD_TOOLS/zipalign" -p -f 4 "$UNSIGNED" aligned.apk
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$KEYSTORE" \
+            --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out "$SIGNED" \
+            aligned.apk
+          "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED"
+          rm -f aligned.apk
+
+      - name: Attach APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Smart-Offline-Notes-${{ github.ref_name }}.apk
+          generate_release_notes: true

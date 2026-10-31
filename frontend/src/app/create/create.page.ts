@@ -27,6 +27,10 @@ import {
   createOutline,
 } from 'ionicons/icons';
 import { NetworkService } from '../services/network.service';
+import {
+  MODEL_DOWNLOAD_CONSENT_PREFIX,
+  modelOptions,
+} from '../models/settings.model';
 import { SettingsStore } from '../store/settings.store';
 import { TranscriptionService } from '../services/transcription.service';
 import { TranslatePipe } from '../pipes/translate.pipe';
@@ -118,13 +122,20 @@ export class CreatePage {
         errorMessage.includes('too many requests') ||
         errorMessage.includes('rate limit') ||
         errorMessage.includes('huggingface');
+      const friendlyStatus = this.translationStore.t(
+        isRateLimited
+          ? 'create.errors.rateLimited'
+          : 'create.errors.transcriptionFailed',
+      );
+      const friendlyMessage = this.translationStore.t(
+        isRateLimited
+          ? 'create.errors.rateLimitedMessage'
+          : 'create.errors.transcriptionFailedMessage',
+      );
+      const hasDetail = error !== 'Transcription failed';
 
       this.statusMessage.set(
-        this.translationStore.t(
-          isRateLimited
-            ? 'create.errors.rateLimited'
-            : 'create.errors.transcriptionFailed',
-        ),
+        hasDetail && !isRateLimited ? error : friendlyStatus,
       );
       this.showAlert(
         this.translationStore.t(
@@ -132,11 +143,7 @@ export class CreatePage {
             ? 'create.errors.rateLimitedHeader'
             : 'create.errors.transcriptionFailedHeader',
         ),
-        this.translationStore.t(
-          isRateLimited
-            ? 'create.errors.rateLimitedMessage'
-            : 'create.errors.transcriptionFailedMessage',
-        ),
+        hasDetail ? `${friendlyMessage} (${error})` : friendlyMessage,
       ).catch(console.error);
       this.store.clearError();
     });
@@ -178,7 +185,7 @@ export class CreatePage {
 
       this.mediaRecorder.onstop = () => {
         const blob = new Blob(this.chunks, { type: 'audio/webm' });
-        this.processFile(
+        void this.processFile(
           new File([blob], 'recording.webm', { type: blob.type }),
           'Recording',
         );
@@ -209,8 +216,8 @@ export class CreatePage {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0];
     if (!file) return;
-    this.processFile(file, 'Upload');
     input.value = '';
+    void this.processFile(file, 'Upload');
   }
 
   protected async saveNote(): Promise<void> {
@@ -247,9 +254,54 @@ export class CreatePage {
     );
   }
 
-  private processFile(file: File, source: Note['source']): void {
+  private async processFile(file: File, source: Note['source']): Promise<void> {
+    try {
+      if (!(await this.confirmModelDownload())) {
+        this.statusMessage.set(this.translationStore.t('create.status.ready'));
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      return;
+    }
     this.statusMessage.set(this.translationStore.t('create.transcribing'));
     this.store.transcribe({ file, source });
+  }
+
+  /** Ask before each model that still has to be downloaded from huggingface.co. */
+  private async confirmModelDownload(): Promise<boolean> {
+    const model = this.settings.model();
+    if (this.settings.lastUsedModel() === model) return true;
+
+    const key = `${MODEL_DOWNLOAD_CONSENT_PREFIX}${model}`;
+    if (localStorage.getItem(key) === 'yes') return true;
+
+    const label =
+      modelOptions.find((option) => option.value === model)?.label ?? model;
+    const template = this.translationStore.t('create.modelDownload.message');
+    const message = template.includes('{model}')
+      ? template.split('{model}').join(label)
+      : `${label}. ${template}`;
+
+    const alert = await this.alertController.create({
+      header: this.translationStore.t('create.modelDownload.header'),
+      message,
+      buttons: [
+        {
+          text: this.translationStore.t('create.modelDownload.cancel'),
+          role: 'cancel',
+        },
+        {
+          text: this.translationStore.t('create.modelDownload.confirm'),
+          role: 'confirm',
+        },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') return false;
+    localStorage.setItem(key, 'yes');
+    return true;
   }
 
   private async showSuccessAlert(

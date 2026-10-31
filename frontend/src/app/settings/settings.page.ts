@@ -51,6 +51,7 @@ import {
   uiLanguages,
   ModelOption,
   modelOptions,
+  MODEL_DOWNLOAD_CONSENT_PREFIX,
 } from '../models/settings.model';
 import { TranslationStore } from '../store/translation.store';
 import { TranslatePipe } from '../pipes/translate.pipe';
@@ -510,6 +511,15 @@ export class SettingsPage implements ViewWillEnter {
     await alert.present();
   }
 
+  private clearModelDownloadConsent(): void {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(MODEL_DOWNLOAD_CONSENT_PREFIX)) keys.push(key);
+    }
+    for (const key of keys) localStorage.removeItem(key);
+  }
+
   private async performCacheClear() {
     try {
       if ('caches' in self) {
@@ -520,6 +530,7 @@ export class SettingsPage implements ViewWillEnter {
       }
 
       this.settings.setLastUsedModel(null);
+      this.clearModelDownloadConsent();
       await this.calculateCacheSize();
 
       await this.showSuccessAlert(
