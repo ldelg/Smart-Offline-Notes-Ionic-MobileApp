@@ -1,0 +1,8 @@
+This app includes code adapted from xenova/whisper-web
+(https://github.com/xenova/whisper-web), MIT License, Copyright (c) 2023 Xenova:
+frontend/src/app/services/transcription.worker.ts (pipeline factory, chunk merging)
+and the stereo down-mix in frontend/src/app/services/transcription.service.ts.
+
+At runtime it uses @xenova/transformers (Apache-2.0) and ONNX Runtime Web (MIT),
+and downloads Whisper model weights from https://huggingface.co (Xenova/*,
+distil-whisper/*; OpenAI Whisper weights are MIT-licensed).

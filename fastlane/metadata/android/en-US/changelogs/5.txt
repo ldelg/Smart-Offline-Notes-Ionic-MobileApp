@@ -1,0 +1,1 @@
+Speech engine bundled in the app (no CDN download). Asks before downloading a model. Transcription errors are shown.

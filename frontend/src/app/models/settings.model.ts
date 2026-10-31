@@ -12,6 +12,9 @@ export interface SettingsState {
 
 export const SETTINGS_STORAGE_KEY = 'whisper-settings';
 
+/** localStorage prefix: one consent flag per model id, cleared with the model cache. */
+export const MODEL_DOWNLOAD_CONSENT_PREFIX = 'model-download-consent:';
+
 export interface LanguageOption {
   id: string;
   label: string;

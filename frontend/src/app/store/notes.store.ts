@@ -1,7 +1,7 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { inject } from '@angular/core';
-import { tap, pipe, switchMap, catchError, EMPTY } from 'rxjs';
+import { tap, pipe, switchMap, catchError, EMPTY, finalize } from 'rxjs';
 import { Note } from '../models/note.model';
 import { TranscriptionService } from '../services/transcription.service';
 import { SettingsStore } from './settings.store';
@@ -32,7 +32,13 @@ export const NotesStore = signalStore(
           tap(() => patchState(store, { loading: true, error: null })),
           tap(() => {
             const stored = localStorage.getItem('whisper-notes');
-            const notes = stored ? JSON.parse(stored) : [];
+            let notes: Note[] = [];
+            try {
+              const parsed = stored ? JSON.parse(stored) : [];
+              notes = Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+              console.error('Corrupt whisper-notes in localStorage', e);
+            }
             patchState(store, { notes, loading: false, error: null });
           }),
         ),
@@ -64,6 +70,7 @@ export const NotesStore = signalStore(
             localStorage.setItem('whisper-notes', JSON.stringify(notes));
 
             const model = settings.model();
+            let settled = false;
 
             return transcription.transcribe(file).pipe(
               tap((update) => {
@@ -89,11 +96,13 @@ export const NotesStore = signalStore(
                 );
 
                 if (update.isComplete) {
+                  settled = true;
                   patchState(store, { loading: false, error: null });
                   settings.setLastUsedModel(model);
                 }
               }),
               catchError((error) => {
+                settled = true;
                 console.error('Transcription failed', error);
                 const notes = store.notes().filter((n) => n.id !== noteId);
                 patchState(store, {
@@ -106,6 +115,16 @@ export const NotesStore = signalStore(
                 });
                 localStorage.setItem('whisper-notes', JSON.stringify(notes));
                 return EMPTY;
+              }),
+              finalize(() => {
+                if (settled) return;
+                const remaining = store.notes().filter((n) => n.id !== noteId);
+                if (remaining.length === store.notes().length) return;
+                patchState(store, { notes: remaining });
+                localStorage.setItem(
+                  'whisper-notes',
+                  JSON.stringify(remaining),
+                );
               }),
             );
           }),

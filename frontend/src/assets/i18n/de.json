@@ -117,6 +117,12 @@
       "aria": "Audiodatei hochladen"
     },
     "transcribing": "Transkribierung...",
+    "modelDownload": {
+      "header": "Sprachmodell herunterladen?",
+      "message": "{model} wird einmalig von huggingface.co heruntergeladen und auf diesem Gerät gespeichert. Audio und Notizen bleiben auf dem Gerät. Danach funktioniert die Transkription offline.",
+      "cancel": "Abbrechen",
+      "confirm": "Herunterladen"
+    },
     "status": {
       "transcriptionComplete": "Transkription abgeschlossen!",
       "ready": "Bereit, Ihre nächste Notiz zu erstellen."

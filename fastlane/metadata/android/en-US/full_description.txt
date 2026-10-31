@@ -1,0 +1,14 @@
+Smart Offline Notes turns speech into text notes. Recognition runs on your device with OpenAI Whisper models (via transformers.js / ONNX Runtime). Your audio and notes stay on the phone.
+
+<b>Features</b>
+<ul>
+<li>Record or upload audio and get a text note</li>
+<li>Type notes manually, edit, reorder and delete them</li>
+<li>Choose a Whisper model: tiny (~41 MB) up to distil-medium (~400 MB)</li>
+<li>Optional translation of speech into English (Whisper "translate" task)</li>
+<li>Interface in English, Spanish, French, German and Italian</li>
+<li>Export and import notes as JSON</li>
+</ul>
+
+<b>Network use</b>
+The speech engine is included in the app. The first time you use a model, the app asks before downloading its weights from huggingface.co. The model is then cached and transcription works without a connection. No account, no ads, no analytics.
