@@ -1,7 +1,7 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { inject } from '@angular/core';
-import { tap, pipe, switchMap, catchError, EMPTY } from 'rxjs';
+import { tap, pipe, switchMap, catchError, EMPTY, finalize } from 'rxjs';
 import { Note } from '../models/note.model';
 import { TranscriptionService } from '../services/transcription.service';
 import { SettingsStore } from './settings.store';
@@ -32,7 +32,17 @@ export const NotesStore = signalStore(
           tap(() => patchState(store, { loading: true, error: null })),
           tap(() => {
             const stored = localStorage.getItem('whisper-notes');
-            const notes = stored ? JSON.parse(stored) : [];
+            let notes: Note[] = [];
+            try {
+              const parsed = stored ? JSON.parse(stored) : [];
+              if (Array.isArray(parsed)) {
+                notes = parsed;
+              } else if (stored) {
+                console.error('whisper-notes in localStorage is not an array');
+              }
+            } catch (e) {
+              console.error('Corrupt whisper-notes in localStorage', e);
+            }
             patchState(store, { notes, loading: false, error: null });
           }),
         ),
@@ -64,36 +74,48 @@ export const NotesStore = signalStore(
             localStorage.setItem('whisper-notes', JSON.stringify(notes));
 
             const model = settings.model();
+            let settled = false;
+            const dropPlaceholder = () => {
+              const notes = store.notes().filter((n) => n.id !== noteId);
+              patchState(store, { notes });
+              localStorage.setItem('whisper-notes', JSON.stringify(notes));
+            };
 
             return transcription.transcribe(file).pipe(
-              tap((update) => {
-                const updatedNote: Note = {
-                  id: noteId,
-                  title: update.text.trim()
-                    ? update.text.slice(0, 60)
-                    : 'Transcribing...',
-                  body: update.text,
-                  createdAt: initialNote.createdAt,
-                  source,
-                  language: update.language,
-                  duration: update.duration,
-                };
+              tap({
+                next: (update) => {
+                  const updatedNote: Note = {
+                    id: noteId,
+                    title: update.text.trim()
+                      ? update.text.slice(0, 60)
+                      : 'Transcribing...',
+                    body: update.text,
+                    createdAt: initialNote.createdAt,
+                    source,
+                    language: update.language,
+                    duration: update.duration,
+                  };
 
-                const updatedNotes = store
-                  .notes()
-                  .map((n) => (n.id === noteId ? updatedNote : n));
-                patchState(store, { notes: updatedNotes });
-                localStorage.setItem(
-                  'whisper-notes',
-                  JSON.stringify(updatedNotes),
-                );
+                  const updatedNotes = store
+                    .notes()
+                    .map((n) => (n.id === noteId ? updatedNote : n));
+                  patchState(store, { notes: updatedNotes });
+                  localStorage.setItem(
+                    'whisper-notes',
+                    JSON.stringify(updatedNotes),
+                  );
 
-                if (update.isComplete) {
-                  patchState(store, { loading: false, error: null });
-                  settings.setLastUsedModel(model);
-                }
+                  if (update.isComplete) {
+                    patchState(store, { loading: false, error: null });
+                    settings.setLastUsedModel(model);
+                  }
+                },
+                complete: () => {
+                  settled = true;
+                },
               }),
               catchError((error) => {
+                settled = true;
                 console.error('Transcription failed', error);
                 const notes = store.notes().filter((n) => n.id !== noteId);
                 patchState(store, {
@@ -106,6 +128,11 @@ export const NotesStore = signalStore(
                 });
                 localStorage.setItem('whisper-notes', JSON.stringify(notes));
                 return EMPTY;
+              }),
+              finalize(() => {
+                // switchMap unsubscribes the previous job without an error,
+                // which used to leave its placeholder as "Transcribing...".
+                if (!settled) dropPlaceholder();
               }),
             );
           }),

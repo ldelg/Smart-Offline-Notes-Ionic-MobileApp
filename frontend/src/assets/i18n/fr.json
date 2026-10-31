@@ -149,6 +149,12 @@
       "microphonePermissionMessage": "Veuillez autoriser l'accès au microphone dans les paramètres de votre navigateur pour enregistrer l'audio. Vous pouvez également téléverser des fichiers audio à la place."
     },
     "save": "Enregistrer la note",
+    "downloadModel": {
+      "header": "Télécharger le modèle vocal ?",
+      "message": "{{model}} sera téléchargé une fois depuis huggingface.co et mis en cache sur cet appareil. Ensuite, la transcription fonctionne hors ligne.",
+      "cancel": "Annuler",
+      "confirm": "Télécharger"
+    },
     "alerts": {
       "transcriptionCompleteHeader": "Transcription terminée",
       "transcriptionCompleteMessage": "Votre audio a été transcrit et enregistré en tant que note !",

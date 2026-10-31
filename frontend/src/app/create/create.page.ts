@@ -76,6 +76,8 @@ export class CreatePage {
   private mediaRecorder?: MediaRecorder;
   private mediaStream?: MediaStream;
   private chunks: BlobPart[] = [];
+  /** Set after the user agrees, so stopping a recording does not ask again. */
+  private skipNextDownloadPromptFor: string | null = null;
 
   constructor() {
     addIcons({
@@ -165,6 +167,9 @@ export class CreatePage {
       return;
     }
 
+    if (!(await this.ensureModelDownloadConsent())) return;
+    this.skipNextDownloadPromptFor = this.settings.model();
+
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -178,17 +183,18 @@ export class CreatePage {
 
       this.mediaRecorder.onstop = () => {
         const blob = new Blob(this.chunks, { type: 'audio/webm' });
-        this.processFile(
+        this.chunks = [];
+        void this.processFile(
           new File([blob], 'recording.webm', { type: blob.type }),
           'Recording',
         );
-        this.chunks = [];
       };
 
       this.mediaRecorder.start();
       this.isRecording.set(true);
       this.statusMessage.set(this.translationStore.t('create.recording'));
     } catch (error) {
+      this.skipNextDownloadPromptFor = null;
       console.error(error);
       await this.showAlert(
         this.translationStore.t('create.errors.microphonePermissionHeader'),
@@ -209,8 +215,8 @@ export class CreatePage {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0];
     if (!file) return;
-    this.processFile(file, 'Upload');
     input.value = '';
+    void this.processFile(file, 'Upload');
   }
 
   protected async saveNote(): Promise<void> {
@@ -247,9 +253,60 @@ export class CreatePage {
     );
   }
 
-  private processFile(file: File, source: Note['source']): void {
+  private async processFile(file: File, source: Note['source']): Promise<void> {
+    if (!(await this.ensureModelDownloadConsent())) return;
     this.statusMessage.set(this.translationStore.t('create.transcribing'));
     this.store.transcribe({ file, source });
+  }
+
+  /**
+   * Ask before a model that is not already cached is fetched from
+   * huggingface.co. lastUsedModel is the app's existing "downloaded" signal
+   * (it is cleared together with the cache).
+   */
+  private async ensureModelDownloadConsent(): Promise<boolean> {
+    const model = this.settings.model();
+    if (this.settings.lastUsedModel() === model) return true;
+    if (this.skipNextDownloadPromptFor === model) {
+      this.skipNextDownloadPromptFor = null;
+      return true;
+    }
+
+    const alert = await this.alertController.create({
+      header: this.tf('create.downloadModel.header', 'Download speech model?'),
+      message: this.tf(
+        'create.downloadModel.message',
+        '{{model}} will be downloaded once from huggingface.co and cached on this device. After that, transcription works offline.',
+        { model },
+      ),
+      buttons: [
+        {
+          text: this.tf('create.downloadModel.cancel', 'Cancel'),
+          role: 'cancel',
+        },
+        {
+          text: this.tf('create.downloadModel.confirm', 'Download'),
+          role: 'confirm',
+        },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'confirm';
+  }
+
+  private tf(
+    key: string,
+    fallback: string,
+    vars?: Record<string, string>,
+  ): string {
+    const lookedUp = this.translationStore.t(key);
+    let text = !lookedUp || lookedUp === key ? fallback : lookedUp;
+    if (!vars) return text;
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.split(`{{${name}}}`).join(value);
+    }
+    return text;
   }
 
   private async showSuccessAlert(

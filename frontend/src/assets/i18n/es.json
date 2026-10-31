@@ -149,6 +149,12 @@
       "microphonePermissionMessage": "Permite el acceso al micrófono en la configuración del navegador para grabar audio. También puedes subir archivos de audio en su lugar."
     },
     "save": "Guardar nota",
+    "downloadModel": {
+      "header": "¿Descargar el modelo de voz?",
+      "message": "{{model}} se descargará una vez desde huggingface.co y se guardará en este dispositivo. Después, la transcripción funciona sin conexión.",
+      "cancel": "Cancelar",
+      "confirm": "Descargar"
+    },
     "alerts": {
       "transcriptionCompleteHeader": "Transcripción completada",
       "transcriptionCompleteMessage": "¡Tu audio ha sido transcrito y guardado como nota!",

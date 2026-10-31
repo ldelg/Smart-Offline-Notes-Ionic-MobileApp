@@ -31,6 +31,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "ort-wasm{,-simd}.wasm",
+                "input": "node_modules/@xenova/transformers/dist",
+                "output": "assets/ort"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],

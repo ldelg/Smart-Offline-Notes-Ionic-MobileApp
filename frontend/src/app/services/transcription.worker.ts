@@ -5,7 +5,40 @@ env.allowLocalModels = false;
 
 if (typeof self !== 'undefined' && env.backends?.onnx) {
   (env.backends.onnx as any)['executionProviders'] = ['wasm'];
+  // Self-host the ONNX Runtime .wasm copied by angular.json. transformers.js
+  // otherwise fetches it from cdn.jsdelivr.net the first time a model runs.
+  const wasm = (env.backends.onnx as any).wasm;
+  if (wasm) {
+    const origin =
+      self.location.origin && self.location.origin !== 'null'
+        ? self.location.origin
+        : new URL('/', self.location.href).origin;
+    wasm.wasmPaths = new URL('/assets/ort/', `${origin}/`).href;
+    // Threaded builds need cross-origin isolation, which the Android WebView
+    // does not have. Pin the single-threaded files that are bundled.
+    wasm.numThreads = 1;
+  }
 }
+
+const describeError = (error: unknown): string => {
+  if (typeof error === 'string' && error.trim()) return error.trim();
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message.trim();
+  }
+  return 'Transcription failed';
+};
+
+const postError = (error: unknown) => {
+  const message = describeError(error);
+  self.postMessage({
+    status: 'error',
+    task: 'automatic-speech-recognition',
+    error: message,
+    data: message,
+  });
+};
 
 class PipelineFactory {
   static task: string | null = null;
@@ -131,12 +164,8 @@ const transcribe = async (
     force_full_sequences: false,
     callback_function: callback_function,
     chunk_callback: chunk_callback,
-  }).catch((error: any) => {
-    self.postMessage({
-      status: 'error',
-      task: 'automatic-speech-recognition',
-      data: error,
-    });
+  }).catch((error: unknown) => {
+    postError(error);
     return null;
   });
 
@@ -174,12 +203,8 @@ self.addEventListener('message', async (event) => {
         task: 'automatic-speech-recognition',
         data: transcript,
       });
-    } catch (error: any) {
-      self.postMessage({
-        status: 'error',
-        task: 'automatic-speech-recognition',
-        data: error,
-      });
+    } catch (error: unknown) {
+      postError(error);
     }
   }
 });

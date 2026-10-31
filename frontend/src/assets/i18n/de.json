@@ -149,6 +149,12 @@
       "microphonePermissionMessage": "Bitte erlauben Sie den Mikrofonzugriff in Ihren Browsereinstellungen, um Audio aufzunehmen. Sie können stattdessen auch Audiodateien hochladen."
     },
     "save": "Notiz speichern",
+    "downloadModel": {
+      "header": "Sprachmodell herunterladen?",
+      "message": "{{model}} wird einmal von huggingface.co heruntergeladen und auf diesem Gerät gespeichert. Danach funktioniert die Transkription offline.",
+      "cancel": "Abbrechen",
+      "confirm": "Herunterladen"
+    },
     "alerts": {
       "transcriptionCompleteHeader": "Transkription abgeschlossen",
       "transcriptionCompleteMessage": "Ihre Audiodatei wurde transkribiert und als Notiz gespeichert!",

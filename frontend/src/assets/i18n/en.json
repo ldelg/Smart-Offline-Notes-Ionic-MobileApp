@@ -156,6 +156,12 @@
       "microphonePermissionMessage": "Please allow microphone access in your browser settings to record audio. You can also upload audio files instead."
     },
     "save": "Save Note",
+    "downloadModel": {
+      "header": "Download speech model?",
+      "message": "{{model}} will be downloaded once from huggingface.co and cached on this device. After that, transcription works offline.",
+      "cancel": "Cancel",
+      "confirm": "Download"
+    },
     "alerts": {
       "transcriptionCompleteHeader": "Transcription Complete",
       "transcriptionCompleteMessage": "Your audio has been transcribed and saved as a note!",
