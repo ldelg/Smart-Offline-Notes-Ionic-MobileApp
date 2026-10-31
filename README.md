@@ -2,13 +2,13 @@
 
 Offline speech-to-notes mobile app built with Ionic, Angular, and Capacitor.
 
-## Download APK
+## Download
 
-Installable Android APK files are published in the GitHub Releases page for this repository.
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.2.1-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/download/v1.2.1/Smart-Offline-Notes-v1.2.1.apk)
 
-Do not download app binaries from the repository contents. The repository stores source code; release builds are attached to GitHub Releases.
+**[Download the latest Android APK](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/latest)** (about 10 MB, all versions are on the [Releases page](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases))
 
-Release assets should include a signed APK file such as `app-release-signed.apk`.
+To install: open the link on your Android phone, tap the downloaded file, and allow your browser to install apps if Android asks. On first use the app asks before downloading the Whisper speech model; after that, transcription works fully offline.
 
 ## Local Development
 
