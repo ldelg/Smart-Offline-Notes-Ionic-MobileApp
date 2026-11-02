@@ -1,0 +1,1 @@
+Targets Android 16. The screen stays clear of the status and navigation bars, back follows the system gesture, and recording stops when you leave the app. Version 1.3.1.

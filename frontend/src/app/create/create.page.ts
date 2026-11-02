@@ -1,4 +1,6 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, DestroyRef, inject, signal, effect } from '@angular/core';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import {
   IonHeader,
   IonToolbar,
@@ -67,6 +69,7 @@ export class CreatePage {
   private readonly alertController = inject(AlertController);
   private readonly translationStore = inject(TranslationStore);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly isRecording = signal(false);
   protected readonly statusMessage = signal('');
   protected readonly isManualEntry = signal(false);
@@ -88,6 +91,7 @@ export class CreatePage {
       createOutline,
     });
     this.store.loadNotes();
+    this.releaseMicrophoneWhenBackgrounded();
     effect(() => {
       if (
         !this.store.loading() &&
@@ -213,6 +217,28 @@ export class CreatePage {
         this.translationStore.t('create.errors.microphonePermissionMessage'),
       );
     }
+  }
+
+  /**
+   * Android 14 and later mute the microphone once the app leaves the
+   * foreground, unless a microphone foreground service is running. Recording
+   * stays inside this activity and stops when the user leaves, so the app
+   * does not capture audio in the background.
+   */
+  private releaseMicrophoneWhenBackgrounded(): void {
+    const onHidden = () => {
+      if (document.visibilityState !== 'visible') this.stopRecording();
+    };
+    document.addEventListener('visibilitychange', onHidden);
+    this.destroyRef.onDestroy(() =>
+      document.removeEventListener('visibilitychange', onHidden),
+    );
+    if (!Capacitor.isNativePlatform()) return;
+    void App.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive) this.stopRecording();
+    }).then((handle) => {
+      this.destroyRef.onDestroy(() => void handle.remove());
+    });
   }
 
   protected stopRecording(): void {
