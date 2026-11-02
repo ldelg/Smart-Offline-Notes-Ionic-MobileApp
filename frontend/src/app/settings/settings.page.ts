@@ -52,6 +52,7 @@ import {
   ModelOption,
   modelOptions,
   MODEL_DOWNLOAD_CONSENT_PREFIX,
+  isEnglishOnlyModel,
 } from '../models/settings.model';
 import { TranslationStore } from '../store/translation.store';
 import { TranslatePipe } from '../pipes/translate.pipe';
@@ -182,7 +183,7 @@ export class SettingsPage implements ViewWillEnter {
   });
 
   private isModelMultilingual(model: string): boolean {
-    return !model.endsWith('.en') && !model.startsWith('distil-whisper/');
+    return !isEnglishOnlyModel(model);
   }
 
   readonly isMultilingualModel = computed(() => {
@@ -518,6 +519,66 @@ export class SettingsPage implements ViewWillEnter {
       if (key?.startsWith(MODEL_DOWNLOAD_CONSENT_PREFIX)) keys.push(key);
     }
     for (const key of keys) localStorage.removeItem(key);
+  }
+
+  async deleteSelectedModel() {
+    const model = this.settings.model();
+    const label =
+      modelOptions.find((option) => option.value === model)?.label ?? model;
+    const alert = await this.alertController.create({
+      header: this.t('settings.messages.network.deleteModelHeader'),
+      message: `${this.t('settings.messages.network.deleteModelMessage')} ${label}.`,
+      buttons: [
+        {
+          text: this.t('settings.messages.common.cancel'),
+          role: 'cancel',
+        },
+        {
+          text: this.t('settings.messages.network.deleteModelAction'),
+          role: 'destructive',
+          handler: async () => {
+            await this.performModelDelete(model);
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async performModelDelete(model: string) {
+    try {
+      await this.deleteCachedModel(model);
+      localStorage.removeItem(`${MODEL_DOWNLOAD_CONSENT_PREFIX}${model}`);
+      if (this.settings.lastUsedModel() === model) {
+        this.settings.setLastUsedModel(null);
+      }
+      await this.calculateCacheSize();
+      await this.showSuccessAlert(
+        this.t('settings.messages.network.deletedHeader'),
+        this.t('settings.messages.network.deletedMessage'),
+      );
+    } catch (error) {
+      console.error('Error deleting model cache', error);
+      await this.showErrorAlert(
+        this.t('settings.messages.network.clearFailedHeader'),
+        this.t('settings.messages.network.clearFailedMessage'),
+      );
+    }
+  }
+
+  private async deleteCachedModel(modelId: string): Promise<void> {
+    if (!('caches' in self)) return;
+    const needles = [modelId, encodeURIComponent(modelId)];
+    const names = await caches.keys();
+    for (const name of names) {
+      const cache = await caches.open(name);
+      const requests = await cache.keys();
+      for (const request of requests) {
+        if (needles.some((needle) => request.url.includes(needle))) {
+          await cache.delete(request);
+        }
+      }
+    }
   }
 
   private async performCacheClear() {

@@ -33,6 +33,7 @@ import {
 } from '../models/settings.model';
 import { SettingsStore } from '../store/settings.store';
 import { TranscriptionService } from '../services/transcription.service';
+import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { TranslationStore } from '../store/translation.store';
 
@@ -115,6 +116,18 @@ export class CreatePage {
     effect(() => {
       const error = this.store.error();
       if (!error) return;
+
+      if (error === NO_SPEECH_ERROR) {
+        const debug = this.transcriptionService.lastAudioDebug();
+        const message = this.translationStore.t('create.errors.noSpeechMessage');
+        this.statusMessage.set(this.translationStore.t('create.errors.noSpeech'));
+        this.showAlert(
+          this.translationStore.t('create.errors.noSpeechHeader'),
+          debug ? `${message} (${debug})` : message,
+        ).catch(console.error);
+        this.store.clearError();
+        return;
+      }
 
       const errorMessage = error.toLowerCase();
       const isRateLimited =
@@ -325,6 +338,10 @@ export class CreatePage {
       cssClass: 'error-alert',
     });
     await alert.present();
+  }
+
+  protected audioDebugLine(): string | null {
+    return this.transcriptionService.lastAudioDebug();
   }
 
   protected modelStatusLine(): string {

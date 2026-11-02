@@ -38,7 +38,8 @@
       "offline": "Hors ligne",
       "modelCache": "Cache du modèle",
       "calculating": "Calcul en cours...",
-      "clearCache": "Effacer le cache du modèle"
+      "clearCache": "Effacer le cache du modèle",
+      "deleteModel": "Supprimer le modèle sélectionné"
     },
     "data": {
       "subtitle": "Gestion des données",
@@ -101,7 +102,12 @@
         "clearedHeader": "Cache effacé",
         "clearedMessage": "Tous les modèles en cache ont été supprimés avec succès.",
         "clearFailedHeader": "Échec de l'effacement",
-        "clearFailedMessage": "Une erreur s'est produite lors de l'effacement du cache. Veuillez réessayer."
+        "clearFailedMessage": "Une erreur s'est produite lors de l'effacement du cache. Veuillez réessayer.",
+        "deleteModelHeader": "Supprimer le modèle sélectionné",
+        "deleteModelMessage": "Cela supprime les fichiers téléchargés pour",
+        "deleteModelAction": "Supprimer le modèle",
+        "deletedHeader": "Modèle supprimé",
+        "deletedMessage": "Ce modèle sera téléchargé à nouveau la prochaine fois que vous l'utiliserez."
       }
     }
   },
@@ -144,6 +150,9 @@
       "transcriptionFailed": "La transcription a échoué.",
       "transcriptionFailedHeader": "Échec de la transcription",
       "transcriptionFailedMessage": "Le modèle n'a pas pu terminer son chargement ou l'audio n'a pas pu être transcrit. Veuillez réessayer.",
+      "noSpeech": "Aucune voix détectée.",
+      "noSpeechHeader": "Aucune voix détectée",
+      "noSpeechMessage": "Aucune voix détectée. Parlez plus près du téléphone et un peu plus longtemps.",
       "rateLimited": "Téléchargement du modèle temporairement bloqué.",
       "rateLimitedHeader": "Téléchargement du modèle temporairement bloqué",
       "rateLimitedMessage": "L'application fonctionne, mais l'hébergeur du modèle a temporairement bloqué les téléchargements répétés depuis votre réseau. Réessayez plus tard ou utilisez un autre réseau ou un VPN.",
