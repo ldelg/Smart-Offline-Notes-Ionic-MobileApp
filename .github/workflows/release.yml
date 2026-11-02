@@ -1,4 +1,4 @@
-name: Release APK
+name: Release APK and AAB
 
 # Tags only. A normal push does not run this workflow, so a missing keystore
 # secret cannot fail CI on main.
@@ -37,7 +37,7 @@ jobs:
           packages: ""
 
       - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
 
       - name: Install npm dependencies
         working-directory: frontend
@@ -90,8 +90,45 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED"
           rm -f aligned.apk
 
-      - name: Attach APK to GitHub Release
+      - name: Bundle release AAB
+        working-directory: frontend/android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Sign AAB
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEY_ALIAS}" ] || [ -z "${KEY_PASSWORD}" ]; then
+            echo "Missing signing secret. Add KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
+            exit 1
+          fi
+          KEYSTORE="$(mktemp)"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          echo "${KEYSTORE_BASE64}" | base64 -d > "$KEYSTORE"
+          UNSIGNED="frontend/android/app/build/outputs/bundle/release/app-release.aab"
+          if [ ! -f "$UNSIGNED" ]; then
+            echo "Release AAB not found at $UNSIGNED"
+            find frontend/android/app/build/outputs/bundle -name '*.aab' -print
+            exit 1
+          fi
+          SIGNED="Smart-Offline-Notes-${GITHUB_REF_NAME}.aab"
+          cp "$UNSIGNED" "$SIGNED"
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore "$KEYSTORE" \
+            -storepass:env KEYSTORE_PASSWORD \
+            -keypass:env KEY_PASSWORD \
+            "$SIGNED" \
+            "$KEY_ALIAS"
+          jarsigner -verify -verbose -certs "$SIGNED"
+
+      - name: Attach APK and AAB to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: Smart-Offline-Notes-${{ github.ref_name }}.apk
+          files: |
+            Smart-Offline-Notes-${{ github.ref_name }}.apk
+            Smart-Offline-Notes-${{ github.ref_name }}.aab
           generate_release_notes: true
