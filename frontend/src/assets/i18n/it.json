@@ -38,7 +38,8 @@
       "offline": "Offline",
       "modelCache": "Cache del modello",
       "calculating": "Calcolo in corso...",
-      "clearCache": "Svuota cache"
+      "clearCache": "Svuota cache",
+      "deleteModel": "Elimina il modello selezionato"
     },
     "data": {
       "subtitle": "Gestione dei dati",
@@ -101,7 +102,12 @@
         "clearedHeader": "Cache svuotata",
         "clearedMessage": "Tutti i modelli in cache sono stati eliminati con successo.",
         "clearFailedHeader": "Pulizia fallita",
-        "clearFailedMessage": "Si è verificato un errore durante la pulizia della cache. Riprova."
+        "clearFailedMessage": "Si è verificato un errore durante la pulizia della cache. Riprova.",
+        "deleteModelHeader": "Elimina il modello selezionato",
+        "deleteModelMessage": "Questo elimina i file scaricati di",
+        "deleteModelAction": "Elimina modello",
+        "deletedHeader": "Modello eliminato",
+        "deletedMessage": "Quel modello verrà scaricato di nuovo la prossima volta che lo usi."
       }
     }
   },
@@ -117,6 +123,11 @@
       "aria": "Carica file audio"
     },
     "transcribing": "Trascrizione in corso...",
+    "progress": {
+      "downloading": "Download del modello",
+      "loading": "Caricamento del modello",
+      "transcribing": "Trascrizione"
+    },
     "modelDownload": {
       "header": "Scaricare il modello vocale?",
       "message": "{model} verrà scaricato una sola volta da huggingface.co e salvato su questo dispositivo. Audio e note restano sul dispositivo. Dopo il download, la trascrizione funziona offline.",
@@ -144,6 +155,9 @@
       "transcriptionFailed": "Trascrizione non riuscita.",
       "transcriptionFailedHeader": "Trascrizione non riuscita",
       "transcriptionFailedMessage": "Il modello non ha potuto completare il caricamento o l'audio non ha potuto essere trascritto. Riprova.",
+      "noSpeech": "Nessuna voce rilevata.",
+      "noSpeechHeader": "Nessuna voce rilevata",
+      "noSpeechMessage": "Nessuna voce rilevata. Parla più vicino al telefono e un po' più a lungo.",
       "rateLimited": "Download del modello temporaneamente bloccato.",
       "rateLimitedHeader": "Download del modello temporaneamente bloccato",
       "rateLimitedMessage": "L'app funziona, ma l'host del modello ha temporaneamente bloccato i download ripetuti dalla tua rete. Riprova più tardi oppure usa un'altra rete o una VPN.",

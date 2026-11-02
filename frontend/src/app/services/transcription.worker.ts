@@ -1,28 +1,40 @@
 /* eslint-disable camelcase */
-// Adapted from xenova/whisper-web (MIT), Copyright (c) 2023 Xenova.
-// See the NOTICE file at the repository root.
-import { pipeline, env } from '@xenova/transformers';
+import { pipeline, env } from '@huggingface/transformers';
 
 env.allowLocalModels = false;
 
-if (typeof self !== 'undefined' && env.backends?.onnx) {
-  const onnx = env.backends.onnx as {
-    executionProviders?: string[];
-    wasm?: { wasmPaths?: string; numThreads?: number };
+if (typeof self !== 'undefined' && env.backends?.onnx?.wasm) {
+  const wasm = env.backends.onnx.wasm as {
+    wasmPaths?: string;
+    numThreads?: number;
   };
-  onnx.executionProviders = ['wasm'];
-  // Load the ONNX Runtime .wasm bundled in the app (copied by angular.json)
-  // instead of transformers.js' default https://cdn.jsdelivr.net/... URL.
-  onnx.wasm = onnx.wasm ?? {};
-  onnx.wasm.wasmPaths = new URL('assets/ort/', `${self.location.origin}/`).href;
-  // Android WebView is not cross-origin isolated, so the threaded builds are
-  // never used; only ort-wasm.wasm / ort-wasm-simd.wasm are bundled.
-  onnx.wasm.numThreads = 1;
+  // Files copied by angular.json from the Transformers.js / ONNX Runtime packages.
+  // Overrides the library default of https://cdn.jsdelivr.net/...
+  wasm.wasmPaths = new URL('assets/ort/', `${self.location.origin}/`).href;
+  if (!self.crossOriginIsolated) {
+    wasm.numThreads = 1;
+  }
 }
+
+type OnnxDevice = 'wasm' | 'webgpu';
+
+const resolveDevice = async (): Promise<OnnxDevice> => {
+  try {
+    const gpu = (navigator as Navigator & { gpu?: { requestAdapter?: () => Promise<unknown> } }).gpu;
+    if (gpu?.requestAdapter) {
+      const adapter = await gpu.requestAdapter();
+      if (adapter) return 'webgpu';
+    }
+  } catch (error) {
+    console.warn('WebGPU unavailable, using WASM', error);
+  }
+  return 'wasm';
+};
 
 class PipelineFactory {
   static task: string | null = null;
   static model: string | null = null;
+  static device: OnnxDevice | null = null;
   static instance: any = null;
 
   static async getInstance(progress_callback: any = null) {
@@ -30,13 +42,24 @@ class PipelineFactory {
       if (!this.task || !this.model) {
         throw new Error('Pipeline task and model must be set');
       }
-      this.instance = pipeline(this.task as any, this.model, {
-        quantized: true,
-        progress_callback,
-        revision: this.model.includes('/whisper-medium')
-          ? 'no_attentions'
-          : 'main',
-      });
+      let device = await resolveDevice();
+      const create = (selected: OnnxDevice) =>
+        pipeline(this.task as any, this.model as string, {
+          dtype: 'q8',
+          device: selected,
+          progress_callback,
+          revision: this.model?.includes('/whisper-medium') ? 'no_attentions' : 'main',
+        });
+      try {
+        this.instance = await create(device);
+      } catch (error) {
+        if (device !== 'webgpu') throw error;
+        console.warn('WebGPU pipeline failed, falling back to WASM', error);
+        device = 'wasm';
+        this.instance = await create(device);
+      }
+      this.device = device;
+      console.log(`Transcription device: ${device}`);
     }
     return this.instance;
   }
@@ -69,7 +92,7 @@ const postError = (jobId: number, error: unknown): void => {
 const transcribe = async (
   audio: Float32Array,
   model: string,
-  multilingual: boolean,
+  _multilingual: boolean,
   subtask: string | null,
   language: string | null,
   isOnline: boolean = true,
@@ -77,16 +100,15 @@ const transcribe = async (
   jobId: number,
 ) => {
   const modelName = model;
-
+  const isMoonshine = modelName.includes('moonshine');
   const p = AutomaticSpeechRecognitionPipelineFactory;
   const modelChanged = p.model !== null && p.model !== modelName;
 
-  if (modelChanged) {
-    if (p.instance !== null) {
-      const oldInstance = await p.getInstance();
-      await oldInstance.dispose();
-      p.instance = null;
-    }
+  if (modelChanged && p.instance !== null) {
+    const oldInstance = await p.getInstance();
+    await oldInstance.dispose?.();
+    p.instance = null;
+    p.device = null;
   }
 
   const switchingToDifferentModel =
@@ -108,64 +130,17 @@ const transcribe = async (
     self.postMessage({ ...data, jobId });
   });
 
-  const time_precision =
-    transcriber.processor.feature_extractor.config.chunk_length /
-    transcriber.model.config.max_source_positions;
-
-  const chunks_to_process: Array<{
-    tokens: number[];
-    finalised: boolean;
-  }> = [
-    {
-      tokens: [],
-      finalised: false,
-    },
-  ];
-
-  function chunk_callback(chunk: any) {
-    const last = chunks_to_process[chunks_to_process.length - 1];
-    Object.assign(last, chunk);
-    last.finalised = true;
-
-    if (!chunk.is_last) {
-      chunks_to_process.push({
-        tokens: [],
-        finalised: false,
-      });
-    }
+  const options: Record<string, unknown> = {};
+  if (!isMoonshine) {
+    const isDistilWhisper = modelName.startsWith('distil-whisper/');
+    options['return_timestamps'] = true;
+    options['chunk_length_s'] = isDistilWhisper ? 20 : 30;
+    options['stride_length_s'] = isDistilWhisper ? 3 : 5;
+    if (language) options['language'] = language;
+    if (subtask) options['task'] = subtask;
   }
 
-  function callback_function(item: any) {
-    const last = chunks_to_process[chunks_to_process.length - 1];
-    last.tokens = [...item[0].output_token_ids];
-
-    const data = transcriber.tokenizer._decode_asr(chunks_to_process, {
-      time_precision: time_precision,
-      return_timestamps: true,
-      force_full_sequences: false,
-    });
-
-    self.postMessage({
-      status: 'update',
-      task: 'automatic-speech-recognition',
-      jobId,
-      data: data,
-    });
-  }
-
-  const isDistilWhisper = modelName.startsWith('distil-whisper/');
-  const output = await transcriber(audio, {
-    top_k: 0,
-    do_sample: false,
-    chunk_length_s: isDistilWhisper ? 20 : 30,
-    stride_length_s: isDistilWhisper ? 3 : 5,
-    language: language || undefined,
-    task: subtask || undefined,
-    return_timestamps: true,
-    force_full_sequences: false,
-    callback_function: callback_function,
-    chunk_callback: chunk_callback,
-  }).catch((error: unknown) => {
+  const output = await transcriber(audio, options).catch((error: unknown) => {
     postError(jobId, error);
     return null;
   });

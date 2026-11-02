@@ -38,7 +38,8 @@
       "offline": "Offline",
       "modelCache": "Modellcache",
       "calculating": "Berechnung...",
-      "clearCache": "Cache löschen"
+      "clearCache": "Cache löschen",
+      "deleteModel": "Ausgewähltes Modell löschen"
     },
     "data": {
       "subtitle": "Datenverwaltung",
@@ -101,7 +102,12 @@
         "clearedHeader": "Cache geleert",
         "clearedMessage": "Alle zwischengespeicherten Modelle wurden erfolgreich gelöscht.",
         "clearFailedHeader": "Löschen fehlgeschlagen",
-        "clearFailedMessage": "Beim Leeren des Caches ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+        "clearFailedMessage": "Beim Leeren des Caches ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+        "deleteModelHeader": "Ausgewähltes Modell löschen",
+        "deleteModelMessage": "Dadurch werden die heruntergeladenen Dateien entfernt für",
+        "deleteModelAction": "Modell löschen",
+        "deletedHeader": "Modell gelöscht",
+        "deletedMessage": "Dieses Modell wird beim nächsten Gebrauch erneut heruntergeladen."
       }
     }
   },
@@ -117,6 +123,11 @@
       "aria": "Audiodatei hochladen"
     },
     "transcribing": "Transkribierung...",
+    "progress": {
+      "downloading": "Modell wird heruntergeladen",
+      "loading": "Modell wird geladen",
+      "transcribing": "Transkription"
+    },
     "modelDownload": {
       "header": "Sprachmodell herunterladen?",
       "message": "{model} wird einmalig von huggingface.co heruntergeladen und auf diesem Gerät gespeichert. Audio und Notizen bleiben auf dem Gerät. Danach funktioniert die Transkription offline.",
@@ -144,6 +155,9 @@
       "transcriptionFailed": "Transkription fehlgeschlagen.",
       "transcriptionFailedHeader": "Transkription fehlgeschlagen",
       "transcriptionFailedMessage": "Das Modell konnte nicht fertig geladen werden oder die Audiodatei konnte nicht transkribiert werden. Bitte versuchen Sie es erneut.",
+      "noSpeech": "Keine Sprache erkannt.",
+      "noSpeechHeader": "Keine Sprache erkannt",
+      "noSpeechMessage": "Keine Sprache erkannt. Sprechen Sie näher am Telefon und etwas länger.",
       "rateLimited": "Modelldownload vorübergehend blockiert.",
       "rateLimitedHeader": "Modelldownload vorübergehend blockiert",
       "rateLimitedMessage": "Die App funktioniert, aber der Modell-Host hat wiederholte Downloads aus Ihrem Netzwerk vorübergehend blockiert. Versuchen Sie es später erneut oder verwenden Sie ein anderes Netzwerk oder ein VPN.",
