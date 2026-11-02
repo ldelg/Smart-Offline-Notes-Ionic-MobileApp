@@ -15,6 +15,7 @@ import {
   SILENT_RMS,
   TARGET_SAMPLE_RATE,
 } from './audio-pcm';
+import { ProgressTracker, ProgressView } from './progress-tracker';
 
 const workerErrorMessage = (payload: any): string => {
   const candidates = [payload?.error, payload?.data];
@@ -40,9 +41,11 @@ export class TranscriptionService {
   private worker?: Worker;
   private readonly settings = inject(SettingsStore);
   private readonly networkService = inject(NetworkService);
-  readonly modelStatus = signal<string | null>(null);
-  readonly modelProgress = signal<number | null>(null);
+  readonly progressPhase = signal<ProgressView['phase']>('load');
+  readonly progressPercent = signal<number | null>(null);
   readonly lastAudioDebug = signal<string | null>(null);
+  private readonly progressTracker = new ProgressTracker();
+  private progressTimer: ReturnType<typeof setTimeout> | null = null;
   private requestSeq = 0;
   private activeHandler?: (event: MessageEvent) => void;
 
@@ -60,8 +63,7 @@ export class TranscriptionService {
       const requestId = ++this.requestSeq;
       const start = performance.now();
 
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.resetProgress();
 
       if (!this.worker) {
         subscriber.error(
@@ -87,8 +89,7 @@ export class TranscriptionService {
         (error) => {
           if (disposed || requestId !== this.requestSeq) return;
           this.detach(messageHandler);
-          this.modelStatus.set(null);
-          this.modelProgress.set(null);
+          this.stopProgress();
           subscriber.error(
             error instanceof Error ? error : new Error(String(error)),
           );
@@ -202,20 +203,11 @@ export class TranscriptionService {
     }
 
     if (status === 'update') {
-      const updateData = data as [string, { chunks: any[] }];
-      const text = updateData[0] || '';
-      const chunks = updateData[1]?.chunks || [];
-
-      subscriber.next({
-        text: text,
-        chunks: chunks,
-        isComplete: false,
-      });
+      return;
     } else if (status === 'complete') {
       const result = data;
       finish();
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.stopProgress();
 
       const chunksCount = result?.chunks?.length || 0;
       console.log(`Chunks: ${chunksCount}`);
@@ -270,8 +262,7 @@ export class TranscriptionService {
       subscriber.complete();
     } else if (status === 'error') {
       finish();
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.stopProgress();
       subscriber.error(new Error(workerErrorMessage(payload)));
     }
   }
@@ -286,27 +277,37 @@ export class TranscriptionService {
     const hasProgress = typeof payload.progress === 'number';
     if (!status && !hasProgress) return false;
 
-    const message = this.formatModelStatus(payload);
-    if (message) {
-      this.modelStatus.set(message);
-    }
-    this.modelProgress.set(hasProgress ? payload.progress : null);
+    const view = this.progressTracker.push(payload, performance.now());
+    if (view) this.publishProgress(view);
+    this.scheduleProgressFlush();
     return true;
   }
 
-  private formatModelStatus(payload: any): string | null {
-    const status = payload.status;
-    const file = this.formatModelFile(payload.file || payload.name);
-    if (status && file) return `${status}: ${file}`;
-    if (status) return String(status);
-    if (file) return `Loading model: ${file}`;
-    return null;
+  private stopProgress(): void {
+    if (this.progressTimer !== null) {
+      clearTimeout(this.progressTimer);
+      this.progressTimer = null;
+    }
+    this.progressTracker.reset();
   }
 
-  private formatModelFile(value: any): string | null {
-    if (!value || typeof value !== 'string') return null;
-    const parts = value.split('/');
-    const file = parts[parts.length - 1] || value;
-    return file.length > 40 ? `…${file.slice(-40)}` : file;
+  private resetProgress(): void {
+    this.stopProgress();
+    this.publishProgress({ phase: 'load', percent: null });
+  }
+
+  private publishProgress(view: ProgressView): void {
+    this.progressPhase.set(view.phase);
+    this.progressPercent.set(view.percent);
+  }
+
+  private scheduleProgressFlush(): void {
+    if (!this.progressTracker.hasPending || this.progressTimer !== null) return;
+    this.progressTimer = setTimeout(() => {
+      this.progressTimer = null;
+      const view = this.progressTracker.flush(performance.now());
+      if (view) this.publishProgress(view);
+      this.scheduleProgressFlush();
+    }, 100);
   }
 }

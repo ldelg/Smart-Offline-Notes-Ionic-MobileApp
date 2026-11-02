@@ -59,22 +59,18 @@
           aria-label="{{ 'create.upload.aria' | translate }}"
         />
 
-        @if (audioDebugLine(); as debug) {
-        <p class="processing-meta">{{ debug }}</p>
-        }
-
         @if (store.loading()) {
-        <div class="processing">
-          <ion-spinner name="lines"></ion-spinner>
-          <ion-text>{{ 'create.transcribing' | translate }}</ion-text>
-        </div>
-        <div class="processing-meta">
-          <span>{{ modelStatusLine() }}</span>
-          @if (modelProgressLabel()) {
-          <span class="processing-meta__progress"
-            >{{ modelProgressLabel() }}</span
-          >
-          }
+        <div class="progress-block">
+          <div class="progress-row">
+            <span>{{ progressLabelKey() | translate }}</span>
+            @if (progressPercent() !== null) {
+            <span class="progress-row__percent">{{ progressPercent() }}%</span>
+            }
+          </div>
+          <ion-progress-bar
+            [type]="progressPercent() === null ? 'indeterminate' : 'determinate'"
+            [value]="(progressPercent() ?? 0) / 100"
+          ></ion-progress-bar>
         </div>
         }
       </ion-card-content>
