@@ -28,7 +28,12 @@ export interface UiLanguageOption {
 export interface ModelOption {
   value: string;
   label: string;
+  /** Translated label. Existing options keep their English `label`. */
+  labelKey?: string;
 }
+
+/** Mixed q4 encoder + q8 decoder. Weights are about 223 MB, plus ~4 MB of tokenizer files. */
+export const WHISPER_SMALL_MODEL = 'onnx-community/whisper-small';
 
 export const modelOptions: ModelOption[] = [
   {
@@ -62,6 +67,12 @@ export const modelOptions: ModelOption[] = [
   {
     value: 'onnx-community/moonshine-tiny-ONNX',
     label: 'Moonshine tiny (~28MB, English only, faster)',
+  },
+  {
+    value: WHISPER_SMALL_MODEL,
+    label:
+      'Whisper small (~227 MB, multilingual) — most accurate, slowest and largest',
+    labelKey: 'settings.model.whisperSmall',
   },
 ];
 

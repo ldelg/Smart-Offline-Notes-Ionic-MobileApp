@@ -53,6 +53,7 @@ import {
   modelOptions,
   MODEL_DOWNLOAD_CONSENT_PREFIX,
   isEnglishOnlyModel,
+  WHISPER_SMALL_MODEL,
 } from '../models/settings.model';
 import { TranslationStore } from '../store/translation.store';
 import { TranslatePipe } from '../pipes/translate.pipe';
@@ -189,6 +190,8 @@ export class SettingsPage implements ViewWillEnter {
   readonly isMultilingualModel = computed(() => {
     return this.isModelMultilingual(this.model());
   });
+
+  readonly isWhisperSmall = computed(() => this.model() === WHISPER_SMALL_MODEL);
 
   onModelChange(model: string) {
     const currentModel = this.settings.model();
@@ -466,10 +469,15 @@ export class SettingsPage implements ViewWillEnter {
           const keys = await cache.keys();
           for (const request of keys) {
             const response = await cache.match(request);
-            if (response) {
-              const blob = await response.blob();
-              totalSize += blob.size;
+            if (!response) continue;
+            const rawLength = response.headers.get('content-length');
+            const header = rawLength == null ? NaN : Number(rawLength);
+            if (Number.isFinite(header) && header >= 0) {
+              totalSize += header;
+              continue;
             }
+            const blob = await response.blob();
+            totalSize += blob.size;
           }
         }
       }
@@ -566,6 +574,25 @@ export class SettingsPage implements ViewWillEnter {
     }
   }
 
+  /** Removes the Transformers.js cache and any other Hugging Face model responses. */
+  private async deleteAllDownloadedModels(): Promise<void> {
+    if (!('caches' in self)) return;
+    const names = await caches.keys();
+    for (const name of names) {
+      if (name === 'transformers-cache' || name.includes('transformers')) {
+        await caches.delete(name);
+        continue;
+      }
+      const cache = await caches.open(name);
+      const requests = await cache.keys();
+      for (const request of requests) {
+        if (request.url.includes('huggingface.co')) {
+          await cache.delete(request);
+        }
+      }
+    }
+  }
+
   private async deleteCachedModel(modelId: string): Promise<void> {
     if (!('caches' in self)) return;
     const needles = [modelId, encodeURIComponent(modelId)];
@@ -583,12 +610,7 @@ export class SettingsPage implements ViewWillEnter {
 
   private async performCacheClear() {
     try {
-      if ('caches' in self) {
-        const cacheNames = await caches.keys();
-        for (const cacheName of cacheNames) {
-          await caches.delete(cacheName);
-        }
-      }
+      await this.deleteAllDownloadedModels();
 
       this.settings.setLastUsedModel(null);
       this.clearModelDownloadConsent();

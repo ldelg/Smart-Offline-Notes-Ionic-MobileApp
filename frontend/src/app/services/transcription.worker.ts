@@ -18,6 +18,21 @@ if (typeof self !== 'undefined' && env.backends?.onnx?.wasm) {
 
 type OnnxDevice = 'wasm' | 'webgpu';
 
+/**
+ * Transformers.js 3.8.1 maps q8 → `*_quantized.onnx` and q4 → `*_q4.onnx`.
+ * For Whisper small the q4 decoder is larger than the q8 decoder, so the
+ * phone build uses a q4 encoder (66 MB) and a q8 decoder (157 MB).
+ */
+function dtypeForModel(model: string): string | Record<string, string> {
+  if (model === 'onnx-community/whisper-small') {
+    return {
+      encoder_model: 'q4',
+      decoder_model_merged: 'q8',
+    };
+  }
+  return 'q8';
+}
+
 const resolveDevice = async (): Promise<OnnxDevice> => {
   try {
     const gpu = (navigator as Navigator & { gpu?: { requestAdapter?: () => Promise<unknown> } }).gpu;
@@ -45,7 +60,7 @@ class PipelineFactory {
       let device = await resolveDevice();
       const create = (selected: OnnxDevice) =>
         pipeline(this.task as any, this.model as string, {
-          dtype: 'q8',
+          dtype: dtypeForModel(this.model as string),
           device: selected,
           progress_callback,
           revision: this.model?.includes('/whisper-medium') ? 'no_attentions' : 'main',

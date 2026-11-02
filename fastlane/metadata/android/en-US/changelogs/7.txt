@@ -1,0 +1,1 @@
+Adds Whisper small for higher accuracy. It is the largest and slowest model. Settings now separates deleting one model from deleting every downloaded model. Notes are kept.

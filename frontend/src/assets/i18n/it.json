@@ -17,7 +17,9 @@
       "noActiveModel": "Nessun modello attivo per ora",
       "lastUsedHint": "Ultimo utilizzo durante la trascrizione",
       "downloadedHint": "Già scaricato e pronto all'uso",
-      "willBeUsedHint": "Sarà usato alla prossima trascrizione"
+      "willBeUsedHint": "Sarà usato alla prossima trascrizione",
+      "whisperSmall": "Whisper small (~227 MB, multilingue) — il più accurato, il più lento e il più grande",
+      "whisperSmallWarning": "Il più accurato, ma anche il più lento e il download più grande (~227 MB). Sui telefoni con poca memoria libera potrebbe non caricarsi."
     },
     "interface": {
       "subtitle": "Interfaccia",
@@ -38,8 +40,10 @@
       "offline": "Offline",
       "modelCache": "Cache del modello",
       "calculating": "Calcolo in corso...",
-      "clearCache": "Svuota cache",
-      "deleteModel": "Elimina il modello selezionato"
+      "clearCache": "Elimina tutti i modelli scaricati",
+      "deleteModel": "Elimina il modello selezionato",
+      "deleteSelectedDescription": "Elimina solo il modello selezionato sopra. Gli altri modelli scaricati e le tue note restano.",
+      "deleteAllDescription": "Elimina tutti i modelli vocali salvati su questo dispositivo. Le tue note restano."
     },
     "data": {
       "subtitle": "Gestione dei dati",
@@ -95,19 +99,19 @@
       },
       "network": {
         "unknown": "Sconosciuto",
-        "clearCacheHeader": "Svuota cache modelli",
-        "clearCacheMessagePrefix": "Questo eliminerà tutti i modelli in cache",
-        "clearCacheMessageSuffix": "Dovrai scaricarli di nuovo quando trascrivi. Continuare?",
-        "clearCacheAction": "Svuota cache",
-        "clearedHeader": "Cache svuotata",
-        "clearedMessage": "Tutti i modelli in cache sono stati eliminati con successo.",
+        "clearCacheHeader": "Eliminare tutti i modelli scaricati?",
+        "clearCacheMessagePrefix": "Questo elimina tutti i modelli vocali salvati su questo dispositivo",
+        "clearCacheMessageSuffix": "Le tue note restano. Dovrai scaricare di nuovo un modello per trascrivere offline. Continuare?",
+        "clearCacheAction": "Elimina tutti i modelli",
+        "clearedHeader": "Modelli eliminati",
+        "clearedMessage": "Tutti i modelli vocali scaricati sono stati eliminati. Le tue note sono ancora qui.",
         "clearFailedHeader": "Pulizia fallita",
         "clearFailedMessage": "Si è verificato un errore durante la pulizia della cache. Riprova.",
-        "deleteModelHeader": "Elimina il modello selezionato",
-        "deleteModelMessage": "Questo elimina i file scaricati di",
-        "deleteModelAction": "Elimina modello",
+        "deleteModelHeader": "Eliminare il modello selezionato?",
+        "deleteModelMessage": "Questo elimina solo i file scaricati di",
+        "deleteModelAction": "Elimina questo modello",
         "deletedHeader": "Modello eliminato",
-        "deletedMessage": "Quel modello verrà scaricato di nuovo la prossima volta che lo usi."
+        "deletedMessage": "Quel modello è stato eliminato. Le tue note e gli altri modelli scaricati restano."
       }
     }
   },
