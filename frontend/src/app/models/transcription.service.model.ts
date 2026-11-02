@@ -4,6 +4,9 @@ export interface TranscriptionResult {
   duration?: number;
 }
 
+/** Store/service error code when the clip has no usable speech. */
+export const NO_SPEECH_ERROR = 'NO_SPEECH';
+
 export interface TranscriptionUpdate {
   text: string;
   chunks?: any[];

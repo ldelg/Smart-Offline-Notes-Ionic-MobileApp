@@ -11,8 +11,7 @@ import {
   IonItem,
   IonInput,
   IonTextarea,
-  IonSpinner,
-  IonText,
+  IonProgressBar,
   IonToggle,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -33,6 +32,7 @@ import {
 } from '../models/settings.model';
 import { SettingsStore } from '../store/settings.store';
 import { TranscriptionService } from '../services/transcription.service';
+import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { TranslationStore } from '../store/translation.store';
 
@@ -53,8 +53,7 @@ import { TranslationStore } from '../store/translation.store';
     IonItem,
     IonInput,
     IonTextarea,
-    IonSpinner,
-    IonText,
+    IonProgressBar,
     IonToggle,
     ReactiveFormsModule,
     TranslatePipe,
@@ -115,6 +114,18 @@ export class CreatePage {
     effect(() => {
       const error = this.store.error();
       if (!error) return;
+
+      if (error === NO_SPEECH_ERROR) {
+        const debug = this.transcriptionService.lastAudioDebug();
+        const message = this.translationStore.t('create.errors.noSpeechMessage');
+        this.statusMessage.set(this.translationStore.t('create.errors.noSpeech'));
+        this.showAlert(
+          this.translationStore.t('create.errors.noSpeechHeader'),
+          debug ? `${message} (${debug})` : message,
+        ).catch(console.error);
+        this.store.clearError();
+        return;
+      }
 
       const errorMessage = error.toLowerCase();
       const isRateLimited =
@@ -327,17 +338,14 @@ export class CreatePage {
     await alert.present();
   }
 
-  protected modelStatusLine(): string {
-    const service = this.transcriptionService as any;
-    const status = service.modelStatus?.();
-    if (status) return status;
-    return `${this.translationStore.t('create.modelLabel')}: ${this.settings.model()}`;
+  protected progressLabelKey(): string {
+    const phase = this.transcriptionService.progressPhase();
+    if (phase === 'download') return 'create.progress.downloading';
+    if (phase === 'load') return 'create.progress.loading';
+    return 'create.progress.transcribing';
   }
 
-  protected modelProgressLabel(): string | null {
-    const service = this.transcriptionService as any;
-    const progress = service.modelProgress?.();
-    if (typeof progress !== 'number') return null;
-    return `${Math.round(progress)}%`;
+  protected progressPercent(): number | null {
+    return this.transcriptionService.progressPercent();
   }
 }

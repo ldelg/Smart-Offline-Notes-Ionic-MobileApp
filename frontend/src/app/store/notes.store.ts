@@ -3,6 +3,7 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { inject } from '@angular/core';
 import { tap, pipe, switchMap, catchError, EMPTY, finalize } from 'rxjs';
 import { Note } from '../models/note.model';
+import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranscriptionService } from '../services/transcription.service';
 import { SettingsStore } from './settings.store';
 
@@ -74,11 +75,26 @@ export const NotesStore = signalStore(
 
             return transcription.transcribe(file).pipe(
               tap((update) => {
+                const text = update.text.trim();
+                if (update.isComplete && !text) {
+                  settled = true;
+                  const remaining = store.notes().filter((n) => n.id !== noteId);
+                  patchState(store, {
+                    notes: remaining,
+                    loading: false,
+                    error: NO_SPEECH_ERROR,
+                  });
+                  localStorage.setItem(
+                    'whisper-notes',
+                    JSON.stringify(remaining),
+                  );
+                  settings.setLastUsedModel(model);
+                  return;
+                }
+
                 const updatedNote: Note = {
                   id: noteId,
-                  title: update.text.trim()
-                    ? update.text.slice(0, 60)
-                    : 'Transcribing...',
+                  title: text ? text.slice(0, 60) : 'Transcribing...',
                   body: update.text,
                   createdAt: initialNote.createdAt,
                   source,
@@ -90,10 +106,12 @@ export const NotesStore = signalStore(
                   .notes()
                   .map((n) => (n.id === noteId ? updatedNote : n));
                 patchState(store, { notes: updatedNotes });
-                localStorage.setItem(
-                  'whisper-notes',
-                  JSON.stringify(updatedNotes),
-                );
+                if (text || update.isComplete) {
+                  localStorage.setItem(
+                    'whisper-notes',
+                    JSON.stringify(updatedNotes),
+                  );
+                }
 
                 if (update.isComplete) {
                   settled = true;

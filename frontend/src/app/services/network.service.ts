@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Network, ConnectionStatus } from '@capacitor/network';
 import { Platform } from '@ionic/angular';
 
@@ -6,8 +6,9 @@ import { Platform } from '@ionic/angular';
 export class NetworkService {
   // Reactive signal for network status
   readonly isOnline = signal<boolean>(true);
+  private readonly platform = inject(Platform);
 
-  constructor(private platform: Platform) {
+  constructor() {
     this.initialize();
   }
 

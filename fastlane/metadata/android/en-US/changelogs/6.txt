@@ -1,0 +1,1 @@
+Empty recordings no longer look finished. Audio details are logged when a clip is too quiet. Moonshine tiny is available for faster English transcription.

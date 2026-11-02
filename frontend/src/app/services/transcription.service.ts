@@ -2,7 +2,20 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
 import { NetworkService } from './network.service';
-import { TranscriptionUpdate } from '../models/transcription.service.model';
+import {
+  NO_SPEECH_ERROR,
+  TranscriptionUpdate,
+} from '../models/transcription.service.model';
+import {
+  formatAudioDebug,
+  mixToMono,
+  NEAR_SILENT_RMS,
+  resampleLinear,
+  rms,
+  SILENT_RMS,
+  TARGET_SAMPLE_RATE,
+} from './audio-pcm';
+import { ProgressTracker, ProgressView } from './progress-tracker';
 
 const workerErrorMessage = (payload: any): string => {
   const candidates = [payload?.error, payload?.data];
@@ -28,8 +41,11 @@ export class TranscriptionService {
   private worker?: Worker;
   private readonly settings = inject(SettingsStore);
   private readonly networkService = inject(NetworkService);
-  readonly modelStatus = signal<string | null>(null);
-  readonly modelProgress = signal<number | null>(null);
+  readonly progressPhase = signal<ProgressView['phase']>('load');
+  readonly progressPercent = signal<number | null>(null);
+  readonly lastAudioDebug = signal<string | null>(null);
+  private readonly progressTracker = new ProgressTracker();
+  private progressTimer: ReturnType<typeof setTimeout> | null = null;
   private requestSeq = 0;
   private activeHandler?: (event: MessageEvent) => void;
 
@@ -47,8 +63,7 @@ export class TranscriptionService {
       const requestId = ++this.requestSeq;
       const start = performance.now();
 
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.resetProgress();
 
       if (!this.worker) {
         subscriber.error(
@@ -74,8 +89,7 @@ export class TranscriptionService {
         (error) => {
           if (disposed || requestId !== this.requestSeq) return;
           this.detach(messageHandler);
-          this.modelStatus.set(null);
-          this.modelProgress.set(null);
+          this.stopProgress();
           subscriber.error(
             error instanceof Error ? error : new Error(String(error)),
           );
@@ -110,21 +124,31 @@ export class TranscriptionService {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const audioContext = new AudioContext({ sampleRate: 16000 });
+    const audioContext = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
     let audio: Float32Array;
     try {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-      if (audioBuffer.numberOfChannels === 2) {
-        const SCALING_FACTOR = Math.sqrt(2);
-        const left = audioBuffer.getChannelData(0);
-        const right = audioBuffer.getChannelData(1);
-        audio = new Float32Array(left.length);
-        for (let i = 0; i < audioBuffer.length; ++i) {
-          audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
-        }
-      } else {
-        audio = audioBuffer.getChannelData(0);
+      const mono = mixToMono(audioBuffer);
+      const decodedRate = audioBuffer.sampleRate;
+      audio =
+        decodedRate === TARGET_SAMPLE_RATE
+          ? mono
+          : resampleLinear(mono, decodedRate, TARGET_SAMPLE_RATE);
+      const level = rms(audio);
+      const durationSec = audio.length / TARGET_SAMPLE_RATE;
+      const debug = formatAudioDebug({
+        durationSec,
+        sampleRate: decodedRate,
+        rms: level,
+        resampledTo: decodedRate === TARGET_SAMPLE_RATE ? undefined : TARGET_SAMPLE_RATE,
+      });
+      this.lastAudioDebug.set(debug);
+      console.log(`Audio debug: ${debug}`);
+      if (level < NEAR_SILENT_RMS) {
+        console.warn(`Audio is near-silent (RMS ${level.toFixed(4)})`);
+      }
+      if (level < SILENT_RMS) {
+        throw new Error(NO_SPEECH_ERROR);
       }
     } finally {
       try {
@@ -136,7 +160,7 @@ export class TranscriptionService {
 
     if (isDisposed()) return;
 
-    const audioDuration = audio.length / 16000;
+    const audioDuration = audio.length / TARGET_SAMPLE_RATE;
     console.log(`Transcribing ${audioDuration.toFixed(1)}s of audio`);
 
     const model = this.settings.model();
@@ -179,20 +203,11 @@ export class TranscriptionService {
     }
 
     if (status === 'update') {
-      const updateData = data as [string, { chunks: any[] }];
-      const text = updateData[0] || '';
-      const chunks = updateData[1]?.chunks || [];
-
-      subscriber.next({
-        text: text,
-        chunks: chunks,
-        isComplete: false,
-      });
+      return;
     } else if (status === 'complete') {
       const result = data;
       finish();
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.stopProgress();
 
       const chunksCount = result?.chunks?.length || 0;
       console.log(`Chunks: ${chunksCount}`);
@@ -247,8 +262,7 @@ export class TranscriptionService {
       subscriber.complete();
     } else if (status === 'error') {
       finish();
-      this.modelStatus.set(null);
-      this.modelProgress.set(null);
+      this.stopProgress();
       subscriber.error(new Error(workerErrorMessage(payload)));
     }
   }
@@ -263,27 +277,37 @@ export class TranscriptionService {
     const hasProgress = typeof payload.progress === 'number';
     if (!status && !hasProgress) return false;
 
-    const message = this.formatModelStatus(payload);
-    if (message) {
-      this.modelStatus.set(message);
-    }
-    this.modelProgress.set(hasProgress ? payload.progress : null);
+    const view = this.progressTracker.push(payload, performance.now());
+    if (view) this.publishProgress(view);
+    this.scheduleProgressFlush();
     return true;
   }
 
-  private formatModelStatus(payload: any): string | null {
-    const status = payload.status;
-    const file = this.formatModelFile(payload.file || payload.name);
-    if (status && file) return `${status}: ${file}`;
-    if (status) return String(status);
-    if (file) return `Loading model: ${file}`;
-    return null;
+  private stopProgress(): void {
+    if (this.progressTimer !== null) {
+      clearTimeout(this.progressTimer);
+      this.progressTimer = null;
+    }
+    this.progressTracker.reset();
   }
 
-  private formatModelFile(value: any): string | null {
-    if (!value || typeof value !== 'string') return null;
-    const parts = value.split('/');
-    const file = parts[parts.length - 1] || value;
-    return file.length > 40 ? `…${file.slice(-40)}` : file;
+  private resetProgress(): void {
+    this.stopProgress();
+    this.publishProgress({ phase: 'load', percent: null });
+  }
+
+  private publishProgress(view: ProgressView): void {
+    this.progressPhase.set(view.phase);
+    this.progressPercent.set(view.percent);
+  }
+
+  private scheduleProgressFlush(): void {
+    if (!this.progressTracker.hasPending || this.progressTimer !== null) return;
+    this.progressTimer = setTimeout(() => {
+      this.progressTimer = null;
+      const view = this.progressTracker.flush(performance.now());
+      if (view) this.publishProgress(view);
+      this.scheduleProgressFlush();
+    }, 100);
   }
 }

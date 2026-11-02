@@ -33,20 +33,15 @@
                 "output": "assets"
               },
               {
-                "glob": "ort-wasm.wasm",
-                "input": "node_modules/@xenova/transformers/dist",
-                "output": "assets/ort"
-              },
-              {
-                "glob": "ort-wasm-simd.wasm",
-                "input": "node_modules/@xenova/transformers/dist",
+                "glob": "ort-wasm-simd-threaded.jsep.*",
+                "input": "node_modules/@huggingface/transformers/dist",
                 "output": "assets/ort"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
             "browser": "src/main.ts",
-            "allowedCommonJsDependencies": ["@xenova/transformers"]
+            "allowedCommonJsDependencies": ["@huggingface/transformers"]
           },
           "configurations": {
             "production": {

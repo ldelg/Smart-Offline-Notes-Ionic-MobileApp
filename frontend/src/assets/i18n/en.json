@@ -45,7 +45,8 @@
       "offline": "Offline",
       "modelCache": "Model Cache",
       "calculating": "Calculating...",
-      "clearCache": "Clear Model Cache"
+      "clearCache": "Clear Model Cache",
+      "deleteModel": "Delete selected model"
     },
     "data": {
       "subtitle": "Data Management",
@@ -108,7 +109,12 @@
         "clearedHeader": "Cache Cleared",
         "clearedMessage": "All cached models have been deleted successfully.",
         "clearFailedHeader": "Clear Failed",
-        "clearFailedMessage": "There was an error clearing the cache. Please try again."
+        "clearFailedMessage": "There was an error clearing the cache. Please try again.",
+        "deleteModelHeader": "Delete selected model",
+        "deleteModelMessage": "This removes the downloaded files for",
+        "deleteModelAction": "Delete model",
+        "deletedHeader": "Model deleted",
+        "deletedMessage": "That model will be downloaded again the next time you use it."
       }
     }
   },
@@ -124,6 +130,11 @@
       "aria": "Upload audio file"
     },
     "transcribing": "Transcribing...",
+    "progress": {
+      "downloading": "Downloading model",
+      "loading": "Loading model",
+      "transcribing": "Transcribing"
+    },
     "modelDownload": {
       "header": "Download speech model?",
       "message": "{model} will be downloaded once from huggingface.co and saved on this device. Your audio and notes stay on the device. After the download, transcription works offline.",
@@ -151,6 +162,9 @@
       "transcriptionFailed": "Transcription failed.",
       "transcriptionFailedHeader": "Transcription Failed",
       "transcriptionFailedMessage": "The model could not finish loading or the audio could not be transcribed. Please try again.",
+      "noSpeech": "No speech detected.",
+      "noSpeechHeader": "No speech detected",
+      "noSpeechMessage": "No speech detected. Try speaking closer to the phone and for a little longer.",
       "rateLimited": "Model download temporarily blocked.",
       "rateLimitedHeader": "Model Download Temporarily Blocked",
       "rateLimitedMessage": "The app is working, but the model host temporarily blocked repeated downloads from your network. Please try again later, or try another network or VPN.",
