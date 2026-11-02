@@ -11,8 +11,7 @@ import {
   IonItem,
   IonInput,
   IonTextarea,
-  IonSpinner,
-  IonText,
+  IonProgressBar,
   IonToggle,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -54,8 +53,7 @@ import { TranslationStore } from '../store/translation.store';
     IonItem,
     IonInput,
     IonTextarea,
-    IonSpinner,
-    IonText,
+    IonProgressBar,
     IonToggle,
     ReactiveFormsModule,
     TranslatePipe,
@@ -340,21 +338,14 @@ export class CreatePage {
     await alert.present();
   }
 
-  protected audioDebugLine(): string | null {
-    return this.transcriptionService.lastAudioDebug();
+  protected progressLabelKey(): string {
+    const phase = this.transcriptionService.progressPhase();
+    if (phase === 'download') return 'create.progress.downloading';
+    if (phase === 'load') return 'create.progress.loading';
+    return 'create.progress.transcribing';
   }
 
-  protected modelStatusLine(): string {
-    const service = this.transcriptionService as any;
-    const status = service.modelStatus?.();
-    if (status) return status;
-    return `${this.translationStore.t('create.modelLabel')}: ${this.settings.model()}`;
-  }
-
-  protected modelProgressLabel(): string | null {
-    const service = this.transcriptionService as any;
-    const progress = service.modelProgress?.();
-    if (typeof progress !== 'number') return null;
-    return `${Math.round(progress)}%`;
+  protected progressPercent(): number | null {
+    return this.transcriptionService.progressPercent();
   }
 }
