@@ -59,6 +59,10 @@
           aria-label="{{ 'create.upload.aria' | translate }}"
         />
 
+        @if (audioDebugLine(); as debug) {
+        <p class="processing-meta">{{ debug }}</p>
+        }
+
         @if (store.loading()) {
         <div class="processing">
           <ion-spinner name="lines"></ion-spinner>

@@ -59,7 +59,19 @@ export const modelOptions: ModelOption[] = [
     value: 'distil-whisper/distil-medium.en',
     label: 'distil-whisper/distil-medium.en (402MB, English only)',
   },
+  {
+    value: 'onnx-community/moonshine-tiny-ONNX',
+    label: 'Moonshine tiny (~28MB, English only, faster)',
+  },
 ];
+
+export function isEnglishOnlyModel(model: string): boolean {
+  return (
+    model.endsWith('.en') ||
+    model.startsWith('distil-whisper/') ||
+    model.includes('moonshine')
+  );
+}
 
 export const languages: LanguageOption[] = [
   { id: 'english', label: 'English' },

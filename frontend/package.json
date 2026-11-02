@@ -1,6 +1,6 @@
 {
   "name": "smart-offline-notes",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "author": "ldelg",
   "homepage": "https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp",
   "scripts": {
@@ -33,9 +33,9 @@
     "@capacitor/network": "^7.0.2",
     "@capacitor/share": "^7.0.2",
     "@capacitor/status-bar": "7.0.3",
+    "@huggingface/transformers": "^3.8.1",
     "@ionic/angular": "^8.0.0",
     "@ngrx/signals": "^20.1.0",
-    "@xenova/transformers": "^2.7.0",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

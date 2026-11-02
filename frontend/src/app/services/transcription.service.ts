@@ -2,7 +2,19 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SettingsStore } from '../store/settings.store';
 import { NetworkService } from './network.service';
-import { TranscriptionUpdate } from '../models/transcription.service.model';
+import {
+  NO_SPEECH_ERROR,
+  TranscriptionUpdate,
+} from '../models/transcription.service.model';
+import {
+  formatAudioDebug,
+  mixToMono,
+  NEAR_SILENT_RMS,
+  resampleLinear,
+  rms,
+  SILENT_RMS,
+  TARGET_SAMPLE_RATE,
+} from './audio-pcm';
 
 const workerErrorMessage = (payload: any): string => {
   const candidates = [payload?.error, payload?.data];
@@ -30,6 +42,7 @@ export class TranscriptionService {
   private readonly networkService = inject(NetworkService);
   readonly modelStatus = signal<string | null>(null);
   readonly modelProgress = signal<number | null>(null);
+  readonly lastAudioDebug = signal<string | null>(null);
   private requestSeq = 0;
   private activeHandler?: (event: MessageEvent) => void;
 
@@ -110,21 +123,31 @@ export class TranscriptionService {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const audioContext = new AudioContext({ sampleRate: 16000 });
+    const audioContext = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
     let audio: Float32Array;
     try {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-      if (audioBuffer.numberOfChannels === 2) {
-        const SCALING_FACTOR = Math.sqrt(2);
-        const left = audioBuffer.getChannelData(0);
-        const right = audioBuffer.getChannelData(1);
-        audio = new Float32Array(left.length);
-        for (let i = 0; i < audioBuffer.length; ++i) {
-          audio[i] = (SCALING_FACTOR * (left[i] + right[i])) / 2;
-        }
-      } else {
-        audio = audioBuffer.getChannelData(0);
+      const mono = mixToMono(audioBuffer);
+      const decodedRate = audioBuffer.sampleRate;
+      audio =
+        decodedRate === TARGET_SAMPLE_RATE
+          ? mono
+          : resampleLinear(mono, decodedRate, TARGET_SAMPLE_RATE);
+      const level = rms(audio);
+      const durationSec = audio.length / TARGET_SAMPLE_RATE;
+      const debug = formatAudioDebug({
+        durationSec,
+        sampleRate: decodedRate,
+        rms: level,
+        resampledTo: decodedRate === TARGET_SAMPLE_RATE ? undefined : TARGET_SAMPLE_RATE,
+      });
+      this.lastAudioDebug.set(debug);
+      console.log(`Audio debug: ${debug}`);
+      if (level < NEAR_SILENT_RMS) {
+        console.warn(`Audio is near-silent (RMS ${level.toFixed(4)})`);
+      }
+      if (level < SILENT_RMS) {
+        throw new Error(NO_SPEECH_ERROR);
       }
     } finally {
       try {
@@ -136,7 +159,7 @@ export class TranscriptionService {
 
     if (isDisposed()) return;
 
-    const audioDuration = audio.length / 16000;
+    const audioDuration = audio.length / TARGET_SAMPLE_RATE;
     console.log(`Transcribing ${audioDuration.toFixed(1)}s of audio`);
 
     const model = this.settings.model();
