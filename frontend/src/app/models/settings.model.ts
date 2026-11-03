@@ -1,4 +1,5 @@
 export type TranscriptionTask = 'transcribe' | 'translate';
+export type ThemePreference = 'system' | 'light' | 'dark';
 
 export interface SettingsState {
   model: string;
@@ -8,6 +9,7 @@ export interface SettingsState {
   uiLanguage: string;
   task: TranscriptionTask;
   lastUsedModel: string | null;
+  theme: ThemePreference;
 }
 
 export const SETTINGS_STORAGE_KEY = 'whisper-settings';
@@ -27,43 +29,69 @@ export interface UiLanguageOption {
 
 export interface ModelOption {
   value: string;
+  /** Short name used in confirmations and the picker. */
   label: string;
+  size: string;
+  englishOnly: boolean;
+  faster?: boolean;
 }
 
 export const modelOptions: ModelOption[] = [
   {
     value: 'Xenova/whisper-tiny',
-    label: 'Xenova/whisper-tiny (41MB, multilingual)',
+    label: 'Whisper tiny',
+    size: '41 MB',
+    englishOnly: false,
   },
   {
     value: 'Xenova/whisper-base',
-    label: 'Xenova/whisper-base (77MB, multilingual)',
+    label: 'Whisper base',
+    size: '77 MB',
+    englishOnly: false,
   },
   {
     value: 'Xenova/whisper-small',
-    label: 'Xenova/whisper-small (249MB, multilingual)',
+    label: 'Whisper small',
+    size: '249 MB',
+    englishOnly: false,
   },
   {
     value: 'Xenova/whisper-tiny.en',
-    label: 'Xenova/whisper-tiny.en (41MB, English only)',
+    label: 'Whisper tiny.en',
+    size: '41 MB',
+    englishOnly: true,
   },
   {
     value: 'Xenova/whisper-base.en',
-    label: 'Xenova/whisper-base.en (77MB, English only)',
+    label: 'Whisper base.en',
+    size: '77 MB',
+    englishOnly: true,
   },
   {
     value: 'distil-whisper/distil-small.en',
-    label: 'distil-whisper/distil-small.en (~125MB, 6x faster, English only)',
+    label: 'Distil small',
+    size: '125 MB',
+    englishOnly: true,
+    faster: true,
   },
   {
     value: 'distil-whisper/distil-medium.en',
-    label: 'distil-whisper/distil-medium.en (402MB, English only)',
+    label: 'Distil medium',
+    size: '402 MB',
+    englishOnly: true,
   },
   {
     value: 'onnx-community/moonshine-tiny-ONNX',
-    label: 'Moonshine tiny (~28MB, English only, faster)',
+    label: 'Moonshine tiny',
+    size: '28 MB',
+    englishOnly: true,
+    faster: true,
   },
 ];
+
+export function modelOption(id: string): ModelOption | undefined {
+  return modelOptions.find((option) => option.value === id);
+}
 
 export function isEnglishOnlyModel(model: string): boolean {
   return (

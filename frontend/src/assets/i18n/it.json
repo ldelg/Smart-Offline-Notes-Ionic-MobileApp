@@ -12,17 +12,28 @@
       "subtitle": "Modello",
       "title": "Motore di trascrizione",
       "selectModel": "Seleziona il modello da usare",
-      "multilingual": "Multilingue",
+      "multilingual": "Scegli la lingua",
       "activeModel": "Modello attivo",
       "noActiveModel": "Nessun modello attivo per ora",
       "lastUsedHint": "Ultimo utilizzo durante la trascrizione",
       "downloadedHint": "Già scaricato e pronto all'uso",
-      "willBeUsedHint": "Sarà usato alla prossima trascrizione"
+      "willBeUsedHint": "Sarà usato alla prossima trascrizione",
+      "onThisPhone": "Su questo telefono",
+      "downloadsFirst": "Si scarica la prima volta che registri.",
+      "badgeMultilingual": "Multilingue",
+      "badgeEnglish": "Solo inglese",
+      "badgeFaster": "Più veloce",
+      "pickerTitle": "Scegli un modello",
+      "close": "Chiudi"
     },
     "interface": {
       "subtitle": "Interfaccia",
       "title": "Lingua dell'app",
-      "select": "Seleziona la lingua dell'app"
+      "select": "Seleziona la lingua dell'app",
+      "theme": "Aspetto",
+      "themeLight": "Chiaro",
+      "themeDark": "Scuro",
+      "themeSystem": "Sistema"
     },
     "transcription": {
       "subtitle": "Lingua e attività",
@@ -41,7 +52,8 @@
       "clearCache": "Elimina tutti i modelli scaricati",
       "deleteModel": "Elimina il modello selezionato",
       "deleteSelectedDescription": "Elimina solo il modello selezionato sopra. Gli altri modelli scaricati e le tue note restano.",
-      "deleteAllDescription": "Elimina tutti i modelli vocali salvati su questo dispositivo. Le tue note restano."
+      "deleteAllDescription": "Elimina tutti i modelli vocali salvati su questo dispositivo. Le tue note restano.",
+      "downloadedTitle": "Modelli scaricati"
     },
     "data": {
       "subtitle": "Gestione dei dati",
@@ -178,7 +190,8 @@
       "ok": "OK",
       "noteCreatedHeader": "Nota creata",
       "noteCreatedMessage": "La tua nota è stata salvata con successo!"
-    }
+    },
+    "tapToStop": "tocca per fermare"
   },
   "tabs": {
     "create": "Crea",
@@ -192,7 +205,9 @@
     },
     "empty": {
       "title": "Ancora nessuna nota",
-      "description": "Crea la tua prima nota nella scheda Crea"
+      "description": "Crea la tua prima nota nella scheda Crea",
+      "action": "Registra una nota",
+      "noMatches": "Nessuna nota corrisponde alla ricerca."
     },
     "actions": {
       "closeTab": "Chiudi scheda nota",
@@ -206,6 +221,12 @@
       "titlePlaceholder": "Titolo della nota",
       "bodyLabel": "Contenuto",
       "save": "Salva modifiche"
+    },
+    "meta": {
+      "justNow": "Adesso",
+      "minutes": "min",
+      "hours": "h",
+      "days": "g"
     }
   }
 }

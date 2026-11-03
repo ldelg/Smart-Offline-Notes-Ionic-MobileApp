@@ -1,7 +1,7 @@
 .settings-content {
-  --background: linear-gradient(180deg, #181818 0%, #0d0d0d 65%, #050505 100%);
-  --padding-start: clamp(1rem, 3vw, 2.5rem);
-  --padding-end: clamp(0.5rem, 2vw, 1rem);
+  --background: var(--app-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
   --padding-top: 1.25rem;
   --padding-bottom: 1.25rem;
 }
@@ -16,15 +16,15 @@
 }
 
 .glass-card {
-  background: #1f1f1f;
-  border: 1px solid #2a2a2a;
+  background: var(--app-bg-elevated);
+  border: 1px solid var(--app-border);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  color: var(--app-text);
+  box-shadow: none;
 }
 
 .glass-card ion-card-content {
-  padding-left: 0;
-  padding-bottom: 0;
+  padding: 0 0 12px;
 }
 
 ion-item {
@@ -33,25 +33,24 @@ ion-item {
 }
 
 ion-select {
-  --placeholder-color: rgba(255, 255, 255, 0.6);
-  color: #ffffff;
+  --placeholder-color: var(--app-text-muted);
+  color: var(--app-text);
 }
 
 ion-select-option {
-  --color: #ffffff;
+  --color: var(--app-text);
 }
 
 ion-card-header {
-  padding-left: 13px !important;
-  padding-bottom: 0;
+  padding: 16px 16px 8px;
 }
 
 ion-card-title {
-  color: #ffffff !important;
+  color: var(--app-text) !important;
 }
 
 ion-card-subtitle {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--app-text-muted) !important;
 }
 
 .clear-button {
@@ -93,7 +92,124 @@ ion-item {
 
 ion-label {
   font-size: 15px !important;
-  color: #ffffff !important;
+  color: var(--app-text) !important;
+}
+
+ion-label h2,
+ion-label p {
+  color: var(--app-text);
+}
+
+ion-label p,
+ion-note {
+  color: var(--app-text-muted);
+  white-space: normal;
+}
+
+.delete-list {
+  background: transparent;
+  padding: 0 0 8px;
+}
+
+.delete-list ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 16px;
+  --background: transparent;
+  --color: var(--app-text);
+}
+
+.danger-row ion-label h2,
+.danger-row ion-note {
+  color: var(--app-danger);
+}
+
+.status-online {
+  color: var(--app-success);
+  font-weight: 600;
+}
+
+.model-status {
+  margin: 4px 16px 12px;
+  color: var(--app-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.status-offline {
+  color: var(--app-danger);
+  font-weight: 600;
+}
+
+.field-label {
+  margin: 12px 16px 8px;
+  color: var(--app-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.theme-choice {
+  padding: 0 0 16px;
+}
+
+.theme-choice ion-segment {
+  margin-top: 8px;
+}
+
+.model-picker ion-list-header {
+  --background: var(--app-bg);
+  --color: var(--app-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-height: 44px;
+  padding-inline-start: 16px;
+}
+
+.picker-check {
+  flex: 0 0 24px;
+  width: 24px;
+  margin-inline-end: 4px;
+  font-size: 22px;
+  color: transparent;
+}
+
+.picker-check--on {
+  color: var(--ion-color-primary);
+}
+
+.model-picker ion-item {
+  --background: var(--app-bg-elevated);
+  --color: var(--app-text);
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+}
+
+.model-picker ion-label h2 {
+  color: var(--app-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.model-picker ion-label p {
+  color: var(--app-text-muted);
+}
+
+.picker-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.model-picker ion-badge {
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+
+.selected-model {
+  --background: color-mix(in srgb, var(--ion-color-primary) 16%, var(--app-bg-elevated));
 }
 
 .model-info {

@@ -12,17 +12,28 @@
       "subtitle": "Model",
       "title": "Transcription Engine",
       "selectModel": "Select the model to use",
-      "multilingual": "Multilingual",
+      "multilingual": "Choose language",
       "activeModel": "Active Model",
       "noActiveModel": "No active model yet",
       "lastUsedHint": "Last used during transcription",
       "downloadedHint": "Already downloaded and ready to use",
-      "willBeUsedHint": "Will be used on next transcription"
+      "willBeUsedHint": "Will be used on next transcription",
+      "onThisPhone": "On this phone",
+      "downloadsFirst": "Downloads the first time you record.",
+      "badgeMultilingual": "Multilingual",
+      "badgeEnglish": "English only",
+      "badgeFaster": "Faster",
+      "pickerTitle": "Choose a model",
+      "close": "Close"
     },
     "interface": {
       "subtitle": "Interface",
       "title": "App Language",
-      "select": "Select app language"
+      "select": "Select app language",
+      "theme": "Appearance",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System"
     },
     "transcription": {
       "subtitle": "Language & Task",
@@ -48,7 +59,8 @@
       "clearCache": "Delete all downloaded models",
       "deleteModel": "Delete selected model",
       "deleteSelectedDescription": "Removes only the model selected above. Other downloaded models and your notes are kept.",
-      "deleteAllDescription": "Removes every speech model saved on this device. Your notes are kept."
+      "deleteAllDescription": "Removes every speech model saved on this device. Your notes are kept.",
+      "downloadedTitle": "Downloaded models"
     },
     "data": {
       "subtitle": "Data Management",
@@ -185,7 +197,8 @@
       "ok": "OK",
       "noteCreatedHeader": "Note Created",
       "noteCreatedMessage": "Your note has been saved successfully!"
-    }
+    },
+    "tapToStop": "tap to stop"
   },
   "tabs": {
     "create": "Create",
@@ -199,7 +212,9 @@
     },
     "empty": {
       "title": "No notes yet",
-      "description": "Create your first note in the Create tab"
+      "description": "Create your first note in the Create tab",
+      "action": "Record a note",
+      "noMatches": "No notes match your search."
     },
     "actions": {
       "closeTab": "Close note tab",
@@ -213,6 +228,12 @@
       "titlePlaceholder": "Note title",
       "bodyLabel": "Body",
       "save": "Save changes"
+    },
+    "meta": {
+      "justNow": "Just now",
+      "minutes": "min ago",
+      "hours": "hr ago",
+      "days": "d ago"
     }
   }
 }

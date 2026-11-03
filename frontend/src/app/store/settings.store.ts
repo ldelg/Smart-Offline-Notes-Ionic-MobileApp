@@ -2,6 +2,7 @@ import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import {
   SETTINGS_STORAGE_KEY,
   SettingsState,
+  ThemePreference,
   TranscriptionTask,
 } from '../models/settings.model';
 
@@ -18,6 +19,12 @@ const loadSettings = (): Partial<SettingsState> => {
   return {};
 };
 
+const loaded = loadSettings();
+const theme: ThemePreference =
+  loaded.theme === 'light' || loaded.theme === 'dark' || loaded.theme === 'system'
+    ? loaded.theme
+    : 'system';
+
 const initialState: SettingsState = {
   model: 'Xenova/whisper-tiny',
   multilingual: false,
@@ -26,7 +33,8 @@ const initialState: SettingsState = {
   uiLanguage: 'en',
   task: 'transcribe',
   lastUsedModel: null,
-  ...loadSettings(),
+  ...loaded,
+  theme,
 };
 
 export const SettingsStore = signalStore(
@@ -44,6 +52,7 @@ export const SettingsStore = signalStore(
           uiLanguage: store.uiLanguage(),
           task: store.task(),
           lastUsedModel: store.lastUsedModel(),
+          theme: store.theme(),
         };
         localStorage.setItem(
           SETTINGS_STORAGE_KEY,
@@ -72,6 +81,9 @@ export const SettingsStore = signalStore(
       },
       setLastUsedModel(modelName: string | null) {
         updateSettings({ lastUsedModel: modelName });
+      },
+      setTheme(themePreference: ThemePreference) {
+        updateSettings({ theme: themePreference });
       },
     };
   }),
