@@ -189,25 +189,38 @@ export class CreatePage {
 
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
-      this.mediaRecorder = new MediaRecorder(this.mediaStream);
+      const recorder = new MediaRecorder(this.mediaStream);
+      this.mediaRecorder = recorder;
       this.chunks = [];
 
-      this.mediaRecorder.ondataavailable = (event) => {
+      recorder.ondataavailable = (event) => {
         if (event.data.size > 0) this.chunks.push(event.data);
       };
 
-      this.mediaRecorder.onstop = () => {
-        const blob = new Blob(this.chunks, { type: 'audio/webm' });
+      recorder.onstop = () => {
+        const mime = recorder.mimeType || 'audio/webm';
+        const blob = new Blob(this.chunks, { type: mime });
+        this.chunks = [];
+        this.releaseMicrophone();
+        const extension = mime.includes('mp4')
+          ? 'm4a'
+          : mime.includes('ogg')
+            ? 'ogg'
+            : 'webm';
         void this.processFile(
-          new File([blob], 'recording.webm', { type: blob.type }),
+          new File([blob], `recording.${extension}`, { type: mime }),
           'Recording',
         );
-        this.chunks = [];
       };
 
-      this.mediaRecorder.start();
+      recorder.start();
       this.isRecording.set(true);
       this.statusMessage.set(this.translationStore.t('create.recording'));
     } catch (error) {
@@ -242,11 +255,20 @@ export class CreatePage {
   }
 
   protected stopRecording(): void {
-    if (this.mediaRecorder?.state === 'recording') {
-      this.mediaRecorder.stop();
-      this.mediaStream?.getTracks().forEach((track) => track.stop());
+    const recorder = this.mediaRecorder;
+    if (recorder?.state === 'recording') {
+      // The last chunk arrives before `onstop`. Stopping the mic tracks here
+      // drops that chunk, so the first take is often silence.
+      recorder.stop();
+    } else {
+      this.releaseMicrophone();
     }
     this.isRecording.set(false);
+  }
+
+  private releaseMicrophone(): void {
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = undefined;
   }
 
   protected handleUpload(event: Event): void {
