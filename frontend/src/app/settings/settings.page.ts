@@ -466,10 +466,15 @@ export class SettingsPage implements ViewWillEnter {
           const keys = await cache.keys();
           for (const request of keys) {
             const response = await cache.match(request);
-            if (response) {
-              const blob = await response.blob();
-              totalSize += blob.size;
+            if (!response) continue;
+            const rawLength = response.headers.get('content-length');
+            const header = rawLength == null ? NaN : Number(rawLength);
+            if (Number.isFinite(header) && header >= 0) {
+              totalSize += header;
+              continue;
             }
+            const blob = await response.blob();
+            totalSize += blob.size;
           }
         }
       }
@@ -581,14 +586,28 @@ export class SettingsPage implements ViewWillEnter {
     }
   }
 
-  private async performCacheClear() {
-    try {
-      if ('caches' in self) {
-        const cacheNames = await caches.keys();
-        for (const cacheName of cacheNames) {
-          await caches.delete(cacheName);
+  /** Removes the Transformers.js cache and any other Hugging Face model responses. */
+  private async deleteAllDownloadedModels(): Promise<void> {
+    if (!('caches' in self)) return;
+    const names = await caches.keys();
+    for (const name of names) {
+      if (name === 'transformers-cache' || name.includes('transformers')) {
+        await caches.delete(name);
+        continue;
+      }
+      const cache = await caches.open(name);
+      const requests = await cache.keys();
+      for (const request of requests) {
+        if (request.url.includes('huggingface.co')) {
+          await cache.delete(request);
         }
       }
+    }
+  }
+
+  private async performCacheClear() {
+    try {
+      await this.deleteAllDownloadedModels();
 
       this.settings.setLastUsedModel(null);
       this.clearModelDownloadConsent();
