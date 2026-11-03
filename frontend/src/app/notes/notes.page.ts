@@ -159,6 +159,12 @@ export class NotesPage {
     this.searchTerm.set(value);
   }
 
+  protected openNoteFromCard(event: Event, id: string): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.note-actions')) return;
+    this.openNote(id);
+  }
+
   protected deleteNote(id: string): void {
     this.store.deleteNote(id);
   }

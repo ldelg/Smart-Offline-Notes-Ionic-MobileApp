@@ -59,17 +59,30 @@
       <ion-list lines="none" class="notes-list">
         @for (note of filteredNotes(); track note.id) {
         <ion-item-sliding>
-          <ion-item
-            button
-            detail="false"
-            class="note-item"
-            (click)="openNote(note.id)"
-          >
+          <ion-item class="note-item" (click)="openNoteFromCard($event, note.id)">
             <ion-label>
               <h2>{{ note.title }}</h2>
               <p class="note-body">{{ note.body }}</p>
               <ion-note class="note-meta">{{ noteMeta(note) }}</ion-note>
             </ion-label>
+            <div class="note-actions" slot="end">
+              <ion-button
+                fill="clear"
+                class="note-expand"
+                (click)="openNote(note.id); $event.stopPropagation()"
+                [attr.aria-label]="translationStore.t('notes.actions.open')"
+              >
+                <ion-icon name="expand-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                color="danger"
+                (click)="deleteNote(note.id); $event.stopPropagation()"
+                [attr.aria-label]="translationStore.t('notes.actions.delete')"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
           </ion-item>
           <ion-item-options side="end">
             <ion-item-option
