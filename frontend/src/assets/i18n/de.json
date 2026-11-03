@@ -38,8 +38,10 @@
       "offline": "Offline",
       "modelCache": "Modellcache",
       "calculating": "Berechnung...",
-      "clearCache": "Cache löschen",
-      "deleteModel": "Ausgewähltes Modell löschen"
+      "clearCache": "Alle heruntergeladenen Modelle löschen",
+      "deleteModel": "Ausgewähltes Modell löschen",
+      "deleteSelectedDescription": "Löscht nur das oben ausgewählte Modell. Andere heruntergeladene Modelle und Ihre Notizen bleiben erhalten.",
+      "deleteAllDescription": "Löscht alle auf diesem Gerät gespeicherten Sprachmodelle. Ihre Notizen bleiben erhalten."
     },
     "data": {
       "subtitle": "Datenverwaltung",
@@ -95,19 +97,19 @@
       },
       "network": {
         "unknown": "Unbekannt",
-        "clearCacheHeader": "Modellcache löschen",
-        "clearCacheMessagePrefix": "Dadurch werden alle zwischengespeicherten Modelle gelöscht",
-        "clearCacheMessageSuffix": "Sie müssen sie beim Transkribieren erneut herunterladen. Fortfahren?",
-        "clearCacheAction": "Cache löschen",
-        "clearedHeader": "Cache geleert",
-        "clearedMessage": "Alle zwischengespeicherten Modelle wurden erfolgreich gelöscht.",
+        "clearCacheHeader": "Alle heruntergeladenen Modelle löschen?",
+        "clearCacheMessagePrefix": "Dadurch werden alle auf diesem Gerät gespeicherten Sprachmodelle entfernt",
+        "clearCacheMessageSuffix": "Ihre Notizen bleiben erhalten. Für die Offline-Transkription müssen Sie ein Modell erneut herunterladen. Fortfahren?",
+        "clearCacheAction": "Alle Modelle löschen",
+        "clearedHeader": "Modelle gelöscht",
+        "clearedMessage": "Alle heruntergeladenen Sprachmodelle wurden entfernt. Ihre Notizen sind noch da.",
         "clearFailedHeader": "Löschen fehlgeschlagen",
         "clearFailedMessage": "Beim Leeren des Caches ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
-        "deleteModelHeader": "Ausgewähltes Modell löschen",
-        "deleteModelMessage": "Dadurch werden die heruntergeladenen Dateien entfernt für",
-        "deleteModelAction": "Modell löschen",
+        "deleteModelHeader": "Ausgewähltes Modell löschen?",
+        "deleteModelMessage": "Dadurch werden nur die heruntergeladenen Dateien entfernt für",
+        "deleteModelAction": "Dieses Modell löschen",
         "deletedHeader": "Modell gelöscht",
-        "deletedMessage": "Dieses Modell wird beim nächsten Gebrauch erneut heruntergeladen."
+        "deletedMessage": "Dieses Modell wurde entfernt. Ihre Notizen und die anderen heruntergeladenen Modelle bleiben erhalten."
       }
     }
   },

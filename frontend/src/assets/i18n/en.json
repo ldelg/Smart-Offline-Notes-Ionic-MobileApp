@@ -45,8 +45,10 @@
       "offline": "Offline",
       "modelCache": "Model Cache",
       "calculating": "Calculating...",
-      "clearCache": "Clear Model Cache",
-      "deleteModel": "Delete selected model"
+      "clearCache": "Delete all downloaded models",
+      "deleteModel": "Delete selected model",
+      "deleteSelectedDescription": "Removes only the model selected above. Other downloaded models and your notes are kept.",
+      "deleteAllDescription": "Removes every speech model saved on this device. Your notes are kept."
     },
     "data": {
       "subtitle": "Data Management",
@@ -102,19 +104,19 @@
       },
       "network": {
         "unknown": "Unknown",
-        "clearCacheHeader": "Clear Model Cache",
-        "clearCacheMessagePrefix": "This will delete all cached models",
-        "clearCacheMessageSuffix": "You will need to download them again when you transcribe. Continue?",
-        "clearCacheAction": "Clear Cache",
-        "clearedHeader": "Cache Cleared",
-        "clearedMessage": "All cached models have been deleted successfully.",
+        "clearCacheHeader": "Delete all downloaded models?",
+        "clearCacheMessagePrefix": "This removes every speech model saved on this device",
+        "clearCacheMessageSuffix": "Your notes are kept. You will need to download a model again before transcribing offline. Continue?",
+        "clearCacheAction": "Delete all models",
+        "clearedHeader": "Models deleted",
+        "clearedMessage": "Every downloaded speech model was removed. Your notes are still here.",
         "clearFailedHeader": "Clear Failed",
         "clearFailedMessage": "There was an error clearing the cache. Please try again.",
-        "deleteModelHeader": "Delete selected model",
-        "deleteModelMessage": "This removes the downloaded files for",
-        "deleteModelAction": "Delete model",
+        "deleteModelHeader": "Delete selected model?",
+        "deleteModelMessage": "This removes only the downloaded files for",
+        "deleteModelAction": "Delete this model",
         "deletedHeader": "Model deleted",
-        "deletedMessage": "That model will be downloaded again the next time you use it."
+        "deletedMessage": "That model was removed. Your notes and any other downloaded models are kept."
       }
     }
   },

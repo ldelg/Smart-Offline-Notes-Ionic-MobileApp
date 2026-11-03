@@ -38,8 +38,10 @@
       "offline": "Sin conexión",
       "modelCache": "Caché del modelo",
       "calculating": "Calculando...",
-      "clearCache": "Borrar caché de modelos",
-      "deleteModel": "Eliminar el modelo seleccionado"
+      "clearCache": "Eliminar todos los modelos descargados",
+      "deleteModel": "Eliminar el modelo seleccionado",
+      "deleteSelectedDescription": "Elimina solo el modelo seleccionado arriba. Los demás modelos descargados y tus notas se conservan.",
+      "deleteAllDescription": "Elimina todos los modelos de voz guardados en este dispositivo. Tus notas se conservan."
     },
     "data": {
       "subtitle": "Gestión de datos",
@@ -95,19 +97,19 @@
       },
       "network": {
         "unknown": "Desconocido",
-        "clearCacheHeader": "Borrar caché del modelo",
-        "clearCacheMessagePrefix": "Esto eliminará todos los modelos en caché",
-        "clearCacheMessageSuffix": "Tendrás que descargarlos otra vez cuando transcribas. ¿Continuar?",
-        "clearCacheAction": "Borrar caché",
-        "clearedHeader": "Caché borrada",
-        "clearedMessage": "Todos los modelos en caché se eliminaron correctamente.",
+        "clearCacheHeader": "¿Eliminar todos los modelos descargados?",
+        "clearCacheMessagePrefix": "Esto elimina todos los modelos de voz guardados en este dispositivo",
+        "clearCacheMessageSuffix": "Tus notas se conservan. Tendrás que descargar un modelo otra vez para transcribir sin conexión. ¿Continuar?",
+        "clearCacheAction": "Eliminar todos los modelos",
+        "clearedHeader": "Modelos eliminados",
+        "clearedMessage": "Se eliminaron todos los modelos de voz descargados. Tus notas siguen aquí.",
         "clearFailedHeader": "Error al borrar",
         "clearFailedMessage": "Hubo un error al borrar la caché. Inténtalo de nuevo.",
-        "deleteModelHeader": "Eliminar el modelo seleccionado",
-        "deleteModelMessage": "Esto elimina los archivos descargados de",
-        "deleteModelAction": "Eliminar modelo",
+        "deleteModelHeader": "¿Eliminar el modelo seleccionado?",
+        "deleteModelMessage": "Esto elimina solo los archivos descargados de",
+        "deleteModelAction": "Eliminar este modelo",
         "deletedHeader": "Modelo eliminado",
-        "deletedMessage": "Ese modelo se descargará de nuevo la próxima vez que lo uses."
+        "deletedMessage": "Ese modelo se eliminó. Tus notas y los demás modelos descargados se conservan."
       }
     }
   },
