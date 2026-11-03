@@ -159,7 +159,7 @@
       "transcriptionFailedMessage": "No se pudo terminar de cargar el modelo o transcribir el audio. Inténtalo de nuevo.",
       "noSpeech": "No se detectó voz.",
       "noSpeechHeader": "No se detectó voz",
-      "noSpeechMessage": "No se detectó voz. Habla más cerca del teléfono y durante un poco más de tiempo.",
+      "noSpeechMessage": "No se detectó voz. La grabación era demasiado baja o poco clara. Habla más cerca del teléfono y durante un poco más de tiempo.",
       "rateLimited": "Descarga del modelo bloqueada temporalmente.",
       "rateLimitedHeader": "Descarga del modelo bloqueada temporalmente",
       "rateLimitedMessage": "La app está funcionando, pero el servidor del modelo bloqueó temporalmente las descargas repetidas desde tu red. Inténtalo más tarde o usa otra red o una VPN.",

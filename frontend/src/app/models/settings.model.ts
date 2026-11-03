@@ -61,7 +61,7 @@ export const modelOptions: ModelOption[] = [
   },
   {
     value: 'onnx-community/moonshine-tiny-ONNX',
-    label: 'Moonshine tiny (~28MB, English only, faster)',
+    label: 'Moonshine tiny (~55MB, English only, faster)',
   },
 ];
 

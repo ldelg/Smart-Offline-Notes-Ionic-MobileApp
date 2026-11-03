@@ -1,9 +1,11 @@
 import {
   formatAudioDebug,
+  isSilenceHallucination,
   NEAR_SILENT_RMS,
   resampleLinear,
   rms,
   SILENT_RMS,
+  trimSilence,
 } from './audio-pcm';
 
 describe('audio-pcm', () => {
@@ -42,5 +44,30 @@ describe('audio-pcm', () => {
         resampledTo: 16000,
       }),
     ).toContain('resampled to 16000 Hz');
+  });
+
+  it('trims a quiet lead-in and keeps the speech', () => {
+    const samples = new Float32Array(16000);
+    for (let i = 8000; i < 12000; i++) samples[i] = 0.2;
+    const trimmed = trimSilence(samples, 16000);
+    expect(trimmed.length).toBeLessThan(samples.length);
+    expect(trimmed.length).toBeGreaterThan(2000);
+    expect(rms(trimmed)).toBeGreaterThan(NEAR_SILENT_RMS);
+  });
+
+  it('treats a fully quiet clip as empty', () => {
+    expect(trimSilence(new Float32Array(16000), 16000).length).toBe(0);
+  });
+
+  it('recognises Whisper silence hallucinations and keeps real speech', () => {
+    expect(isSilenceHallucination('Thank you for watching!')).toBeTrue();
+    expect(isSilenceHallucination('Thanks for watching.')).toBeTrue();
+    expect(isSilenceHallucination('[Music]')).toBeTrue();
+    expect(
+      isSilenceHallucination(
+        'And so my fellow Americans ask not what your country can do for you',
+      ),
+    ).toBeFalse();
+    expect(isSilenceHallucination('Thank you for watching the match')).toBeFalse();
   });
 });

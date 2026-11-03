@@ -159,7 +159,7 @@
       "transcriptionFailedMessage": "Le modèle n'a pas pu terminer son chargement ou l'audio n'a pas pu être transcrit. Veuillez réessayer.",
       "noSpeech": "Aucune voix détectée.",
       "noSpeechHeader": "Aucune voix détectée",
-      "noSpeechMessage": "Aucune voix détectée. Parlez plus près du téléphone et un peu plus longtemps.",
+      "noSpeechMessage": "Aucune voix détectée. L'enregistrement était trop faible ou peu clair. Parlez plus près du téléphone et un peu plus longtemps.",
       "rateLimited": "Téléchargement du modèle temporairement bloqué.",
       "rateLimitedHeader": "Téléchargement du modèle temporairement bloqué",
       "rateLimitedMessage": "L'application fonctionne, mais l'hébergeur du modèle a temporairement bloqué les téléchargements répétés depuis votre réseau. Réessayez plus tard ou utilisez un autre réseau ou un VPN.",
