@@ -57,13 +57,13 @@ export const modelOptions: ModelOption[] = [
   },
   {
     value: 'Xenova/whisper-tiny.en',
-    label: 'Whisper tiny',
+    label: 'Whisper tiny.en',
     size: '41 MB',
     englishOnly: true,
   },
   {
     value: 'Xenova/whisper-base.en',
-    label: 'Whisper base',
+    label: 'Whisper base.en',
     size: '77 MB',
     englishOnly: true,
   },

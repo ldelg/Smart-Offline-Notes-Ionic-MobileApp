@@ -292,13 +292,22 @@
     </ion-header>
     <ion-content>
       <ion-list lines="full">
-        @for (option of modelOptions; track option.value) {
+        <ion-list-header>
+          <ion-label>{{ 'settings.model.badgeMultilingual' | translate }}</ion-label>
+        </ion-list-header>
+        @for (option of multilingualModels(); track option.value) {
         <ion-item
           button
           detail="false"
           [class.selected-model]="option.value === model()"
           (click)="chooseModel(option.value)"
         >
+          <ion-icon
+            class="picker-check"
+            [class.picker-check--on]="option.value === model()"
+            name="checkmark"
+            aria-hidden="true"
+          ></ion-icon>
           <ion-label>
             <h2>{{ option.label }}</h2>
             <p>{{ option.size }}</p>
@@ -311,6 +320,38 @@
                   : 'settings.model.badgeMultilingual'
                 ) | translate
               }}
+            </ion-badge>
+            @if (option.faster) {
+            <ion-badge color="success">
+              {{ 'settings.model.badgeFaster' | translate }}
+            </ion-badge>
+            }
+          </div>
+        </ion-item>
+        }
+        <ion-list-header>
+          <ion-label>{{ 'settings.model.badgeEnglish' | translate }}</ion-label>
+        </ion-list-header>
+        @for (option of englishModels(); track option.value) {
+        <ion-item
+          button
+          detail="false"
+          [class.selected-model]="option.value === model()"
+          (click)="chooseModel(option.value)"
+        >
+          <ion-icon
+            class="picker-check"
+            [class.picker-check--on]="option.value === model()"
+            name="checkmark"
+            aria-hidden="true"
+          ></ion-icon>
+          <ion-label>
+            <h2>{{ option.label }}</h2>
+            <p>{{ option.size }}</p>
+          </ion-label>
+          <div class="picker-badges" slot="end">
+            <ion-badge>
+              {{ 'settings.model.badgeEnglish' | translate }}
             </ion-badge>
             @if (option.faster) {
             <ion-badge color="success">
