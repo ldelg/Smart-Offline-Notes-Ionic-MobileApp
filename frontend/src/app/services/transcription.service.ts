@@ -8,11 +8,12 @@ import {
 } from '../models/transcription.service.model';
 import {
   formatAudioDebug,
+  isSilenceHallucination,
   mixToMono,
   NEAR_SILENT_RMS,
   resampleLinear,
   rms,
-  SILENT_RMS,
+  trimSilence,
   TARGET_SAMPLE_RATE,
 } from './audio-pcm';
 import { ProgressTracker, ProgressView } from './progress-tracker';
@@ -130,10 +131,11 @@ export class TranscriptionService {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       const mono = mixToMono(audioBuffer);
       const decodedRate = audioBuffer.sampleRate;
-      audio =
+      const resampled =
         decodedRate === TARGET_SAMPLE_RATE
           ? mono
           : resampleLinear(mono, decodedRate, TARGET_SAMPLE_RATE);
+      audio = trimSilence(resampled, TARGET_SAMPLE_RATE);
       const level = rms(audio);
       const durationSec = audio.length / TARGET_SAMPLE_RATE;
       const debug = formatAudioDebug({
@@ -144,10 +146,7 @@ export class TranscriptionService {
       });
       this.lastAudioDebug.set(debug);
       console.log(`Audio debug: ${debug}`);
-      if (level < NEAR_SILENT_RMS) {
-        console.warn(`Audio is near-silent (RMS ${level.toFixed(4)})`);
-      }
-      if (level < SILENT_RMS) {
+      if (level < NEAR_SILENT_RMS || durationSec < 0.3) {
         throw new Error(NO_SPEECH_ERROR);
       }
     } finally {
@@ -250,10 +249,15 @@ export class TranscriptionService {
         text = result;
       }
 
+      text = text.trim();
+      if (isSilenceHallucination(text)) {
+        console.warn(`Rejected silence hallucination: ${text}`);
+        text = '';
+      }
       console.log(`Final text: ${text.length} chars`);
 
       subscriber.next({
-        text: text.trim(),
+        text,
         chunks: result?.chunks || [],
         isComplete: true,
         language: result?.language ?? result?.language_detection?.language,
