@@ -1,5 +1,5 @@
 .create-content {
-  --background: linear-gradient(180deg, #181818 0%, #0d0d0d 65%, #050505 100%);
+  --background: var(--app-bg);
   --padding-start: clamp(1rem, 3vw, 2.5rem);
   --padding-end: clamp(1rem, 3vw, 2.5rem);
   --padding-top: 1.25rem;
@@ -15,10 +15,11 @@
 }
 
 .glass-card {
-  background: #1f1f1f;
-  border: 1px solid #2a2a2a;
+  background: var(--app-bg-elevated);
+  border: 1px solid var(--app-border);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  color: var(--app-text);
+  box-shadow: none;
 }
 
 .record-card {
@@ -153,14 +154,14 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  border: 2px solid rgba(118, 214, 255, 0.8);
-  background: rgba(8, 8, 8, 0.6);
+  border: none;
+  background: var(--ion-color-primary);
   display: grid;
   place-items: center;
-  color: #7ad8ff;
+  color: var(--ion-color-primary-contrast);
   font-size: 42px;
-  box-shadow: 0 0 0 8px rgba(122, 216, 255, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: none;
+  transition: transform 0.2s ease;
 }
 
 .record-button ion-icon {
@@ -173,42 +174,19 @@
 }
 
 .instruction-pill {
-  padding: 0.75rem 1.25rem;
-  border-radius: 999px;
-  background: rgba(18, 18, 18, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
+  padding: 0.35rem 0.25rem;
+  color: var(--app-text);
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.upload-panel {
-  width: 100%;
-  display: grid;
-  gap: 0.5rem;
-  justify-items: center;
-}
-
-.upload-label {
-  width: 100%;
-  text-align: center;
-  padding: 0.9rem 1rem;
-  border-radius: 16px;
-  background: rgba(18, 18, 18, 0.8);
-  color: #7ad8ff;
+.upload-text {
+  color: var(--app-primary);
   font-weight: 600;
-  border: 1px solid rgba(122, 216, 255, 0.3);
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.upload-label:hover {
-  background: rgba(122, 216, 255, 0.1);
-}
-
-.upload-caption {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 #audioInput {
@@ -271,12 +249,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
+  width: 100%;
+  gap: 16px;
+  padding: 0.75rem 0.25rem;
+  color: var(--app-text);
   font-weight: 600;
 }
 
 .manual-title {
+  flex: 1;
+  min-width: 0;
   font-size: 1rem;
 }
 
@@ -286,7 +268,8 @@
 
 .create-content ion-item {
   --background: transparent;
-  --border-color: rgba(255, 255, 255, 0.12);
+  --border-color: var(--app-border);
+  --color: var(--app-text);
 }
 
 .create-content ion-input,
@@ -296,7 +279,7 @@
   --padding-end: 0;
   --highlight-color-focused: var(--ion-color-primary);
   --highlight-color: var(--ion-color-primary);
-  color: #ffffff;
+  color: var(--app-text);
 }
 
 .create-content .native-input,

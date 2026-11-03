@@ -26,6 +26,14 @@ import {
   AlertController,
   IonButton,
   IonIcon,
+  IonModal,
+  IonButtons,
+  IonBadge,
+  IonList,
+  IonListHeader,
+  IonNote,
+  IonSegment,
+  IonSegmentButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -34,6 +42,7 @@ import {
   cloudUploadOutline,
   trashOutline,
   refreshOutline,
+  checkmark,
 } from 'ionicons/icons';
 import { SettingsStore } from '../store/settings.store';
 import { NotesStore } from '../store/notes.store';
@@ -51,6 +60,7 @@ import {
   uiLanguages,
   ModelOption,
   modelOptions,
+  modelOption,
   MODEL_DOWNLOAD_CONSENT_PREFIX,
   isEnglishOnlyModel,
 } from '../models/settings.model';
@@ -79,6 +89,14 @@ import { TranslatePipe } from '../pipes/translate.pipe';
     IonToggle,
     IonButton,
     IonIcon,
+    IonModal,
+    IonButtons,
+    IonBadge,
+    IonList,
+    IonListHeader,
+    IonNote,
+    IonSegment,
+    IonSegmentButton,
     TranslatePipe,
   ],
 })
@@ -114,6 +132,7 @@ export class SettingsPage implements ViewWillEnter {
       cloudUploadOutline,
       trashOutline,
       refreshOutline,
+      checkmark,
     });
     this.calculateCacheSize();
 
@@ -138,7 +157,9 @@ export class SettingsPage implements ViewWillEnter {
   ionViewWillEnter() {
     this.calculateCacheSize();
   }
+  protected readonly modelPickerOpen = signal(false);
   readonly model = computed(() => this.settings.model());
+  readonly theme = computed(() => this.settings.theme());
   readonly multilingual = computed(() => this.settings.multilingual());
   readonly quantized = computed(() => this.settings.quantized());
   readonly language = computed(() => this.settings.language());
@@ -146,6 +167,12 @@ export class SettingsPage implements ViewWillEnter {
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
 
   readonly modelOptions: ModelOption[] = modelOptions;
+  readonly multilingualModels = computed(() =>
+    modelOptions.filter((option) => !option.englishOnly),
+  );
+  readonly englishModels = computed(() =>
+    modelOptions.filter((option) => option.englishOnly),
+  );
   readonly languages: LanguageOption[] = languages;
   readonly uiLanguages: UiLanguageOption[] = uiLanguages;
 
@@ -173,6 +200,40 @@ export class SettingsPage implements ViewWillEnter {
     const option = modelOptions.find((opt) => opt.value === current);
     return option ? option.label : current;
   });
+
+  readonly selectedModelName = computed(
+    () => modelOption(this.model())?.label ?? this.model(),
+  );
+  readonly selectedModelSize = computed(() => modelOption(this.model())?.size ?? '');
+  readonly selectedModelBadge = computed(() =>
+    this.t(
+      modelOption(this.model())?.englishOnly
+        ? 'settings.model.badgeEnglish'
+        : 'settings.model.badgeMultilingual',
+    ),
+  );
+  readonly modelStatus = computed(() => {
+    const name = this.selectedModelName();
+    if (this.lastUsedModel() === this.model() && this.lastUsedModel()) {
+      return `${this.t('settings.model.onThisPhone')} · ${name}`;
+    }
+    return this.t('settings.model.downloadsFirst');
+  });
+
+  protected openModelPicker(): void {
+    this.modelPickerOpen.set(true);
+  }
+
+  protected chooseModel(model: string): void {
+    this.onModelChange(model);
+    this.modelPickerOpen.set(false);
+  }
+
+  protected onThemeChange(value: string | number | undefined): void {
+    if (value === 'light' || value === 'dark' || value === 'system') {
+      this.settings.setTheme(value);
+    }
+  }
 
   readonly selectedModelHintKey = computed(() => {
     const current = this.model();

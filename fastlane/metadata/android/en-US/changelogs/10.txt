@@ -1,0 +1,1 @@
+Notes and Settings are easier to read in light and dark. The model list uses plain names, sizes, and language labels. Version 1.3.4.

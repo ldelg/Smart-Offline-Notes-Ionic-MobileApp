@@ -12,17 +12,28 @@
       "subtitle": "Modèle",
       "title": "Moteur de transcription",
       "selectModel": "Sélectionnez le modèle à utiliser",
-      "multilingual": "Multilingue",
+      "multilingual": "Choisir la langue",
       "activeModel": "Modèle actif",
       "noActiveModel": "Aucun modèle actif pour le moment",
       "lastUsedHint": "Dernière utilisation lors de la transcription",
       "downloadedHint": "Déjà téléchargé et prêt à l'emploi",
-      "willBeUsedHint": "Sera utilisé lors de la prochaine transcription"
+      "willBeUsedHint": "Sera utilisé lors de la prochaine transcription",
+      "onThisPhone": "Sur ce téléphone",
+      "downloadsFirst": "Téléchargé la première fois que vous enregistrez.",
+      "badgeMultilingual": "Multilingue",
+      "badgeEnglish": "Anglais seulement",
+      "badgeFaster": "Plus rapide",
+      "pickerTitle": "Choisir un modèle",
+      "close": "Fermer"
     },
     "interface": {
       "subtitle": "Interface",
       "title": "Langue de l'application",
-      "select": "Sélectionnez la langue de l'application"
+      "select": "Sélectionnez la langue de l'application",
+      "theme": "Apparence",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "themeSystem": "Système"
     },
     "transcription": {
       "subtitle": "Langue et tâche",
@@ -41,7 +52,8 @@
       "clearCache": "Supprimer tous les modèles téléchargés",
       "deleteModel": "Supprimer le modèle sélectionné",
       "deleteSelectedDescription": "Supprime uniquement le modèle sélectionné ci-dessus. Les autres modèles téléchargés et vos notes sont conservés.",
-      "deleteAllDescription": "Supprime tous les modèles de parole enregistrés sur cet appareil. Vos notes sont conservées."
+      "deleteAllDescription": "Supprime tous les modèles de parole enregistrés sur cet appareil. Vos notes sont conservées.",
+      "downloadedTitle": "Modèles téléchargés"
     },
     "data": {
       "subtitle": "Gestion des données",
@@ -178,7 +190,8 @@
       "ok": "OK",
       "noteCreatedHeader": "Note créée",
       "noteCreatedMessage": "Votre note a été enregistrée avec succès !"
-    }
+    },
+    "tapToStop": "touchez pour arrêter"
   },
   "tabs": {
     "create": "Créer",
@@ -192,7 +205,9 @@
     },
     "empty": {
       "title": "Aucune note pour l'instant",
-      "description": "Créez votre première note dans l'onglet Créer"
+      "description": "Créez votre première note dans l'onglet Créer",
+      "action": "Enregistrer une note",
+      "noMatches": "Aucune note ne correspond à la recherche."
     },
     "actions": {
       "closeTab": "Fermer l'onglet de note",
@@ -206,6 +221,12 @@
       "titlePlaceholder": "Titre de la note",
       "bodyLabel": "Contenu",
       "save": "Enregistrer les modifications"
+    },
+    "meta": {
+      "justNow": "À l'instant",
+      "minutes": "min",
+      "hours": "h",
+      "days": "j"
     }
   }
 }

@@ -15,6 +15,9 @@ import {
   IonSearchbar,
   IonList,
   IonItem,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
   IonLabel,
   IonButton,
   IonIcon,
@@ -22,14 +25,15 @@ import {
   IonTextarea,
   IonInput,
 } from '@ionic/angular/standalone';
-import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   FormsModule,
   ReactiveFormsModule,
   FormBuilder,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { NotesStore } from '../store/notes.store';
+import { SettingsStore } from '../store/settings.store';
 import { Note } from '../models/note.model';
 import { TranslationStore } from '../store/translation.store';
 import { addIcons } from 'ionicons';
@@ -53,21 +57,25 @@ import {
     IonSearchbar,
     IonList,
     IonItem,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
     IonLabel,
+    RouterLink,
     IonButton,
     IonIcon,
     IonNote,
     IonTextarea,
     IonInput,
-    DatePipe,
-    DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
   ],
 })
 export class NotesPage {
   private readonly store = inject(NotesStore);
+  private readonly settings = inject(SettingsStore);
   protected readonly translationStore = inject(TranslationStore);
+  protected readonly hasNotes = computed(() => this.store.notes().length > 0);
   private readonly fb = inject(FormBuilder);
   protected readonly searchTerm = signal('');
   protected readonly openTabIds = signal<string[]>([]);
@@ -112,6 +120,37 @@ export class NotesPage {
       } else {
         this.editForm.reset();
       }
+    });
+  }
+
+  protected noteMeta(note: Note): string {
+    const parts = [this.relativeTime(note.createdAt)];
+    if (note.duration) parts.push(`${Math.round(note.duration)}s`);
+    const uiToNote: Record<string, string> = {
+      en: 'english',
+      es: 'spanish',
+      fr: 'french',
+      de: 'german',
+      it: 'italian',
+    };
+    const uiLanguage = uiToNote[this.settings.uiLanguage()];
+    if (note.language && note.language !== uiLanguage) parts.push(note.language);
+    return parts.join(' · ');
+  }
+
+  private relativeTime(createdAt: number): string {
+    const lang = this.settings.uiLanguage() || 'en';
+    const minutes = Math.round((Date.now() - createdAt) / 60000);
+    if (minutes < 1) return this.translationStore.t('notes.meta.justNow');
+    if (minutes < 60) return `${minutes} ${this.translationStore.t('notes.meta.minutes')}`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} ${this.translationStore.t('notes.meta.hours')}`;
+    const days = Math.round(hours / 24);
+    if (days < 7) return `${days} ${this.translationStore.t('notes.meta.days')}`;
+    return new Date(createdAt).toLocaleDateString(lang, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   }
 
