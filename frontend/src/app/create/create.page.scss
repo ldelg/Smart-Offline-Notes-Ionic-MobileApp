@@ -40,7 +40,7 @@
 .waveform .bar {
   width: 4px;
   border-radius: 999px;
-  background: rgba(118, 214, 255, 0.9);
+  background: var(--app-primary);
   height: 12px;
   opacity: 0.8;
 }
@@ -211,27 +211,27 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--app-text);
   font-size: 0.95rem;
 }
 
 .progress-row__percent {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: rgba(122, 216, 255, 0.95);
+  color: var(--app-primary);
 }
 
 .progress-block ion-progress-bar {
   width: 100%;
   height: 6px;
-  --background: rgba(255, 255, 255, 0.12);
-  --progress-background: rgba(122, 216, 255, 0.95);
+  --background: var(--app-border);
+  --progress-background: var(--app-primary);
 }
 
 .processing-meta {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--app-text-muted);
   letter-spacing: 0.02em;
   text-align: center;
   display: flex;
@@ -241,7 +241,7 @@
 }
 
 .processing-meta__progress {
-  color: rgba(122, 216, 255, 0.8);
+  color: var(--app-primary);
   font-weight: 600;
 }
 

@@ -1,0 +1,1 @@
+Note cards show Expand and Delete again. Export and Import, and the other light-mode controls, stay readable. Version 1.4.1.
