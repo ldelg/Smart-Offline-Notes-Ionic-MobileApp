@@ -8,6 +8,20 @@
   <div class="content-wrapper">
     <ion-card class="glass-card">
       <ion-card-content class="record-card">
+        @if (store.loading()) {
+        <div class="progress-block">
+          <div class="progress-row">
+            <span>{{ progressLabelKey() | translate }}</span>
+            @if (progressPercent() !== null) {
+            <span class="progress-row__percent">{{ progressPercent() }}%</span>
+            }
+          </div>
+          <ion-progress-bar
+            [type]="progressPercent() === null ? 'indeterminate' : 'determinate'"
+            [value]="(progressPercent() ?? 0) / 100"
+          ></ion-progress-bar>
+        </div>
+        } @else {
         <div class="waveform" [class.waveform--active]="isRecording()">
           <span class="bar"></span>
           <span class="bar"></span>
@@ -38,19 +52,16 @@
         </button>
 
         <div class="instruction-pill">
-          {{ isRecording() ? ('create.recording' | translate) :
-          ('create.recordToStart' | translate) }}
+          @if (isRecording()) {
+          {{ recordingClock() }} · {{ 'create.tapToStop' | translate }}
+          } @else {
+          {{ 'create.recordToStart' | translate }}
+          }
         </div>
 
-        <div class="upload-panel">
-          <label class="upload-label" for="audioInput"
-            >{{ 'create.upload.label' | translate }}</label
-          >
-          <div class="upload-caption">
-            {{ 'create.upload.caption' | translate }}
-          </div>
-        </div>
-
+        <label class="upload-text" for="audioInput">
+          {{ 'create.upload.label' | translate }}
+        </label>
         <input
           id="audioInput"
           type="file"
@@ -59,25 +70,6 @@
           aria-label="{{ 'create.upload.aria' | translate }}"
         />
 
-        @if (store.loading()) {
-        <div class="progress-block">
-          <div class="progress-row">
-            <span>{{ progressLabelKey() | translate }}</span>
-            @if (progressPercent() !== null) {
-            <span class="progress-row__percent">{{ progressPercent() }}%</span>
-            }
-          </div>
-          <ion-progress-bar
-            [type]="progressPercent() === null ? 'indeterminate' : 'determinate'"
-            [value]="(progressPercent() ?? 0) / 100"
-          ></ion-progress-bar>
-        </div>
-        }
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="glass-card">
-      <ion-card-content class="create-card-content">
         <div class="manual-toggle">
           <div class="manual-title">
             {{ 'create.manual.title' | translate }}
@@ -122,6 +114,7 @@
             {{ 'create.save' | translate }}
           </ion-button>
         </form>
+        }
         }
       </ion-card-content>
     </ion-card>

@@ -6,13 +6,9 @@
 
 <ion-content class="notes-content">
   <div class="content-wrapper">
+    @if (activeTabId()) {
     <div class="notes-tab-bar">
-      <button
-        class="tab-chip"
-        type="button"
-        [class.active]="!activeTabId()"
-        (click)="showList()"
-      >
+      <button class="tab-chip" type="button" (click)="showList()">
         <span class="tab-label">{{ translationStore.t('notes.title') }}</span>
       </button>
       <div class="tab-chip-scroll">
@@ -37,87 +33,57 @@
         }
       </div>
     </div>
+    }
 
     @if (!activeTabId()) {
     <section class="list-panel">
+      @if (!hasNotes()) {
+      <div class="empty-state">
+        <h2>{{ translationStore.t('notes.empty.title') }}</h2>
+        <p>{{ translationStore.t('notes.empty.description') }}</p>
+        <ion-button routerLink="/tabs/create">
+          {{ translationStore.t('notes.empty.action') }}
+        </ion-button>
+      </div>
+      } @else {
       <ion-searchbar
         [placeholder]="translationStore.t('notes.search.placeholder')"
         (ionInput)="onSearch($event)"
         debounce="300"
       ></ion-searchbar>
 
+      @if (filteredNotes().length === 0) {
+      <p class="empty-search">{{ translationStore.t('notes.empty.noMatches') }}</p>
+      }
+
       <ion-list lines="none" class="notes-list">
-        @if (filteredNotes().length === 0) {
-        <ion-item class="empty-state">
-          <ion-label>
-            <h2>{{ translationStore.t('notes.empty.title') }}</h2>
-            <p>{{ translationStore.t('notes.empty.description') }}</p>
-          </ion-label>
-        </ion-item>
-        } @for (note of filteredNotes(); track note.id) {
-        <ion-item
-          class="note-item"
-          [attr.data-note-id]="note.id"
-          (dragover)="onDragOver($event, note.id)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onDrop($event, note.id)"
-        >
-          <div
-            class="drag-handle"
-            [attr.aria-label]="translationStore.t('notes.actions.dragReorder')"
-            draggable="true"
-            (dragstart)="onDragStart($event, note.id)"
-            (touchstart)="onTouchStart($event, note.id)"
-            (touchmove)="onTouchMove($event)"
-            (touchend)="onTouchEnd($event)"
+        @for (note of filteredNotes(); track note.id) {
+        <ion-item-sliding>
+          <ion-item
+            button
+            detail="false"
+            class="note-item"
+            (click)="openNote(note.id)"
           >
-            <svg
-              width="16"
-              height="24"
-              viewBox="0 0 16 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="4" cy="4" r="2" fill="currentColor" />
-              <circle cx="12" cy="4" r="2" fill="currentColor" />
-              <circle cx="4" cy="12" r="2" fill="currentColor" />
-              <circle cx="12" cy="12" r="2" fill="currentColor" />
-              <circle cx="4" cy="20" r="2" fill="currentColor" />
-              <circle cx="12" cy="20" r="2" fill="currentColor" />
-            </svg>
-          </div>
-          <ion-label (click)="openNote(note.id)" style="flex: 1">
-            <div class="note-header">
+            <ion-label>
               <h2>{{ note.title }}</h2>
-            </div>
-            <p class="note-body">{{ note.body }}</p>
-            <ion-note class="note-meta">
-              {{ note.createdAt | date: 'medium' }} @if (note.language) { · {{
-              note.language }} } @if (note.duration) { · {{ note.duration |
-              number: '1.0-1' }}s }
-            </ion-note>
-          </ion-label>
-          <div class="note-actions">
-            <ion-button
-              fill="clear"
-              color="medium"
-              (click)="openNote(note.id)"
-              [attr.aria-label]="translationStore.t('notes.actions.open')"
-            >
-              <ion-icon name="expand-outline"></ion-icon>
-            </ion-button>
-            <ion-button
-              fill="clear"
+              <p class="note-body">{{ note.body }}</p>
+              <ion-note class="note-meta">{{ noteMeta(note) }}</ion-note>
+            </ion-label>
+          </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option
               color="danger"
               (click)="deleteNote(note.id)"
               [attr.aria-label]="translationStore.t('notes.actions.delete')"
             >
-              <ion-icon name="trash-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </ion-item>
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
         }
       </ion-list>
+      }
     </section>
     } @else {
     <section class="editor-stage">

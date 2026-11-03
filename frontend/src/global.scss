@@ -32,48 +32,87 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* Class palette so Light / Dark / System can override the OS appearance. */
+@import "@ionic/angular/css/palettes/dark.class.css";
 
 :root {
   --ion-safe-area-top: env(safe-area-inset-top, 0px);
   --ion-safe-area-right: env(safe-area-inset-right, 0px);
   --ion-safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --ion-safe-area-left: env(safe-area-inset-left, 0px);
-  color-scheme: dark;
+  color-scheme: light;
   --ion-font-family: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  --ion-background-color: #0d0d0d;
-  --ion-toolbar-background: #141414;
+  --app-bg: #f4f6f8;
+  --app-bg-elevated: #ffffff;
+  --app-text: #1c1c1e;
+  --app-text-muted: #3e4654;
+  --app-border: #d5d8de;
+  --app-primary: #0b5cab;
+  --app-danger: #b42318;
+  --app-success: #0d7a32;
+  --ion-background-color: var(--app-bg);
+  --ion-text-color: var(--app-text);
+  --ion-toolbar-background: #ffffff;
+  --ion-toolbar-color: var(--app-text);
   --ion-item-background: transparent;
-  --ion-color-primary: #0a84ff;
-  --ion-color-primary-shade: #096fdb;
-  --ion-color-primary-tint: #2a98ff;
-  --ion-color-secondary: #64d2ff;
-  --ion-color-danger: #ff4c67;
-  --ion-color-success: #2ed573;
-  --ion-color-tertiary: #a7a7a7;
+  --ion-item-color: var(--app-text);
+  --ion-color-primary: #0b5cab;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #094e91;
+  --ion-color-primary-tint: #3c7dbc;
+  --ion-color-danger: #b42318;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-success: #0d7a32;
+  --ion-color-success-contrast: #ffffff;
+}
+
+html.ion-palette-dark {
+  color-scheme: dark;
+  --app-bg: #0d0d0d;
+  --app-bg-elevated: #1c1c1e;
+  --app-text: #f2f2f7;
+  --app-text-muted: #c7c7cc;
+  --app-border: #3a3a3c;
+  --app-primary: #4da3ff;
+  --app-danger: #ff8a96;
+  --app-success: #3ddc84;
+  --ion-background-color: var(--app-bg);
+  --ion-text-color: var(--app-text);
+  --ion-toolbar-background: #141416;
+  --ion-toolbar-color: var(--app-text);
+  --ion-item-color: var(--app-text);
+  --ion-color-primary: #4da3ff;
+  --ion-color-primary-contrast: #041018;
+  --ion-color-primary-shade: #4490e0;
+  --ion-color-primary-tint: #5eacff;
+  --ion-color-danger: #ff8a96;
+  --ion-color-danger-contrast: #2a0a10;
+  --ion-color-success: #3ddc84;
+  --ion-color-success-contrast: #04210f;
 }
 
 body {
   font-family: var(--ion-font-family);
-  background: radial-gradient(circle at top, #1a1a1a, #0d0d0d 55%);
-  color: #ffffff;
+  background: var(--app-bg);
+  color: var(--app-text);
 }
 
 ion-content {
-  --background: linear-gradient(180deg, #111111 0%, #0d0d0d 60%, #050505 100%);
+  --background: var(--app-bg);
+  --color: var(--app-text);
+  --padding-bottom: 16px;
 }
 
 ion-toolbar {
-  --background: #141414;
-  border-bottom: 1px solid #1f1f1f;
+  --background: var(--ion-toolbar-background);
+  --color: var(--app-text);
+  border-bottom: 1px solid var(--app-border);
 }
 
 ion-title {
   font-weight: 600;
-  color: #ffffff;
+  color: var(--app-text);
 }
 
 .sc-ion-searchbar-md-h {
@@ -102,8 +141,3 @@ ion-popover.settings-select-popover .select-interface-option {
   white-space: normal;
 }
 
-ion-title {
-  padding-top: 50px !important;
-  padding-bottom: 20px !important;
-  padding-inline-start: 30px;
-}
