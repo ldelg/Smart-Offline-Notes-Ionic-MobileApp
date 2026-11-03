@@ -1,0 +1,1 @@
+Moonshine tiny transcribes recordings again, and a quiet first take is no longer saved as a made-up phrase. Notes and Settings are easier to read in light and dark. Version 1.4.0.

@@ -88,6 +88,7 @@ jobs:
             --out "$SIGNED" \
             aligned.apk
           "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED"
+          cp "$SIGNED" Smart-Offline-Notes.apk
           rm -f aligned.apk
 
       - name: Bundle release AAB
@@ -131,4 +132,5 @@ jobs:
           files: |
             Smart-Offline-Notes-${{ github.ref_name }}.apk
             Smart-Offline-Notes-${{ github.ref_name }}.aab
+            Smart-Offline-Notes.apk
           generate_release_notes: true
