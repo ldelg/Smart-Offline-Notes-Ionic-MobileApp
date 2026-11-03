@@ -38,8 +38,10 @@
       "offline": "Hors ligne",
       "modelCache": "Cache du modèle",
       "calculating": "Calcul en cours...",
-      "clearCache": "Effacer le cache du modèle",
-      "deleteModel": "Supprimer le modèle sélectionné"
+      "clearCache": "Supprimer tous les modèles téléchargés",
+      "deleteModel": "Supprimer le modèle sélectionné",
+      "deleteSelectedDescription": "Supprime uniquement le modèle sélectionné ci-dessus. Les autres modèles téléchargés et vos notes sont conservés.",
+      "deleteAllDescription": "Supprime tous les modèles de parole enregistrés sur cet appareil. Vos notes sont conservées."
     },
     "data": {
       "subtitle": "Gestion des données",
@@ -95,19 +97,19 @@
       },
       "network": {
         "unknown": "Inconnu",
-        "clearCacheHeader": "Effacer le cache des modèles",
-        "clearCacheMessagePrefix": "Cela supprimera tous les modèles en cache",
-        "clearCacheMessageSuffix": "Vous devrez les télécharger à nouveau lors de la transcription. Continuer ?",
-        "clearCacheAction": "Effacer le cache",
-        "clearedHeader": "Cache effacé",
-        "clearedMessage": "Tous les modèles en cache ont été supprimés avec succès.",
+        "clearCacheHeader": "Supprimer tous les modèles téléchargés ?",
+        "clearCacheMessagePrefix": "Cela supprime tous les modèles de parole enregistrés sur cet appareil",
+        "clearCacheMessageSuffix": "Vos notes sont conservées. Vous devrez retélécharger un modèle pour transcrire hors ligne. Continuer ?",
+        "clearCacheAction": "Supprimer tous les modèles",
+        "clearedHeader": "Modèles supprimés",
+        "clearedMessage": "Tous les modèles de parole téléchargés ont été supprimés. Vos notes sont toujours là.",
         "clearFailedHeader": "Échec de l'effacement",
         "clearFailedMessage": "Une erreur s'est produite lors de l'effacement du cache. Veuillez réessayer.",
-        "deleteModelHeader": "Supprimer le modèle sélectionné",
-        "deleteModelMessage": "Cela supprime les fichiers téléchargés pour",
-        "deleteModelAction": "Supprimer le modèle",
+        "deleteModelHeader": "Supprimer le modèle sélectionné ?",
+        "deleteModelMessage": "Cela supprime uniquement les fichiers téléchargés pour",
+        "deleteModelAction": "Supprimer ce modèle",
         "deletedHeader": "Modèle supprimé",
-        "deletedMessage": "Ce modèle sera téléchargé à nouveau la prochaine fois que vous l'utiliserez."
+        "deletedMessage": "Ce modèle a été supprimé. Vos notes et les autres modèles téléchargés sont conservés."
       }
     }
   },
