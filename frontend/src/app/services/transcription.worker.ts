@@ -18,6 +18,27 @@ if (typeof self !== 'undefined' && env.backends?.onnx?.wasm) {
 
 type OnnxDevice = 'wasm' | 'webgpu';
 
+/**
+ * WASM defaults to q8. Moonshine's q8 encoder returns an empty string for
+ * real speech, which the app then shows as "No speech detected". q4 works
+ * on WASM and WebGPU. Whisper stays on q8.
+ */
+function dtypeForModel(model: string): string | Record<string, string> {
+  if (model.includes('moonshine')) {
+    return { encoder_model: 'q4', decoder_model_merged: 'q4' };
+  }
+  return 'q8';
+}
+
+/** Moonshine emits nothing when the clip is shorter than one second. */
+function padMoonshine(audio: Float32Array): Float32Array {
+  const minSamples = 16000;
+  if (audio.length >= minSamples) return audio;
+  const padded = new Float32Array(minSamples);
+  padded.set(audio);
+  return padded;
+}
+
 const resolveDevice = async (): Promise<OnnxDevice> => {
   try {
     const gpu = (navigator as Navigator & { gpu?: { requestAdapter?: () => Promise<unknown> } }).gpu;
@@ -45,7 +66,7 @@ class PipelineFactory {
       let device = await resolveDevice();
       const create = (selected: OnnxDevice) =>
         pipeline(this.task as any, this.model as string, {
-          dtype: 'q8',
+          dtype: dtypeForModel(this.model as string),
           device: selected,
           progress_callback,
           revision: this.model?.includes('/whisper-medium') ? 'no_attentions' : 'main',
@@ -130,6 +151,7 @@ const transcribe = async (
     self.postMessage({ ...data, jobId });
   });
 
+  const input = isMoonshine ? padMoonshine(audio) : audio;
   const options: Record<string, unknown> = {};
   if (!isMoonshine) {
     const isDistilWhisper = modelName.startsWith('distil-whisper/');
@@ -140,7 +162,7 @@ const transcribe = async (
     if (subtask) options['task'] = subtask;
   }
 
-  const output = await transcriber(audio, options).catch((error: unknown) => {
+  const output = await transcriber(input, options).catch((error: unknown) => {
     postError(jobId, error);
     return null;
   });

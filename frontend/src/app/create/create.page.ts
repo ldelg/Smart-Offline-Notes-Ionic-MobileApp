@@ -192,22 +192,31 @@ export class CreatePage {
 
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
-      this.mediaRecorder = new MediaRecorder(this.mediaStream);
+      const recorder = new MediaRecorder(this.mediaStream);
+      this.mediaRecorder = recorder;
       this.chunks = [];
 
-      this.mediaRecorder.ondataavailable = (event) => {
+      recorder.ondataavailable = (event) => {
         if (event.data.size > 0) this.chunks.push(event.data);
       };
 
-      const recorder = this.mediaRecorder;
       recorder.onstop = () => {
         const mime = recorder.mimeType || 'audio/webm';
         const blob = new Blob(this.chunks, { type: mime });
         this.chunks = [];
         this.releaseMicrophone();
-        const extension = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+        const extension = mime.includes('mp4')
+          ? 'm4a'
+          : mime.includes('ogg')
+            ? 'ogg'
+            : 'webm';
         void this.processFile(
           new File([blob], `recording.${extension}`, { type: mime }),
           'Recording',
@@ -262,6 +271,8 @@ export class CreatePage {
     this.clearRecordingTimer();
     const recorder = this.mediaRecorder;
     if (recorder?.state === 'recording') {
+      // The last chunk arrives before `onstop`. Stopping the mic tracks here
+      // drops that chunk, so the first take is often silence.
       recorder.stop();
     } else {
       this.releaseMicrophone();

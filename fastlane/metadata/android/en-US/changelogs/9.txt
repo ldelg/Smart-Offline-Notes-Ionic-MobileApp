@@ -1,0 +1,1 @@
+Moonshine tiny transcribes recordings again. A quiet or unclear first take is no longer saved as a made-up phrase. Version 1.3.3.

@@ -171,7 +171,7 @@
       "transcriptionFailedMessage": "Il modello non ha potuto completare il caricamento o l'audio non ha potuto essere trascritto. Riprova.",
       "noSpeech": "Nessuna voce rilevata.",
       "noSpeechHeader": "Nessuna voce rilevata",
-      "noSpeechMessage": "Nessuna voce rilevata. Parla più vicino al telefono e un po' più a lungo.",
+      "noSpeechMessage": "Nessuna voce rilevata. La registrazione era troppo bassa o poco chiara. Parla più vicino al telefono e un po' più a lungo.",
       "rateLimited": "Download del modello temporaneamente bloccato.",
       "rateLimitedHeader": "Download del modello temporaneamente bloccato",
       "rateLimitedMessage": "L'app funziona, ma l'host del modello ha temporaneamente bloccato i download ripetuti dalla tua rete. Riprova più tardi oppure usa un'altra rete o una VPN.",

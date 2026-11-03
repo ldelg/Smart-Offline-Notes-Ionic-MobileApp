@@ -171,7 +171,7 @@
       "transcriptionFailedMessage": "Das Modell konnte nicht fertig geladen werden oder die Audiodatei konnte nicht transkribiert werden. Bitte versuchen Sie es erneut.",
       "noSpeech": "Keine Sprache erkannt.",
       "noSpeechHeader": "Keine Sprache erkannt",
-      "noSpeechMessage": "Keine Sprache erkannt. Sprechen Sie näher am Telefon und etwas länger.",
+      "noSpeechMessage": "Keine Sprache erkannt. Die Aufnahme war zu leise oder unklar. Sprechen Sie näher am Telefon und etwas länger.",
       "rateLimited": "Modelldownload vorübergehend blockiert.",
       "rateLimitedHeader": "Modelldownload vorübergehend blockiert",
       "rateLimitedMessage": "Die App funktioniert, aber der Modell-Host hat wiederholte Downloads aus Ihrem Netzwerk vorübergehend blockiert. Versuchen Sie es später erneut oder verwenden Sie ein anderes Netzwerk oder ein VPN.",
