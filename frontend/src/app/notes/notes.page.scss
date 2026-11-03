@@ -1,5 +1,5 @@
 .notes-content {
-  --background: linear-gradient(180deg, #181818 0%, #0d0d0d 65%, #050505 100%);
+  --background: var(--app-bg);
   --padding-start: clamp(1rem, 3vw, 2.5rem);
   --padding-end: clamp(1rem, 3vw, 2.5rem);
   --padding-top: 1.25rem;
@@ -96,26 +96,54 @@
 }
 
 ion-searchbar {
-  --background: rgba(255, 255, 255, 0.05);
+  --background: var(--app-bg-elevated);
   --border-radius: 16px;
-  --color: #f8fafc;
-  --placeholder-color: rgba(232, 236, 242, 0.5);
+  --color: var(--app-text);
+  --placeholder-color: var(--app-text-muted);
+  --icon-color: var(--app-text-muted);
   padding: 0;
 }
 
 .notes-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
   background: none;
+  padding: 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 2rem 0.25rem;
+  color: var(--app-text);
+}
+
+.empty-state h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.empty-state p,
+.empty-search {
+  margin: 0;
+  color: var(--app-text-muted);
+  line-height: 1.45;
+}
+
+.note-meta {
+  color: var(--app-text-muted);
 }
 
 .note-item {
-  --background: transparent;
-  padding: 1rem 0;
+  --background: var(--app-bg-elevated);
+  --color: var(--app-text);
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin-bottom: 12px;
   border-radius: 18px;
-  border: 1px solid #2a2a2a;
-  background: #1f1f1f;
+  border: 1px solid var(--app-border);
   transition:
     transform 0.2s,
     opacity 0.2s,
@@ -125,62 +153,15 @@ ion-searchbar {
   gap: 0.75rem;
 }
 
-.note-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-}
-
-.note-item.dragging {
-  opacity: 0.3;
-  transform: scale(0.98);
-  box-shadow: 0 8px 24px rgba(0, 184, 255, 0.3);
-  border-color: rgba(0, 184, 255, 0.5);
-  transition: none;
-}
-
-.note-item.drag-over {
-  border-top: 2px solid rgba(0, 184, 255, 0.6);
-}
-
-.drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  color: rgba(148, 163, 184, 0.6);
-  transition:
-    color 0.2s,
-    transform 0.2s;
-  flex-shrink: 0;
-  touch-action: none;
-  user-select: none;
-  margin-right: 20px;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-  color: rgba(0, 184, 255, 0.8);
-  transform: scale(1.1);
-}
-
-.drag-handle:hover {
-  color: rgba(0, 184, 255, 0.8);
-}
-
-.drag-handle svg {
-  width: 16px;
-  height: 24px;
-}
-
-.note-header h2 {
+.note-item h2 {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--app-text);
 }
 
 .note-body {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--app-text-muted);
   margin: 0.5rem 0;
   line-height: 1.45;
   max-height: 4.4em;
@@ -196,25 +177,6 @@ ion-searchbar {
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: normal;
-}
-
-.note-meta {
-  color: #a7a7a7;
-  font-size: 0.9rem;
-}
-
-.note-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-left: 15px;
-  flex-shrink: 0;
-}
-
-.note-actions ion-button:hover {
-  --background: rgba(10, 132, 255, 0.2);
-  --color: #ffffff;
-  box-shadow: 0 10px 24px rgba(10, 132, 255, 0.25);
 }
 
 .editor-stage {

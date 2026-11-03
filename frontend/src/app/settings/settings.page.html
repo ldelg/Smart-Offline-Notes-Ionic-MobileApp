@@ -16,49 +16,31 @@
         >
       </ion-card-header>
       <ion-card-content>
-        <ion-item lines="full">
-          <ion-label position="stacked"
-            >{{ 'settings.model.selectModel' | translate }}</ion-label
-          >
-          <ion-select
-            [value]="model()"
-            interface="popover"
-            [interfaceOptions]="settingsSelectInterfaceOptions"
-            [disabled]="!networkService.isOnline()"
-            (ionChange)="onModelChange($event.detail.value)"
-          >
-            @for (option of modelOptions; track option.value) {
-            <ion-select-option [value]="option.value">
-              {{ option.label }}
-            </ion-select-option>
-            }
-          </ion-select>
-          <p class="model-hint">{{ selectedModelHintKey() | translate }}</p>
+        <ion-item
+          button
+          detail="true"
+          lines="none"
+          (click)="openModelPicker()"
+          [disabled]="!networkService.isOnline()"
+        >
+          <ion-label>
+            <h2>{{ selectedModelName() }}</h2>
+            <p>{{ selectedModelSize() }}</p>
+          </ion-label>
+          <ion-badge slot="end">{{ selectedModelBadge() }}</ion-badge>
         </ion-item>
+        <p class="model-status">{{ modelStatus() }}</p>
 
         @if (isMultilingualModel()) {
-        <div class="toggles-row">
-          <div class="toggle-item">
-            <ion-label
-              >{{ 'settings.model.multilingual' | translate }}</ion-label
-            >
-            <ion-toggle
-              [checked]="multilingual()"
-              (ionChange)="onMultilingualChange($event.detail.checked)"
-              [disabled]="!networkService.isOnline()"
-            ></ion-toggle>
-          </div>
-        </div>
+        <ion-item lines="none">
+          <ion-label>{{ 'settings.model.multilingual' | translate }}</ion-label>
+          <ion-toggle
+            [checked]="multilingual()"
+            (ionChange)="onMultilingualChange($event.detail.checked)"
+            [disabled]="!networkService.isOnline()"
+          ></ion-toggle>
+        </ion-item>
         }
-
-        <div class="model-info">
-          <ion-item lines="none">
-            <ion-label>
-              <h3>{{ 'settings.model.activeModel' | translate }}</h3>
-              <p class="model-name">{{ activeModelLabel() }}</p>
-            </ion-label>
-          </ion-item>
-        </div>
       </ion-card-content>
     </ion-card>
 
@@ -89,6 +71,23 @@
             }
           </ion-select>
         </ion-item>
+        <div class="theme-choice">
+          <p class="field-label">{{ 'settings.interface.theme' | translate }}</p>
+          <ion-segment
+            [value]="theme()"
+            (ionChange)="onThemeChange($event.detail.value)"
+          >
+            <ion-segment-button value="light">
+              {{ 'settings.interface.themeLight' | translate }}
+            </ion-segment-button>
+            <ion-segment-button value="dark">
+              {{ 'settings.interface.themeDark' | translate }}
+            </ion-segment-button>
+            <ion-segment-button value="system">
+              {{ 'settings.interface.themeSystem' | translate }}
+            </ion-segment-button>
+          </ion-segment>
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -151,13 +150,9 @@
         >
         <ion-card-title>
           @if (networkService.isOnline()) {
-          <span style="color: #2ed573"
-            >🟢 {{ 'settings.network.online' | translate }}</span
-          >
+          <span class="status-online">{{ 'settings.network.online' | translate }}</span>
           } @else {
-          <span style="color: #ff4c67"
-            >🔴 {{ 'settings.network.offline' | translate }}</span
-          >
+          <span class="status-offline">{{ 'settings.network.offline' | translate }}</span>
           }
         </ion-card-title>
       </ion-card-header>
@@ -174,34 +169,38 @@
             </p>
           </ion-label>
         </ion-item>
-        <p class="model-hint">
-          {{ 'settings.network.deleteSelectedDescription' | translate }}
-        </p>
-        <ion-button
-          class="clear-button"
-          expand="block"
-          fill="outline"
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-title>{{ 'settings.network.downloadedTitle' | translate }}</ion-card-title>
+      </ion-card-header>
+      <ion-list lines="full" class="delete-list">
+        <ion-item
+          button
+          detail="false"
           (click)="deleteSelectedModel()"
           [disabled]="isCalculatingCache()"
         >
-          <ion-icon slot="start" name="trash-outline"></ion-icon>
-          {{ 'settings.network.deleteModel' | translate }}
-        </ion-button>
-        <p class="model-hint">
-          {{ 'settings.network.deleteAllDescription' | translate }}
-        </p>
-        <ion-button
-          class="clear-button"
-          expand="block"
-          fill="outline"
-          color="danger"
+          <ion-label>
+            <h2>{{ 'settings.network.deleteModel' | translate }} · {{ selectedModelName() }}</h2>
+            <ion-note>{{ 'settings.network.deleteSelectedDescription' | translate }}</ion-note>
+          </ion-label>
+        </ion-item>
+        <ion-item
+          button
+          detail="false"
+          class="danger-row"
           (click)="clearCache()"
           [disabled]="isCalculatingCache() || cacheSize() === '0 MB'"
         >
-          <ion-icon slot="start" name="trash-outline"></ion-icon>
-          {{ 'settings.network.clearCache' | translate }}
-        </ion-button>
-      </ion-card-content>
+          <ion-label>
+            <h2>{{ 'settings.network.clearCache' | translate }}</h2>
+            <ion-note>{{ 'settings.network.deleteAllDescription' | translate }}</ion-note>
+          </ion-label>
+        </ion-item>
+      </ion-list>
     </ion-card>
 
     <ion-card class="glass-card">
@@ -274,3 +273,54 @@
     </ion-card> -->
   </div>
 </ion-content>
+
+<ion-modal
+  class="model-picker"
+  [isOpen]="modelPickerOpen()"
+  (didDismiss)="modelPickerOpen.set(false)"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ 'settings.model.pickerTitle' | translate }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="modelPickerOpen.set(false)">
+            {{ 'settings.model.close' | translate }}
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list lines="full">
+        @for (option of modelOptions; track option.value) {
+        <ion-item
+          button
+          detail="false"
+          [class.selected-model]="option.value === model()"
+          (click)="chooseModel(option.value)"
+        >
+          <ion-label>
+            <h2>{{ option.label }}</h2>
+            <p>{{ option.size }}</p>
+          </ion-label>
+          <div class="picker-badges" slot="end">
+            <ion-badge>
+              {{
+                (option.englishOnly
+                  ? 'settings.model.badgeEnglish'
+                  : 'settings.model.badgeMultilingual'
+                ) | translate
+              }}
+            </ion-badge>
+            @if (option.faster) {
+            <ion-badge color="success">
+              {{ 'settings.model.badgeFaster' | translate }}
+            </ion-badge>
+            }
+          </div>
+        </ion-item>
+        }
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>

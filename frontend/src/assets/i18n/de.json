@@ -12,17 +12,28 @@
       "subtitle": "Modell",
       "title": "Transkriptions-Engine",
       "selectModel": "Wählen Sie das zu verwendende Modell",
-      "multilingual": "Mehrsprachig",
+      "multilingual": "Sprache wählen",
       "activeModel": "Aktives Modell",
       "noActiveModel": "Noch kein aktives Modell",
       "lastUsedHint": "Zuletzt bei Transkription verwendet",
       "downloadedHint": "Bereits heruntergeladen und einsatzbereit",
-      "willBeUsedHint": "Wird bei der nächsten Transkription verwendet"
+      "willBeUsedHint": "Wird bei der nächsten Transkription verwendet",
+      "onThisPhone": "Auf diesem Telefon",
+      "downloadsFirst": "Wird beim ersten Aufnehmen heruntergeladen.",
+      "badgeMultilingual": "Mehrsprachig",
+      "badgeEnglish": "Nur Englisch",
+      "badgeFaster": "Schneller",
+      "pickerTitle": "Modell wählen",
+      "close": "Schließen"
     },
     "interface": {
       "subtitle": "Schnittstelle",
       "title": "App-Sprache",
-      "select": "Wählen Sie die App-Sprache"
+      "select": "Wählen Sie die App-Sprache",
+      "theme": "Darstellung",
+      "themeLight": "Hell",
+      "themeDark": "Dunkel",
+      "themeSystem": "System"
     },
     "transcription": {
       "subtitle": "Sprache und Aufgabe",
@@ -41,7 +52,8 @@
       "clearCache": "Alle heruntergeladenen Modelle löschen",
       "deleteModel": "Ausgewähltes Modell löschen",
       "deleteSelectedDescription": "Löscht nur das oben ausgewählte Modell. Andere heruntergeladene Modelle und Ihre Notizen bleiben erhalten.",
-      "deleteAllDescription": "Löscht alle auf diesem Gerät gespeicherten Sprachmodelle. Ihre Notizen bleiben erhalten."
+      "deleteAllDescription": "Löscht alle auf diesem Gerät gespeicherten Sprachmodelle. Ihre Notizen bleiben erhalten.",
+      "downloadedTitle": "Heruntergeladene Modelle"
     },
     "data": {
       "subtitle": "Datenverwaltung",
@@ -178,7 +190,8 @@
       "ok": "OK",
       "noteCreatedHeader": "Notiz erstellt",
       "noteCreatedMessage": "Ihre Notiz wurde erfolgreich gespeichert!"
-    }
+    },
+    "tapToStop": "tippen zum Stoppen"
   },
   "tabs": {
     "create": "Erstellen",
@@ -192,7 +205,9 @@
     },
     "empty": {
       "title": "Noch keine Notizen",
-      "description": "Erstellen Sie Ihre erste Notiz im Tab Erstellen"
+      "description": "Erstellen Sie Ihre erste Notiz im Tab Erstellen",
+      "action": "Eine Notiz aufnehmen",
+      "noMatches": "Keine Notiz entspricht der Suche."
     },
     "actions": {
       "closeTab": "Notiz-Tab schließen",
@@ -206,6 +221,12 @@
       "titlePlaceholder": "Notiztitel",
       "bodyLabel": "Inhalt",
       "save": "Änderungen speichern"
+    },
+    "meta": {
+      "justNow": "Gerade eben",
+      "minutes": "Min.",
+      "hours": "Std.",
+      "days": "T."
     }
   }
 }

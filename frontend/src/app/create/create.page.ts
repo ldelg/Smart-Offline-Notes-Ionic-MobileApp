@@ -71,6 +71,8 @@ export class CreatePage {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly isRecording = signal(false);
+  protected readonly recordingSeconds = signal(0);
+  private recordingTimer?: ReturnType<typeof setInterval>;
   protected readonly statusMessage = signal('');
   protected readonly isManualEntry = signal(false);
 
@@ -92,6 +94,7 @@ export class CreatePage {
     });
     this.store.loadNotes();
     this.releaseMicrophoneWhenBackgrounded();
+    this.destroyRef.onDestroy(() => this.clearRecordingTimer());
     effect(() => {
       if (
         !this.store.loading() &&
@@ -198,16 +201,23 @@ export class CreatePage {
         if (event.data.size > 0) this.chunks.push(event.data);
       };
 
-      this.mediaRecorder.onstop = () => {
-        const blob = new Blob(this.chunks, { type: 'audio/webm' });
+      const recorder = this.mediaRecorder;
+      recorder.onstop = () => {
+        const mime = recorder.mimeType || 'audio/webm';
+        const blob = new Blob(this.chunks, { type: mime });
+        this.chunks = [];
+        this.releaseMicrophone();
+        const extension = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
         void this.processFile(
-          new File([blob], 'recording.webm', { type: blob.type }),
+          new File([blob], `recording.${extension}`, { type: mime }),
           'Recording',
         );
-        this.chunks = [];
       };
 
-      this.mediaRecorder.start();
+      recorder.start();
+      this.recordingSeconds.set(0);
+      this.clearRecordingTimer();
+      this.recordingTimer = setInterval(() => this.recordingSeconds.update((value) => value + 1), 1000);
       this.isRecording.set(true);
       this.statusMessage.set(this.translationStore.t('create.recording'));
     } catch (error) {
@@ -241,12 +251,34 @@ export class CreatePage {
     });
   }
 
+  protected recordingClock(): string {
+    const total = this.recordingSeconds();
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
   protected stopRecording(): void {
-    if (this.mediaRecorder?.state === 'recording') {
-      this.mediaRecorder.stop();
-      this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.clearRecordingTimer();
+    const recorder = this.mediaRecorder;
+    if (recorder?.state === 'recording') {
+      recorder.stop();
+    } else {
+      this.releaseMicrophone();
     }
     this.isRecording.set(false);
+  }
+
+  private clearRecordingTimer(): void {
+    if (this.recordingTimer) {
+      clearInterval(this.recordingTimer);
+      this.recordingTimer = undefined;
+    }
+  }
+
+  private releaseMicrophone(): void {
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = undefined;
   }
 
   protected handleUpload(event: Event): void {
