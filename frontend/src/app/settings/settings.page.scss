@@ -29,7 +29,7 @@
 
 ion-item {
   --background: transparent;
-  --border-color: rgba(255, 255, 255, 0.12);
+  --border-color: var(--app-border);
 }
 
 ion-select {
@@ -264,7 +264,7 @@ ion-note {
 }
 
 .data-description {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--app-text-muted);
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 1.5rem;
@@ -279,16 +279,15 @@ ion-note {
 }
 
 .data-button {
-  --border-color: rgba(255, 255, 255, 0.2);
-  --color: #ffffff;
+  --border-color: var(--app-primary);
+  --color: var(--app-primary);
   --background: transparent;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0;
 }
 
 .data-button:hover {
-  --border-color: #0a84ff;
-  --background: rgba(10, 132, 255, 0.1);
+  --background: color-mix(in srgb, var(--app-primary) 12%, transparent);
 }
 
 .donation-button {
