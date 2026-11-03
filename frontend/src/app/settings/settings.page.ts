@@ -30,6 +30,7 @@ import {
   IonButtons,
   IonBadge,
   IonList,
+  IonListHeader,
   IonNote,
   IonSegment,
   IonSegmentButton,
@@ -41,6 +42,7 @@ import {
   cloudUploadOutline,
   trashOutline,
   refreshOutline,
+  checkmark,
 } from 'ionicons/icons';
 import { SettingsStore } from '../store/settings.store';
 import { NotesStore } from '../store/notes.store';
@@ -91,6 +93,7 @@ import { TranslatePipe } from '../pipes/translate.pipe';
     IonButtons,
     IonBadge,
     IonList,
+    IonListHeader,
     IonNote,
     IonSegment,
     IonSegmentButton,
@@ -129,6 +132,7 @@ export class SettingsPage implements ViewWillEnter {
       cloudUploadOutline,
       trashOutline,
       refreshOutline,
+      checkmark,
     });
     this.calculateCacheSize();
 
@@ -163,6 +167,12 @@ export class SettingsPage implements ViewWillEnter {
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
 
   readonly modelOptions: ModelOption[] = modelOptions;
+  readonly multilingualModels = computed(() =>
+    modelOptions.filter((option) => !option.englishOnly),
+  );
+  readonly englishModels = computed(() =>
+    modelOptions.filter((option) => option.englishOnly),
+  );
   readonly languages: LanguageOption[] = languages;
   readonly uiLanguages: UiLanguageOption[] = uiLanguages;
 
