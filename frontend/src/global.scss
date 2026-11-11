@@ -348,8 +348,52 @@ html.ion-palette-dark .tag-add ion-input {
 
 .editor-card .needs-line,
 .editor-card .picker-heading,
-.editor-card .picker-source {
+.editor-card .picker-source,
+.editor-card .info-pop,
+.editor-card .download-error,
+.editor-card .from-line {
   margin: 0;
+}
+
+.editor-card .picker-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.editor-card .from-line {
+  color: #3e4654;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.editor-card .info-button {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid #8b93a1;
+  background: #ffffff;
+  color: #1c1c1e;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editor-card .info-pop {
+  color: #1c1c1e;
+  background: #f4f6f8;
+  border: 1px solid #d5d8de;
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.editor-card .download-error {
+  color: #7a1d16;
+  font-weight: 600;
 }
 
 .editor-card .picker-source,
@@ -510,8 +554,25 @@ html.ion-palette-dark .editor-card .picker-row {
 html.ion-palette-dark .editor-card .picker-source,
 html.ion-palette-dark .editor-card .picker-meta,
 html.ion-palette-dark .editor-card .mt-label,
-html.ion-palette-dark .editor-card .text-button {
+html.ion-palette-dark .editor-card .text-button,
+html.ion-palette-dark .editor-card .from-line {
   color: #c7c7cc;
+}
+
+html.ion-palette-dark .editor-card .info-button {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  color: #ffffff;
+}
+
+html.ion-palette-dark .editor-card .info-pop {
+  color: #f2f2f7;
+  background: #141416;
+  border-color: #3a3a3c;
+}
+
+html.ion-palette-dark .editor-card .download-error {
+  color: #ffb4bc;
 }
 
 html.ion-palette-dark .editor-card .picker-row {

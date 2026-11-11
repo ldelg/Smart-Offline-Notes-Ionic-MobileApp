@@ -309,7 +309,14 @@
       "downloadingAmount": "Downloading {done} / {total}, one time only",
       "deleteHeader": "Delete translation?",
       "deleteConfirm": "This removes the translation. The original note stays.",
-      "noteIn": "Note in {lang}"
+      "noteIn": "Note in {lang}",
+      "downloadFailed": "The language could not be downloaded. Check your connection and try again.",
+      "checksumFailed": "The download did not match Mozilla’s file and was discarded.",
+      "retry": "Retry",
+      "from": "From {lang}",
+      "changeSource": "Change",
+      "infoLabel": "About language downloads",
+      "info": "A language is downloaded once and then works offline for every translation."
     }
   }
 }

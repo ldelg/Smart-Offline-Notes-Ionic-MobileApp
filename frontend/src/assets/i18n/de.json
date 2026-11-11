@@ -302,7 +302,14 @@
       "downloadingAmount": "Lädt {done} / {total}, nur einmal",
       "deleteHeader": "Übersetzung löschen?",
       "deleteConfirm": "Die Übersetzung wird entfernt. Die ursprüngliche Notiz bleibt.",
-      "noteIn": "Notiz auf {lang}"
+      "noteIn": "Notiz auf {lang}",
+      "downloadFailed": "Die Sprache konnte nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+      "checksumFailed": "Der Download stimmte nicht mit Mozillas Datei überein und wurde verworfen.",
+      "retry": "Erneut versuchen",
+      "from": "Quelle: {lang}",
+      "changeSource": "Ändern",
+      "infoLabel": "Info zu Sprachdownloads",
+      "info": "Eine Sprache wird einmal geladen und funktioniert danach offline für jede Übersetzung."
     }
   }
 }

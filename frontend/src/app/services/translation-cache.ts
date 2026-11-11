@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { AppLang } from '../models/translation.model';
 import { BERGAMOT_CACHE, PACK_INDEX_KEY, bergamotKey } from './bergamot-cache';
 import {
@@ -113,7 +115,41 @@ export async function wasmIsCached(): Promise<boolean> {
   return cacheHas('wasm/3.0');
 }
 
-async function fetchBytes(
+/**
+ * Overall progress for one file in a multi-file download.
+ * A missing length returns null so the bar can stay indeterminate instead of stuck at 0.
+ */
+export function fileProgress(
+  index: number,
+  count: number,
+  loaded: number,
+  total: number,
+): number | null {
+  if (count <= 0 || total <= 0) return null;
+  const frac = Math.max(0, Math.min(1, loaded / total));
+  return (index + frac) / count;
+}
+
+/** Maps a raw download failure to a translation string key. */
+export function downloadErrorKey(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? '');
+  const lower = raw.toLowerCase();
+  if (
+    lower.includes('checksum') ||
+    lower.includes('hash') ||
+    lower.includes('match the mozilla')
+  ) {
+    return 'notes.translate.checksumFailed';
+  }
+  return 'notes.translate.downloadFailed';
+}
+
+export type FetchBytes = (
+  url: string,
+  onFile: (loaded: number, total: number) => void,
+) => Promise<Uint8Array>;
+
+async function fetchBytesWeb(
   url: string,
   onFile: (loaded: number, total: number) => void,
 ): Promise<Uint8Array> {
@@ -147,11 +183,79 @@ async function fetchBytes(
   return out;
 }
 
+function base64ToBytes(data: string): Uint8Array {
+  const binary = atob(data);
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+  return out;
+}
+
+/**
+ * Android WebView pages are served from https://localhost. Mozilla's model CDN
+ * does not send Access-Control-Allow-Origin, so fetch() fails before any byte
+ * arrives and the bar stays at 0. The native download uses HttpURLConnection.
+ */
+async function fetchBytesNative(
+  url: string,
+  onFile: (loaded: number, total: number) => void,
+): Promise<Uint8Array> {
+  const path = `bergamot-${Date.now()}-${Math.random().toString(16).slice(2)}.bin`;
+  const handle = await Filesystem.addListener('progress', (status) => {
+    if (status.url !== url) return;
+    onFile(status.bytes, status.contentLength || 0);
+  });
+  try {
+    const saved = await Filesystem.downloadFile({
+      url,
+      path,
+      directory: Directory.Cache,
+      recursive: true,
+      progress: true,
+    });
+    if (saved.path) {
+      try {
+        const response = await fetch(Capacitor.convertFileSrc(saved.path));
+        if (response.ok) {
+          const bytes = new Uint8Array(await response.arrayBuffer());
+          onFile(bytes.byteLength, bytes.byteLength);
+          return bytes;
+        }
+      } catch (error) {
+        console.warn('Reading the native download through the WebView failed', error);
+      }
+    }
+    const file = await Filesystem.readFile({ path, directory: Directory.Cache });
+    if (typeof file.data !== 'string') {
+      throw new Error('Could not read the downloaded file');
+    }
+    const bytes = base64ToBytes(file.data);
+    onFile(bytes.byteLength, bytes.byteLength);
+    return bytes;
+  } finally {
+    await handle.remove();
+    await Filesystem.deleteFile({ path, directory: Directory.Cache }).catch(() => undefined);
+  }
+}
+
+async function fetchBytes(
+  url: string,
+  onFile: (loaded: number, total: number) => void,
+): Promise<Uint8Array> {
+  if (Capacitor.isNativePlatform()) return fetchBytesNative(url, onFile);
+  return fetchBytesWeb(url, onFile);
+}
+
+async function deleteCached(path: string): Promise<void> {
+  const cache = await openCache();
+  await cache.delete(bergamotKey(path));
+}
+
 async function downloadVerified(
   file: { url: string; sha256: string },
   onFile: (loaded: number, total: number) => void,
+  fetchImpl: FetchBytes,
 ): Promise<Uint8Array> {
-  const downloaded = await fetchBytes(file.url, onFile);
+  const downloaded = await fetchImpl(file.url, onFile);
   const raw = isZstd(downloaded) ? await decompressZstd(downloaded) : downloaded;
   const hash = await sha256Hex(raw);
   if (hash !== file.sha256) {
@@ -163,7 +267,8 @@ async function downloadVerified(
 export async function downloadPacks(
   packs: readonly CatalogPack[],
   includeWasm: boolean,
-  onProgress: (ratio: number) => void,
+  onProgress: (ratio: number | null) => void,
+  fetchImpl: FetchBytes = fetchBytes,
 ): Promise<void> {
   const files: { path: string; url: string; sha256: string }[] = [];
   if (includeWasm) {
@@ -178,14 +283,20 @@ export async function downloadPacks(
       });
     }
   }
-  for (let index = 0; index < files.length; index++) {
-    const file = files[index];
-    const bytes = await downloadVerified(file, (loaded, total) => {
-      const frac = total > 0 ? Math.min(1, loaded / total) : 0;
-      onProgress((index + frac) / files.length);
-    });
-    await writeCached(file.path, bytes);
-    onProgress((index + 1) / files.length);
+  const written: string[] = [];
+  try {
+    for (let index = 0; index < files.length; index++) {
+      const file = files[index];
+      const bytes = await downloadVerified(file, (loaded, total) => {
+        onProgress(fileProgress(index, files.length, loaded, total));
+      }, fetchImpl);
+      await writeCached(file.path, bytes);
+      written.push(file.path);
+      onProgress((index + 1) / files.length);
+    }
+  } catch (error) {
+    for (const path of written) await deleteCached(path);
+    throw error;
   }
   const index = readIndex();
   const savedAt = Date.now();

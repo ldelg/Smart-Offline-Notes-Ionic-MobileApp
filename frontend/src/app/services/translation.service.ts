@@ -7,6 +7,7 @@ import { CatalogPack } from './translation-catalog';
 import {
   InstalledPack,
   deleteInstalledPack,
+  downloadErrorKey,
   downloadPacks,
   listInstalledPacks,
   missingPackIds,
@@ -129,21 +130,30 @@ export class TranslationService {
     const epoch = this.epoch;
     this.progress.set({
       phase: 'download',
-      percent: 0,
+      percent: null,
       noteId,
       loadedBytes: 0,
-      totalBytes: shown,
+      totalBytes: shown || null,
     });
-    await downloadPacks(missing, engine > 0, (ratio) => {
-      const clamped = Math.max(0, Math.min(1, ratio));
-      this.progress.set({
-        phase: 'download',
-        percent: Math.round(clamped * 100),
-        noteId,
-        loadedBytes: Math.round(clamped * shown),
-        totalBytes: shown,
+    try {
+      await downloadPacks(missing, engine > 0, (ratio) => {
+        if (epoch !== this.epoch) return;
+        const percent = ratio === null ? null : Math.round(Math.max(0, Math.min(1, ratio)) * 100);
+        this.progress.set({
+          phase: 'download',
+          percent,
+          noteId,
+          loadedBytes: percent === null || !shown ? null : Math.round((percent / 100) * shown),
+          totalBytes: shown || null,
+        });
       });
-    });
+    } catch (error) {
+      if (epoch === this.epoch) this.progress.set(null);
+      if (error instanceof TranslationOffline || error instanceof TranslationCancelled) throw error;
+      const keyed = new Error(downloadErrorKey(error));
+      keyed.name = 'DownloadFailed';
+      throw keyed;
+    }
     if (epoch !== this.epoch) throw new TranslationCancelled();
     await this.refreshInstalled();
   }

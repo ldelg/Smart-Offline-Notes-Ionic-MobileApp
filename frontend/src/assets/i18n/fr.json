@@ -302,7 +302,14 @@
       "downloadingAmount": "Téléchargement {done} / {total}, une seule fois",
       "deleteHeader": "Supprimer la traduction ?",
       "deleteConfirm": "La traduction est supprimée. La note d’origine reste.",
-      "noteIn": "Note en {lang}"
+      "noteIn": "Note en {lang}",
+      "downloadFailed": "La langue n’a pas pu être téléchargée. Vérifiez la connexion et réessayez.",
+      "checksumFailed": "Le téléchargement ne correspondait pas au fichier Mozilla et a été écarté.",
+      "retry": "Réessayer",
+      "from": "Depuis {lang}",
+      "changeSource": "Changer",
+      "infoLabel": "À propos des téléchargements",
+      "info": "Une langue est téléchargée une fois, puis fonctionne hors ligne pour chaque traduction."
     }
   }
 }

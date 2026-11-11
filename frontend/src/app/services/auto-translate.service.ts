@@ -1,8 +1,8 @@
 import { Injectable, effect, inject } from '@angular/core';
 import { NotesStore } from '../store/notes.store';
 import { SettingsStore } from '../store/settings.store';
-import { makeTranslation, storedSourceLanguage } from './note-translations';
-import { detectLanguage } from './translation-detect';
+import { hashText, makeTranslation } from './note-translations';
+import { resolveSourceLanguage } from './translation-detect';
 import { translationRoute } from './translation-route';
 import { groupMissingByLanguage } from './translation-languages';
 import {
@@ -41,8 +41,14 @@ export class AutoTranslateService {
     if (!note?.body.trim()) return;
     const existing = note.translations?.[target];
     if (existing && !existing.stale) return;
-    const source = storedSourceLanguage(note) ?? detectLanguage(note.body);
-    if (!source || source === target) return;
+    const source = resolveSourceLanguage({
+      text: note.body,
+      savedBody: note.body,
+      noteLanguage: note.language,
+      uiLanguage: this.settings.uiLanguage(),
+      textHash: hashText(note.body),
+    });
+    if (source === target) return;
     const route = translationRoute(source, target);
     try {
       const missing = await this.translation.missingFor(route);

@@ -56,11 +56,10 @@ import {
   TranslationService,
 } from '../services/translation.service';
 import { AppLang, isAppLang } from '../models/translation.model';
-import { makeTranslation, storedSourceLanguage } from '../services/note-translations';
-import { detectLanguage } from '../services/translation-detect';
+import { hashText, makeTranslation } from '../services/note-translations';
+import { resolveSourceLanguage } from '../services/translation-detect';
 import { formatBytes } from '../services/translation-catalog';
 import {
-  MissingLanguage,
   TranslateChoice,
   groupMissingByLanguage,
   translateChoices,
@@ -130,12 +129,19 @@ export class NotesPage {
   protected readonly pickerOpen = signal(false);
   protected readonly pickerChoices = signal<TranslateChoice[]>([]);
   protected readonly pickerSource = signal<AppLang | null>(null);
-  protected readonly downloadPlan = signal<{
-    from: AppLang;
-    to: AppLang;
-    parts: MissingLanguage[];
-    total: number;
+  private readonly sourceOverride = signal<{
+    noteId: string;
+    lang: AppLang;
+    hash: string;
   } | null>(null);
+  protected readonly infoOpen = signal(false);
+  protected readonly downloadError = signal<{ noteId: string; message: string } | null>(null);
+  private retryJob: {
+    noteId: string;
+    source: AppLang;
+    target: AppLang;
+    choice?: TranslateChoice;
+  } | null = null;
   @ViewChild('noteCarousel', { static: false })
   private noteCarousel?: ElementRef<HTMLDivElement>;
   private isScrollingProgrammatically = false;
@@ -333,7 +339,7 @@ export class NotesPage {
   }
 
   protected progressLabel(progress: TranslationProgress): string {
-    if (progress.phase === 'download' && progress.totalBytes) {
+    if (progress.phase === 'download' && progress.percent !== null && progress.totalBytes) {
       const done = formatBytes(progress.loadedBytes ?? 0);
       const total = formatBytes(progress.totalBytes);
       return this.translationStore
@@ -348,19 +354,6 @@ export class NotesPage {
       return this.translationStore.t('notes.translate.progressTranslate');
     }
     return this.translationStore.t('notes.translate.progressLoad');
-  }
-
-  protected needsLine(noteId: string): string {
-    const plan = this.downloadPlan();
-    if (!plan || this.pickerNoteId !== noteId) return '';
-    const langs = plan.parts
-      .map((part) => `${this.langName(part.lang)} (${formatBytes(part.bytes)})`)
-      .join(` ${this.translationStore.t('notes.translate.and')} `);
-    return this.translationStore
-      .t('notes.translate.needs')
-      .replace('{from}', this.langName(plan.from))
-      .replace('{to}', this.langName(plan.to))
-      .replace('{langs}', langs);
   }
 
   protected choiceLabel(choice: TranslateChoice): string {
@@ -382,18 +375,60 @@ export class NotesPage {
     await this.promptTranslate(note.id);
   }
 
+  protected detectedSource(note: Note): AppLang {
+    const editing = this.activeTabId() === note.id;
+    const text = editing ? this.editorFields().body || note.body : note.body;
+    const override = this.sourceOverride();
+    const textHash = hashText(text);
+    return resolveSourceLanguage({
+      text,
+      savedBody: note.body,
+      noteLanguage: note.language,
+      uiLanguage: this.settings.uiLanguage(),
+      override: override?.noteId === note.id ? override.lang : null,
+      overrideHash: override?.noteId === note.id ? override.hash : undefined,
+      textHash,
+    });
+  }
+
+  protected fromLabel(note: Note): string {
+    return this.translationStore
+      .t('notes.translate.from')
+      .replace('{lang}', this.langName(this.detectedSource(note)));
+  }
+
+  protected async changeSource(note: Note): Promise<void> {
+    const current = this.detectedSource(note);
+    const picked = await this.pickLanguage(
+      this.translationStore.t('notes.translate.pickSource'),
+      ['en', 'es', 'fr', 'de', 'it'],
+      current,
+    );
+    if (!picked) return;
+    const text = this.activeTabId() === note.id ? this.editorFields().body || note.body : note.body;
+    this.sourceOverride.set({ noteId: note.id, lang: picked, hash: hashText(text) });
+    if (this.pickerFor(note.id)) await this.promptTranslate(note.id);
+  }
+
+  protected toggleInfo(): void {
+    this.infoOpen.update((open) => !open);
+  }
+
+  protected errorFor(noteId: string): string | null {
+    const error = this.downloadError();
+    return error?.noteId === noteId ? error.message : null;
+  }
+
+  protected retryDownload(noteId: string): void {
+    const job = this.retryJob;
+    if (!job || job.noteId !== noteId) return;
+    void this.runTranslation(job.noteId, job.source, job.target, job.choice);
+  }
+
   protected async promptTranslate(noteId: string): Promise<void> {
     const note = this.store.notes().find((item) => item.id === noteId);
     if (!note?.body.trim()) return;
-    const known = storedSourceLanguage(note);
-    const source =
-      known ??
-      (await this.pickLanguage(
-        this.translationStore.t('notes.translate.pickSource'),
-        ['en', 'es', 'fr', 'de', 'it'],
-        detectLanguage(note.body),
-      ));
-    if (!source) return;
+    const source = this.detectedSource(note);
     const already = new Set(this.translationLangs(note));
     await this.machine.refreshInstalled();
     const installed = new Set(this.machine.installed().map((pack) => pack.id));
@@ -424,7 +459,7 @@ export class NotesPage {
   protected async retranslate(note: Note): Promise<void> {
     const lang = this.viewLang(note);
     if (lang === 'original') return;
-    const source = note.translations?.[lang]?.sourceLang ?? storedSourceLanguage(note);
+    const source = note.translations?.[lang]?.sourceLang ?? this.detectedSource(note);
     if (!source || source === lang) return;
     await this.runTranslation(note.id, source, lang);
   }
@@ -460,10 +495,9 @@ export class NotesPage {
       choice?.missingLanguages ??
       groupMissingByLanguage(await this.machine.missingFor(route));
     const total = parts.reduce((sum, part) => sum + part.bytes, 0);
-    if (parts.length) {
-      this.pickerNoteId = noteId;
-      this.downloadPlan.set({ from: source, to: target, parts, total });
-    }
+    this.retryJob = { noteId, source, target, choice };
+    this.downloadError.set(null);
+    this.pickerOpen.set(false);
     try {
       await this.machine.ensurePacks(route, noteId, total);
       const current = this.store.notes().find((item) => item.id === noteId) ?? note;
@@ -478,17 +512,13 @@ export class NotesPage {
       this.showTranslation(after, target);
     } catch (error) {
       if (error instanceof TranslationCancelled) return;
-      const offline = error instanceof TranslationOffline;
-      await this.showAlert(
-        this.translationStore.t(
-          offline ? 'notes.translate.offlineHeader' : 'notes.translate.failedHeader',
-        ),
-        this.translationStore.t(
-          offline ? 'notes.translate.offlineMessage' : 'notes.translate.failedMessage',
-        ),
-      );
-    } finally {
-      this.downloadPlan.set(null);
+      const key =
+        error instanceof TranslationOffline
+          ? 'notes.translate.offlineMessage'
+          : error instanceof Error && error.message.startsWith('notes.')
+            ? error.message
+            : 'notes.translate.downloadFailed';
+      this.downloadError.set({ noteId, message: this.translationStore.t(key) });
     }
   }
 

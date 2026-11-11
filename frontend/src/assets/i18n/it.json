@@ -302,7 +302,14 @@
       "downloadingAmount": "Download {done} / {total}, una volta sola",
       "deleteHeader": "Eliminare la traduzione?",
       "deleteConfirm": "La traduzione viene eliminata. La nota originale resta.",
-      "noteIn": "Nota in {lang}"
+      "noteIn": "Nota in {lang}",
+      "downloadFailed": "Non è stato possibile scaricare la lingua. Controlla la connessione e riprova.",
+      "checksumFailed": "Il download non corrispondeva al file di Mozilla ed è stato scartato.",
+      "retry": "Riprova",
+      "from": "Da {lang}",
+      "changeSource": "Cambia",
+      "infoLabel": "Informazioni sui download",
+      "info": "Una lingua si scarica una volta e poi funziona offline per ogni traduzione."
     }
   }
 }

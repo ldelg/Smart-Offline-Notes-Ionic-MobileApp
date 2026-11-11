@@ -284,13 +284,26 @@
                   + {{ translationStore.t('notes.translate.add') }}
                 </button>
               </div>
-              @if (pickerFor(note.id)) {
+              @if (pickerFor(note.id) && !progressFor(note)) {
               <div class="translate-picker">
-                <p class="picker-heading">{{ translationStore.t('notes.translate.pickTarget') }}</p>
-                @if (pickerSource(); as source) {
-                <p class="picker-source">
-                  {{ translationStore.t('notes.translate.noteIn').replace('{lang}', langName(source)) }}
-                </p>
+                <div class="picker-heading-row">
+                  <p class="picker-heading">{{ translationStore.t('notes.translate.pickTarget') }}</p>
+                  <button
+                    type="button"
+                    class="info-button"
+                    (click)="toggleInfo()"
+                    [attr.aria-expanded]="infoOpen()"
+                    [attr.aria-label]="translationStore.t('notes.translate.infoLabel')"
+                  >
+                    i
+                  </button>
+                  <span class="from-line">{{ fromLabel(note) }}</span>
+                  <button type="button" class="text-button" (click)="changeSource(note)">
+                    {{ translationStore.t('notes.translate.changeSource') }}
+                  </button>
+                </div>
+                @if (infoOpen()) {
+                <p class="info-pop">{{ translationStore.t('notes.translate.info') }}</p>
                 }
                 @for (choice of pickerChoices(); track choice.target) {
                 <button type="button" class="picker-row" (click)="chooseTarget(choice)">
@@ -302,14 +315,19 @@
               }
               @if (progressFor(note); as progress) {
               <div class="translate-progress">
-                @if (needsLine(note.id)) {
-                <p class="needs-line">{{ needsLine(note.id) }}</p>
-                }
                 <span>{{ progressLabel(progress) }}</span>
                 <ion-progress-bar
                   [type]="progress.percent === null ? 'indeterminate' : 'determinate'"
                   [value]="(progress.percent ?? 0) / 100"
                 ></ion-progress-bar>
+              </div>
+              }
+              @if (errorFor(note.id); as message) {
+              <div class="translate-progress">
+                <p class="download-error">{{ message }}</p>
+                <button type="button" class="text-button" (click)="retryDownload(note.id)">
+                  {{ translationStore.t('notes.translate.retry') }}
+                </button>
               </div>
               }
               <ion-item lines="none">
