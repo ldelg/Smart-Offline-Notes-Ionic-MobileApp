@@ -1,18 +1,33 @@
 # Smart Offline Notes
 
-Offline speech-to-notes mobile app built with Ionic, Angular, and Capacitor.
+Private voice notes for Android. Speech is transcribed on the phone, and notes can be translated on the phone. No account and no cloud. Live on Google Play in 178 countries.
 
-## Download
+[![Get it on Google Play](https://img.shields.io/badge/Google_Play-get%20the%20app-414141?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=io.ldelg.smartofflinenotes)
 
 [![Download APK](https://img.shields.io/badge/Download-latest%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/latest/download/Smart-Offline-Notes.apk)
 
-**[Download the latest Android APK](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/latest/download/Smart-Offline-Notes.apk)** (about 26 MB, all versions are on the [Releases page](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases))
+**[Download the latest Android APK](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/latest/download/Smart-Offline-Notes.apk)** (about 26 MB). That link always follows the [latest release](https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp/releases/latest). Each release also keeps a versioned APK and AAB.
 
-<img alt="Smart Offline Notes: private voice notes transcribed on your phone, with on-device Whisper and Moonshine and no cloud account." src="docs/images/banner.png" width="100%" />
+<img alt="Smart Offline Notes: private voice notes transcribed on your phone, with on-device Whisper and no cloud account." src="docs/images/banner.png" width="100%" />
 
-<img alt="App screenshots: record and transcribe offline, notes kept on the device, edit and search, models that download once, and light and dark mode." src="docs/images/screenshots.png" width="100%" />
+To install the APK: open the link on your Android phone, tap the downloaded file, and allow your browser to install apps if Android asks. On first use the app asks before downloading the Whisper speech model. Language packs download the first time you translate. After that, transcription and translation work fully offline.
 
-To install: open the link on your Android phone, tap the downloaded file, and allow your browser to install apps if Android asks. On first use the app asks before downloading the Whisper speech model; after that, transcription works fully offline.
+## Features
+
+- On-device Whisper speech-to-text, with punctuation and paragraphs
+- Pin a note, tag it, share it, and drag to reorder
+- On-device translation between English, Spanish, French, German, and Italian
+- More than one translation on a note, including the title, with numbers written for the language you are reading
+- Offline after the speech model and language packs have been downloaded once
+- Light and dark
+
+Translation uses [Bergamot](https://github.com/browsermt/bergamot-translator), the engine behind Firefox Translations. The engine and the language packs are Mozilla Public License 2.0.
+
+## Screenshots
+
+<img alt="Notes list" src="docs/images/notes-list.png" width="240" />
+<img alt="A note with its Italian translation" src="docs/images/note-translation.png" width="240" />
+<img alt="Translation languages in Settings" src="docs/images/settings-translation.png" width="240" />
 
 ## Local Development
 
@@ -27,7 +42,7 @@ Then open `frontend/android` in Android Studio and run the app on a device or em
 
 ## Translation
 
-Notes can be translated on the phone with [Bergamot](https://github.com/browsermt/bergamot-translator), the engine behind Firefox Translations. A note keeps its original text and can hold a translation for each of English, Spanish, French, German, and Italian. Pairs without a direct model (for example Spanish and Italian) go through English inside the engine. The original is never replaced by a translation of a translation.
+A note keeps its original text and can hold a translation for each of English, Spanish, French, German, and Italian. Pairs without a direct model (for example Spanish and Italian) go through English inside the engine. The original is never replaced by a translation of a translation.
 
 The first time a language pair is needed, the app downloads that pack and the Bergamot engine from Mozilla. After that, translation works offline. Packs can be deleted in Settings. Speech models and translation packs are not loaded at the same time.
 
