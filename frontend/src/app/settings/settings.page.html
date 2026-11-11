@@ -127,9 +127,28 @@
     <ion-card class="glass-card">
       <ion-card-header>
         <ion-card-subtitle>{{ 'settings.translation.subtitle' | translate }}</ion-card-subtitle>
-        <ion-card-title>{{ 'settings.translation.title' | translate }}</ion-card-title>
+        <div class="title-with-info">
+          <ion-card-title>{{ 'settings.translation.title' | translate }}</ion-card-title>
+          <button
+            type="button"
+            class="info-button"
+            (click)="translationInfoOpen.set(!translationInfoOpen())"
+            [attr.aria-expanded]="translationInfoOpen()"
+            [attr.aria-label]="'settings.translation.infoLabel' | translate"
+          >
+            i
+          </button>
+        </div>
       </ion-card-header>
       <ion-card-content>
+        @if (translationInfoOpen()) {
+        <div class="settings-info">
+          <p>{{ 'settings.translation.autoHelp' | translate }}</p>
+          <p>{{ 'settings.translation.helper' | translate }}</p>
+          <p>{{ 'settings.translation.packsEmpty' | translate }}</p>
+          <p>{{ 'settings.translation.credit' | translate }}</p>
+        </div>
+        }
         <ion-item lines="full">
           <ion-label position="stacked">{{ 'settings.translation.auto' | translate }}</ion-label>
           <ion-select
@@ -146,11 +165,9 @@
             }
           </ion-select>
         </ion-item>
-        <p class="model-status">{{ 'settings.translation.autoHelp' | translate }}</p>
         <p class="field-label pack-heading">{{ 'settings.translation.languagesTitle' | translate }}</p>
-        <p class="model-status">{{ 'settings.translation.helper' | translate }}</p>
         @if (!translationLanguages().length) {
-        <p class="model-status">{{ 'settings.translation.packsEmpty' | translate }}</p>
+        <p class="model-status">{{ 'settings.translation.packsNone' | translate }}</p>
         } @else {
         <div class="pack-list">
           @for (row of translationLanguages(); track row.lang) {
@@ -169,7 +186,6 @@
           {{ 'settings.translation.total' | translate }} {{ packSize(translationTotal()) }}
         </p>
         }
-        <p class="model-status">{{ 'settings.translation.credit' | translate }}</p>
       </ion-card-content>
     </ion-card>
 

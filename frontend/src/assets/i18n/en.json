@@ -136,6 +136,8 @@
       "autoHelp": "When a note is saved, also translate it. The original stays on the note.",
       "packs": "Language packs",
       "packsEmpty": "No language packs yet. They download the first time you translate.",
+      "packsNone": "No language packs yet.",
+      "infoLabel": "About translation",
       "packDelete": "Delete language pack",
       "deleteHeader": "Delete language pack?",
       "deleteMessage": "This removes the downloaded files for that language. Translations already saved on notes are kept.",

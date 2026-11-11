@@ -129,6 +129,8 @@
       "autoHelp": "Beim Speichern einer Notiz wird sie zusätzlich übersetzt. Das Original bleibt erhalten.",
       "packs": "Sprachpakete",
       "packsEmpty": "Noch keine Sprachpakete. Sie werden beim ersten Übersetzen geladen.",
+      "packsNone": "Noch keine Sprachpakete.",
+      "infoLabel": "Über die Übersetzung",
       "packDelete": "Sprachpaket löschen",
       "deleteHeader": "Sprachpaket löschen?",
       "deleteMessage": "Die heruntergeladenen Dateien für diese Sprache werden entfernt. Übersetzungen, die schon in Notizen gespeichert sind, bleiben erhalten.",

@@ -3,6 +3,7 @@ import {
   extractMarkedTitle,
   frameTitle,
   polishTitle,
+  shouldWrapTitle,
 } from './translation-title';
 
 describe('framed title translation', () => {
@@ -40,6 +41,22 @@ describe('framed title translation', () => {
       'Idee per il viaggio',
     );
     expect(polishTitle('idées cadeaux', 'idee regalo')).toBe('idee regalo');
+  });
+
+  it('wraps a short name and leaves questions and clauses alone', () => {
+    expect(shouldWrapTitle('Monday meeting')).toBeTrue();
+    expect(shouldWrapTitle('Shopping list')).toBeTrue();
+    expect(shouldWrapTitle('Ideas for the trip')).toBeTrue();
+    expect(shouldWrapTitle('Call with Marco')).toBeTrue();
+    expect(shouldWrapTitle('Lista della spesa')).toBeTrue();
+    expect(shouldWrapTitle('pensi che questo é vero?')).toBeFalse();
+    expect(shouldWrapTitle('Ti ricordi dove abbiamo parcheggiato?')).toBeFalse();
+    expect(shouldWrapTitle('Do you think this is true?')).toBeFalse();
+    expect(shouldWrapTitle('¿Qué hacemos mañana?')).toBeFalse();
+    expect(shouldWrapTitle('On se voit demain ?')).toBeFalse();
+    expect(shouldWrapTitle('Kommst du morgen?')).toBeFalse();
+    expect(shouldWrapTitle('Wow!')).toBeFalse();
+    expect(shouldWrapTitle('Notes from the Monday meeting yesterday')).toBeFalse();
   });
 
   it('notices a source word the model copied', () => {

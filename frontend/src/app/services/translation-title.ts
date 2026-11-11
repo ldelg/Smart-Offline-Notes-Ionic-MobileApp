@@ -10,6 +10,40 @@ import type { AppLang } from '../models/translation.model';
 const LEADING_ARTICLE =
   /^(?:the|a|an|il|lo|la|i|gli|le|el|los|las|un|una|uno|der|die|das|den|dem|des|ein|eine|einen|einem|einer|les|l'|un')\s+/i;
 
+const SENTENCE_MARK = /[.!?;:…¿¡—–]/;
+
+/** Whole words that make a title a clause rather than a name for something. */
+const CLAUSE_WORDS = new Set([
+  'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+  'am', 'is', 'are', 'was', 'were', 'do', 'does', 'did', 'have', 'has', 'had', 'think',
+  'io', 'tu', 'lui', 'lei', 'noi', 'voi', 'loro', 'mi', 'ti', 'ci', 'vi', 'si', 'che',
+  'sono', 'sei', 'hai', 'ho', 'pensi', 'penso', 'ricordi', 'abbiamo', 'vuoi', 'puoi',
+  'è', 'é',
+  'yo', 'tú', 'él', 'ella', 'nosotros', 'vosotros', 'ellos', 'ellas', 'qué', 'que',
+  'es', 'estás', 'estas', 'hacemos', 'haces', 'tienes', 'quieres',
+  'je', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'on', 'se', 'moi', 'toi',
+  'suis', 'est', 'sommes', 'avez', 'vois', 'voit', 'allons',
+  'ich', 'du', 'er', 'sie', 'wir', 'ihr', 'mich', 'dich', 'uns', 'euch',
+  'bin', 'bist', 'ist', 'sind', 'habe', 'hast', 'haben', 'kommst', 'komme',
+]);
+
+/**
+ * Noun phrases such as "Monday meeting" need a sentence around them.
+ * Questions, exclamations, and clauses are already sentences, and the
+ * wrapper turns them into nonsense.
+ */
+export function shouldWrapTitle(title: string): boolean {
+  const text = title.trim();
+  if (!text) return false;
+  if (SENTENCE_MARK.test(text)) return false;
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length > 4) return false;
+  return !words.some((word) => {
+    const bare = word.toLocaleLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
+    return CLAUSE_WORDS.has(bare);
+  });
+}
+
 export function frameTitle(title: string, source: AppLang, article = false): string {
   const marked = `<b>${escapeHtml(title.trim())}</b>`;
   if (article) {

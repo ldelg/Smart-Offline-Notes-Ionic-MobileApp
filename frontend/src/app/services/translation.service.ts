@@ -7,6 +7,7 @@ import {
   extractMarkedTitle,
   frameTitle,
   polishTitle,
+  shouldWrapTitle,
 } from './translation-title';
 import { packIdsForLanguage } from './translation-languages';
 import { CatalogPack } from './translation-catalog';
@@ -177,6 +178,10 @@ export class TranslationService {
     noteId: string | null,
     quiet = false,
   ): Promise<string> {
+    if (!shouldWrapTitle(title)) {
+      const direct = (await this.translate(title, src, tgt, noteId, quiet)).trim();
+      return direct || title;
+    }
     const primary = polishTitle(
       title,
       extractMarkedTitle(await this.translate(frameTitle(title, src), src, tgt, noteId, quiet, true)),

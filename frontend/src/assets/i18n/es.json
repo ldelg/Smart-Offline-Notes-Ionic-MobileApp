@@ -129,6 +129,8 @@
       "autoHelp": "Al guardar una nota, también se traduce. El original se conserva.",
       "packs": "Paquetes de idioma",
       "packsEmpty": "Todavía no hay paquetes. Se descargan la primera vez que traduces.",
+      "packsNone": "Todavía no hay paquetes.",
+      "infoLabel": "Sobre la traducción",
       "packDelete": "Eliminar paquete",
       "deleteHeader": "¿Eliminar paquete de idioma?",
       "deleteMessage": "Se eliminan los archivos descargados de ese idioma. Las traducciones ya guardadas en las notas se conservan.",

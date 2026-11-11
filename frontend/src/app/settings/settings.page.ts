@@ -178,6 +178,7 @@ export class SettingsPage implements ViewWillEnter {
   readonly language = computed(() => this.settings.language());
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
   readonly autoTranslateTo = computed(() => this.settings.autoTranslateTo());
+  protected readonly translationInfoOpen = signal(false);
   readonly translationLanguages = computed(() => languageRows(this.machine.installed()));
   readonly translationTotal = computed(() =>
     this.translationLanguages().reduce((sum, row) => sum + row.bytes, 0),
