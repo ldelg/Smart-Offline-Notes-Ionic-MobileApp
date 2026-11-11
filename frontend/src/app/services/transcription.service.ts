@@ -17,6 +17,7 @@ import {
   TARGET_SAMPLE_RATE,
 } from './audio-pcm';
 import { ProgressTracker, ProgressView } from './progress-tracker';
+import { assembleTranscript } from './transcript-text';
 
 const workerErrorMessage = (payload: any): string => {
   const candidates = [payload?.error, payload?.data];
@@ -220,36 +221,12 @@ export class TranscriptionService {
         });
       }
 
-      let text = '';
-      if (result?.text && result.text.trim().length > 0) {
-        text = result.text;
-        console.log(`result.text length: ${text.length} chars`);
+      let text = (
+        typeof result === 'string'
+          ? assembleTranscript(result, undefined)
+          : assembleTranscript(result?.text, result?.chunks)
+      ).trim();
 
-        if (result?.chunks && result.chunks.length > 1) {
-          const chunkTexts = result.chunks
-            .map((chunk: any) => chunk.text?.trim() || '')
-            .filter((t: string) => t.length > 0);
-          const mergedFromChunks = chunkTexts.join(' ').trim();
-          if (mergedFromChunks.length > text.length) {
-            text = mergedFromChunks;
-            console.log(`Using merged chunks (${text.length} chars)`);
-          }
-        }
-      } else if (
-        result?.chunks &&
-        Array.isArray(result.chunks) &&
-        result.chunks.length > 0
-      ) {
-        const chunkTexts = result.chunks
-          .map((chunk: any) => chunk.text?.trim() || '')
-          .filter((t: string) => t.length > 0);
-        text = chunkTexts.join(' ').trim();
-        console.log(`Merged from chunks: ${text.length} chars`);
-      } else if (typeof result === 'string') {
-        text = result;
-      }
-
-      text = text.trim();
       if (isSilenceHallucination(text)) {
         console.warn(`Rejected silence hallucination: ${text}`);
         text = '';

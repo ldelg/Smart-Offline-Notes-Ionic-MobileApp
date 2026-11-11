@@ -50,6 +50,7 @@ import { Note } from '../models/note.model';
 import { Browser } from '@capacitor/browser';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { shareWasCancelled } from '../services/note-share';
 import { Capacitor } from '@capacitor/core';
 import { Platform } from '@ionic/angular';
 import { NetworkService } from '../services/network.service';
@@ -350,13 +351,8 @@ export class SettingsPage implements ViewWillEnter {
               this.t('settings.messages.export.chooseWhere'),
             );
             return;
-          } catch (shareError: any) {
-            if (
-              shareError.message?.includes('cancel') ||
-              shareError.message?.includes('User')
-            ) {
-              return;
-            }
+          } catch (shareError: unknown) {
+            if (shareWasCancelled(shareError)) return;
             throw shareError;
           }
         }

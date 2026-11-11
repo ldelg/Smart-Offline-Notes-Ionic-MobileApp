@@ -207,13 +207,33 @@
       "title": "Ancora nessuna nota",
       "description": "Crea la tua prima nota nella scheda Crea",
       "action": "Registra una nota",
-      "noMatches": "Nessuna nota corrisponde alla ricerca."
+      "noMatches": "Nessuna nota corrisponde alla ricerca.",
+      "noTagged": "Nessuna nota con questa etichetta."
     },
     "actions": {
       "closeTab": "Chiudi scheda nota",
       "dragReorder": "Trascina per riordinare",
       "open": "Apri nota",
+      "pin": "Fissa nota",
+      "unpin": "Rimuovi fissaggio",
+      "share": "Condividi nota",
       "delete": "Elimina nota"
+    },
+    "pinned": "Fissata",
+    "tags": {
+      "label": "Etichette",
+      "placeholder": "Aggiungi etichetta",
+      "add": "Aggiungi",
+      "remove": "Rimuovi etichetta",
+      "all": "Tutte",
+      "filter": "Filtra per etichetta"
+    },
+    "share": {
+      "dialogTitle": "Condividi nota",
+      "copiedHeader": "Copiato",
+      "copiedMessage": "La nota è stata copiata negli appunti.",
+      "failedHeader": "Condivisione non riuscita",
+      "failedMessage": "Non è stato possibile condividere o copiare la nota."
     },
     "editor": {
       "editing": "Modifica",

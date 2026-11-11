@@ -5,6 +5,15 @@ import { tap, pipe, switchMap, catchError, EMPTY, finalize } from 'rxjs';
 import { Note } from '../models/note.model';
 import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranscriptionService } from '../services/transcription.service';
+import { transcriptTitle } from '../services/transcript-text';
+import {
+  noteFromStorage,
+  notesWithPinned,
+  notesWithoutTag,
+  notesWithTag,
+  normalizeStoredNote,
+  reorderNotesInGroup,
+} from './notes-list';
 import { SettingsStore } from './settings.store';
 
 interface NotesState {
@@ -36,7 +45,11 @@ export const NotesStore = signalStore(
             let notes: Note[] = [];
             try {
               const parsed = stored ? JSON.parse(stored) : [];
-              notes = Array.isArray(parsed) ? parsed : [];
+              notes = Array.isArray(parsed)
+                ? parsed
+                    .map((item) => noteFromStorage(item))
+                    .filter((item): item is Note => item !== null)
+                : [];
             } catch (e) {
               console.error('Corrupt whisper-notes in localStorage', e);
             }
@@ -94,7 +107,7 @@ export const NotesStore = signalStore(
 
                 const updatedNote: Note = {
                   id: noteId,
-                  title: text ? text.slice(0, 60) : 'Transcribing...',
+                  title: text ? transcriptTitle(text) : 'Transcribing...',
                   body: update.text,
                   createdAt: initialNote.createdAt,
                   source,
@@ -148,6 +161,25 @@ export const NotesStore = signalStore(
           }),
         ),
       ),
+      setPinned: (id: string, pinned: boolean) => {
+        const notes = notesWithPinned(store.notes(), id, pinned);
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      },
+      addTag: (id: string, rawTag: string) => {
+        const current = store.notes();
+        const notes = notesWithTag(current, id, rawTag);
+        if (notes === current) return;
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      },
+      removeTag: (id: string, rawTag: string) => {
+        const current = store.notes();
+        const notes = notesWithoutTag(current, id, rawTag);
+        if (notes === current) return;
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      },
       updateNote: (id: string, changes: Partial<Omit<Note, 'id'>>) => {
         const notes = store
           .notes()
@@ -162,6 +194,11 @@ export const NotesStore = signalStore(
         patchState(store, { notes });
         localStorage.setItem('whisper-notes', JSON.stringify(notes));
       },
+      reorderWithinGroup: (pinned: boolean, from: number, to: number) => {
+        const notes = reorderNotesInGroup(store.notes(), pinned, from, to);
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      },
       exportNotes: () => {
         const notes = store.notes();
         const exportData = {
@@ -173,16 +210,19 @@ export const NotesStore = signalStore(
         return JSON.stringify(exportData, null, 2);
       },
       importNotes: (importedNotes: Note[], merge: boolean = false) => {
+        const cleaned = importedNotes
+          .map((note) => normalizeStoredNote(note) ?? noteFromStorage(note))
+          .filter((note): note is Note => note !== null);
         if (merge) {
           const existingNotes = store.notes();
           const existingIds = new Set(existingNotes.map((n) => n.id));
-          const newNotes = importedNotes.filter((n) => !existingIds.has(n.id));
+          const newNotes = cleaned.filter((n) => !existingIds.has(n.id));
           const mergedNotes = [...existingNotes, ...newNotes];
           patchState(store, { notes: mergedNotes });
           localStorage.setItem('whisper-notes', JSON.stringify(mergedNotes));
         } else {
-          patchState(store, { notes: importedNotes });
-          localStorage.setItem('whisper-notes', JSON.stringify(importedNotes));
+          patchState(store, { notes: cleaned });
+          localStorage.setItem('whisper-notes', JSON.stringify(cleaned));
         }
       },
       clearError: () => {

@@ -214,13 +214,33 @@
       "title": "No notes yet",
       "description": "Create your first note in the Create tab",
       "action": "Record a note",
-      "noMatches": "No notes match your search."
+      "noMatches": "No notes match your search.",
+      "noTagged": "No notes with this tag."
     },
     "actions": {
       "closeTab": "Close note tab",
       "dragReorder": "Drag to reorder",
       "open": "Open note",
+      "pin": "Pin note",
+      "unpin": "Unpin note",
+      "share": "Share note",
       "delete": "Delete note"
+    },
+    "pinned": "Pinned",
+    "tags": {
+      "label": "Tags",
+      "placeholder": "Add a tag",
+      "add": "Add",
+      "remove": "Remove tag",
+      "all": "All",
+      "filter": "Filter by tag"
+    },
+    "share": {
+      "dialogTitle": "Share note",
+      "copiedHeader": "Copied",
+      "copiedMessage": "The note was copied to the clipboard.",
+      "failedHeader": "Could not share",
+      "failedMessage": "The note could not be shared or copied."
     },
     "editor": {
       "editing": "Editing",

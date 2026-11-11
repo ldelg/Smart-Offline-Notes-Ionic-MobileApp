@@ -1,0 +1,72 @@
+name: Debug APK
+
+# Installable side-by-side build for a phone check.
+# This does not sign with the release keystore, create a GitHub Release,
+# or publish anywhere. The Play release workflow stays on version tags only.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Install npm dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web app
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+      - name: Capacitor sync
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Assemble debug APK
+        working-directory: frontend/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Check the debug id and name
+        run: |
+          set -euo pipefail
+          APK="frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | tee /tmp/badging.txt
+          grep -F "name='io.ldelg.smartofflinenotes.debug'" /tmp/badging.txt
+          grep -F "SmartNotes Debug" /tmp/badging.txt
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartNotes-Debug
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

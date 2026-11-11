@@ -207,13 +207,33 @@
       "title": "Noch keine Notizen",
       "description": "Erstellen Sie Ihre erste Notiz im Tab Erstellen",
       "action": "Eine Notiz aufnehmen",
-      "noMatches": "Keine Notiz entspricht der Suche."
+      "noMatches": "Keine Notiz entspricht der Suche.",
+      "noTagged": "Keine Notiz mit diesem Schlagwort."
     },
     "actions": {
       "closeTab": "Notiz-Tab schließen",
       "dragReorder": "Zum Neuordnen ziehen",
       "open": "Notiz öffnen",
+      "pin": "Notiz anheften",
+      "unpin": "Anheftung aufheben",
+      "share": "Notiz teilen",
       "delete": "Notiz löschen"
+    },
+    "pinned": "Angeheftet",
+    "tags": {
+      "label": "Schlagwörter",
+      "placeholder": "Schlagwort hinzufügen",
+      "add": "Hinzufügen",
+      "remove": "Schlagwort entfernen",
+      "all": "Alle",
+      "filter": "Nach Schlagwort filtern"
+    },
+    "share": {
+      "dialogTitle": "Notiz teilen",
+      "copiedHeader": "Kopiert",
+      "copiedMessage": "Die Notiz wurde in die Zwischenablage kopiert.",
+      "failedHeader": "Teilen fehlgeschlagen",
+      "failedMessage": "Die Notiz konnte weder geteilt noch kopiert werden."
     },
     "editor": {
       "editing": "Bearbeiten",

@@ -141,3 +141,130 @@ ion-popover.settings-select-popover .select-interface-option {
   white-space: normal;
 }
 
+.note-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.note-title-row h2 {
+  min-width: 0;
+}
+
+.pin-indicator,
+.pinned-label {
+  color: var(--app-primary);
+}
+
+.pin-indicator {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.pinned-label {
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.note-item.note-pinned {
+  border-color: var(--app-primary);
+}
+
+.note-item .tag-row {
+  margin-bottom: 0.75rem;
+}
+
+ion-reorder.drag-handle {
+  color: var(--app-text-muted);
+  margin-inline-end: 0.15rem;
+}
+
+ion-reorder.drag-handle svg {
+  display: block;
+  width: 16px;
+  height: 24px;
+}
+
+.tag-filter,
+.tag-row,
+.editor-tools,
+.tag-add {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tag-filter,
+.tag-row {
+  flex-wrap: wrap;
+}
+
+.editor-tools {
+  flex-shrink: 0;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--app-border);
+  background: var(--app-bg);
+  color: var(--app-text);
+  border-radius: 999px;
+  padding: 0.12rem 0.6rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.tag-chip.active {
+  border-color: var(--app-primary);
+  background: color-mix(in srgb, var(--app-primary) 16%, var(--app-bg-elevated));
+}
+
+.tag-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0 0 0.3rem;
+  cursor: pointer;
+}
+
+.editor-tools ion-button,
+.tag-add-button {
+  --color: #ffffff;
+}
+
+.editor-pin.is-pinned {
+  --color: #8ec5ff;
+}
+
+.editor-card .tag-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.editor-card .tag-chip {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+}
+
+.tag-add {
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.tag-add ion-input {
+  flex: 1;
+  --color: #ffffff;
+  --placeholder-color: rgba(255, 255, 255, 0.75);
+  --placeholder-opacity: 1;
+}
+
