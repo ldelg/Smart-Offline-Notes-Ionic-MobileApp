@@ -165,7 +165,12 @@
             }
           </ion-select>
         </ion-item>
-        <p class="field-label pack-heading">{{ 'settings.translation.languagesTitle' | translate }}</p>
+        <div class="pack-heading-row">
+          <p class="pack-heading">{{ 'settings.translation.languagesTitle' | translate }}</p>
+          @if (translationLanguages().length) {
+          <p class="pack-heading-total">{{ packSize(translationTotal()) }}</p>
+          }
+        </div>
         @if (!translationLanguages().length) {
         <p class="model-status">{{ 'settings.translation.packsNone' | translate }}</p>
         } @else {
@@ -176,15 +181,17 @@
               <p class="pack-name">{{ langLabel(row.lang) }}</p>
               <p class="pack-size">{{ packSize(row.bytes) }}</p>
             </div>
-            <button type="button" class="pack-delete" (click)="deleteTranslationLanguage(row.lang)">
+            <button
+              type="button"
+              class="pack-delete"
+              (click)="deleteTranslationLanguage(row.lang)"
+              [attr.aria-label]="deleteLanguageLabel(row.lang)"
+            >
               {{ 'settings.translation.packDelete' | translate }}
             </button>
           </div>
           }
         </div>
-        <p class="pack-total">
-          {{ 'settings.translation.total' | translate }} {{ packSize(translationTotal()) }}
-        </p>
         }
       </ion-card-content>
     </ion-card>
@@ -220,8 +227,25 @@
 
     <ion-card class="glass-card">
       <ion-card-header>
-        <ion-card-title>{{ 'settings.network.downloadedTitle' | translate }}</ion-card-title>
+        <div class="title-with-info">
+          <ion-card-title>{{ 'settings.network.downloadedTitle' | translate }}</ion-card-title>
+          <button
+            type="button"
+            class="info-button"
+            (click)="modelsInfoOpen.set(!modelsInfoOpen())"
+            [attr.aria-expanded]="modelsInfoOpen()"
+            [attr.aria-label]="'settings.network.modelsInfoLabel' | translate"
+          >
+            i
+          </button>
+        </div>
       </ion-card-header>
+      @if (modelsInfoOpen()) {
+      <div class="settings-info models-info">
+        <p>{{ 'settings.network.deleteSelectedDescription' | translate }}</p>
+        <p>{{ 'settings.network.deleteAllDescription' | translate }}</p>
+      </div>
+      }
       <ion-list lines="full" class="delete-list">
         <ion-item
           button
@@ -231,7 +255,6 @@
         >
           <ion-label>
             <h2>{{ 'settings.network.deleteModel' | translate }} · {{ selectedModelName() }}</h2>
-            <ion-note>{{ 'settings.network.deleteSelectedDescription' | translate }}</ion-note>
           </ion-label>
         </ion-item>
         <ion-item
@@ -243,7 +266,6 @@
         >
           <ion-label>
             <h2>{{ 'settings.network.clearCache' | translate }}</h2>
-            <ion-note>{{ 'settings.network.deleteAllDescription' | translate }}</ion-note>
           </ion-label>
         </ion-item>
       </ion-list>

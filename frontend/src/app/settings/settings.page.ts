@@ -31,7 +31,6 @@ import {
   IonBadge,
   IonList,
   IonListHeader,
-  IonNote,
   IonSegment,
   IonSegmentButton,
 } from '@ionic/angular/standalone';
@@ -102,7 +101,6 @@ import { BERGAMOT_CACHE } from '../services/bergamot-cache';
     IonBadge,
     IonList,
     IonListHeader,
-    IonNote,
     IonSegment,
     IonSegmentButton,
     TranslatePipe,
@@ -179,6 +177,7 @@ export class SettingsPage implements ViewWillEnter {
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
   readonly autoTranslateTo = computed(() => this.settings.autoTranslateTo());
   protected readonly translationInfoOpen = signal(false);
+  protected readonly modelsInfoOpen = signal(false);
   readonly translationLanguages = computed(() => languageRows(this.machine.installed()));
   readonly translationTotal = computed(() =>
     this.translationLanguages().reduce((sum, row) => sum + row.bytes, 0),
@@ -301,10 +300,15 @@ export class SettingsPage implements ViewWillEnter {
     return formatBytes(bytes);
   }
 
+  protected deleteLanguageLabel(lang: string): string {
+    return this.t('settings.translation.packDeleteName').replace('{lang}', this.langLabel(lang));
+  }
+
   async deleteTranslationLanguage(lang: AppLang) {
     const alert = await this.alertController.create({
       header: this.t('settings.translation.deleteHeader'),
       message: `${this.langLabel(lang)}. ${this.t('settings.translation.deleteMessage')}`,
+      mode: 'ios',
       buttons: [
         { text: this.t('settings.messages.common.cancel'), role: 'cancel' },
         { text: this.t('settings.translation.packDelete'), role: 'destructive' },
