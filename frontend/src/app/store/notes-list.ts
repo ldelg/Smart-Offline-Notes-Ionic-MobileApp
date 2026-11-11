@@ -87,6 +87,35 @@ export function orderNotes(notes: readonly Note[]): Note[] {
   return [...pinned, ...rest];
 }
 
+/**
+ * Moves a note inside the pinned group or inside the unpinned group.
+ * The other group's notes stay in their places. Indexes are positions
+ * in that group as shown in the list, not indexes in the stored array.
+ */
+export function reorderNotesInGroup(
+  notes: readonly Note[],
+  pinned: boolean,
+  from: number,
+  to: number,
+): Note[] {
+  const inGroup = (note: Note) => (pinned ? !!note.pinned : !note.pinned);
+  const members = notes.filter(inGroup);
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= members.length ||
+    to >= members.length
+  ) {
+    return [...notes];
+  }
+  const nextMembers = [...members];
+  const [moved] = nextMembers.splice(from, 1);
+  nextMembers.splice(to, 0, moved);
+  let cursor = 0;
+  return notes.map((note) => (inGroup(note) ? nextMembers[cursor++] : note));
+}
+
 function tagKey(tag: string): string {
   return tag.trim().toLocaleLowerCase();
 }

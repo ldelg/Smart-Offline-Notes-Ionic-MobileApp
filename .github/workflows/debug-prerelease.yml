@@ -72,6 +72,7 @@ jobs:
           name: "Test build: punctuation, pin, tags"
           prerelease: true
           make_latest: false
+          overwrite_files: true
           generate_release_notes: false
           body: |
             Side-by-side debug build for pull request 12.

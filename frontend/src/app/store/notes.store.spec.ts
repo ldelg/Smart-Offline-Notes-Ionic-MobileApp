@@ -91,4 +91,24 @@ describe('NotesStore', () => {
     expect(store.notes()[1].body).toBe('Still here');
     expect(store.notes()[0].body).toBe(legacy.body);
   });
+
+  it('persists a reorder inside one pin group without moving the other group', () => {
+    localStorage.setItem(
+      'whisper-notes',
+      JSON.stringify([
+        legacy,
+        { ...legacy, id: 'b', title: 'Second', pinned: true },
+        { ...legacy, id: 'c', title: 'Third' },
+      ]),
+    );
+    const store = TestBed.inject(NotesStore);
+    store.loadNotes();
+    store.setPinned('a', true);
+    store.reorderWithinGroup(true, 0, 1);
+    const saved = JSON.parse(localStorage.getItem('whisper-notes') || '[]');
+    expect(saved.map((note: { id: string }) => note.id)).toEqual(['b', 'a', 'c']);
+    expect(saved.find((note: { id: string }) => note.id === 'c').pinned).not.toBeTrue();
+    expect(saved.find((note: { id: string }) => note.id === 'a').pinned).toBeTrue();
+    expect(saved.find((note: { id: string }) => note.id === 'a').body).toBe(legacy.body);
+  });
 });

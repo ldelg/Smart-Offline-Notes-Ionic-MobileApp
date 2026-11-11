@@ -171,6 +171,21 @@ ion-popover.settings-select-popover .select-interface-option {
   border-color: var(--app-primary);
 }
 
+.note-item .tag-row {
+  margin-bottom: 0.75rem;
+}
+
+ion-reorder.drag-handle {
+  color: var(--app-text-muted);
+  margin-inline-end: 0.15rem;
+}
+
+ion-reorder.drag-handle svg {
+  display: block;
+  width: 16px;
+  height: 24px;
+}
+
 .tag-filter,
 .tag-row,
 .editor-tools,

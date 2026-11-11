@@ -12,6 +12,7 @@ import {
   notesWithoutTag,
   notesWithTag,
   normalizeStoredNote,
+  reorderNotesInGroup,
 } from './notes-list';
 import { SettingsStore } from './settings.store';
 
@@ -190,6 +191,11 @@ export const NotesStore = signalStore(
         const notes = [...store.notes()];
         const [moved] = notes.splice(fromIndex, 1);
         notes.splice(toIndex, 0, moved);
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      },
+      reorderWithinGroup: (pinned: boolean, from: number, to: number) => {
+        const notes = reorderNotesInGroup(store.notes(), pinned, from, to);
         patchState(store, { notes });
         localStorage.setItem('whisper-notes', JSON.stringify(notes));
       },

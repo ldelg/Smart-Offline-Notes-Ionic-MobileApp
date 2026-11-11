@@ -86,86 +86,107 @@
       }
 
       <ion-list lines="none" class="notes-list">
-        @for (note of filteredNotes(); track note.id) {
-        <ion-item-sliding>
-          <ion-item
-            class="note-item"
-            [class.note-pinned]="note.pinned"
-            (click)="openNoteFromCard($event, note.id)"
-          >
-            <ion-label>
-              <div class="note-title-row">
-                @if (note.pinned) {
-                <ion-icon class="pin-indicator" name="pin" aria-hidden="true"></ion-icon>
+        @for (group of noteGroups(); track group.pinned) {
+        <ion-reorder-group
+          [disabled]="reorderLocked()"
+          (ionReorderEnd)="onReorder($event, group.pinned)"
+        >
+          @for (note of group.notes; track note.id) {
+          <ion-item-sliding>
+            <ion-item
+              class="note-item"
+              [class.note-pinned]="note.pinned"
+              (click)="openNoteFromCard($event, note.id)"
+            >
+              <ion-reorder
+                slot="start"
+                class="drag-handle"
+                [attr.aria-label]="translationStore.t('notes.actions.dragReorder')"
+              >
+                <svg viewBox="0 0 16 24" aria-hidden="true">
+                  <circle cx="4" cy="4" r="2" fill="currentColor" />
+                  <circle cx="12" cy="4" r="2" fill="currentColor" />
+                  <circle cx="4" cy="12" r="2" fill="currentColor" />
+                  <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  <circle cx="4" cy="20" r="2" fill="currentColor" />
+                  <circle cx="12" cy="20" r="2" fill="currentColor" />
+                </svg>
+              </ion-reorder>
+              <ion-label>
+                <div class="note-title-row">
+                  @if (note.pinned) {
+                  <ion-icon class="pin-indicator" name="pin" aria-hidden="true"></ion-icon>
+                  }
+                  <h2>{{ note.title }}</h2>
+                </div>
+                <p class="note-body">{{ note.body }}</p>
+                @if (note.tags?.length) {
+                <div class="tag-row">
+                  @for (tag of note.tags; track tag) {
+                  <button type="button" class="tag-chip" (click)="filterByTag(tag, $event)">
+                    {{ tag }}
+                  </button>
+                  }
+                </div>
                 }
-                <h2>{{ note.title }}</h2>
+                <ion-note class="note-meta">
+                  @if (note.pinned) {
+                  <span class="pinned-label">{{ translationStore.t('notes.pinned') }}</span>
+                  }
+                  {{ noteMeta(note) }}
+                </ion-note>
+              </ion-label>
+              <div class="note-actions" slot="end">
+                <ion-button
+                  fill="clear"
+                  class="note-pin"
+                  [class.is-pinned]="note.pinned"
+                  (click)="togglePin(note, $event)"
+                  [attr.aria-pressed]="note.pinned"
+                  [attr.aria-label]="
+                    translationStore.t(note.pinned ? 'notes.actions.unpin' : 'notes.actions.pin')
+                  "
+                >
+                  <ion-icon [name]="note.pinned ? 'pin' : 'pin-outline'"></ion-icon>
+                </ion-button>
+                <ion-button
+                  fill="clear"
+                  class="note-share"
+                  (click)="shareNote(note, $event)"
+                  [attr.aria-label]="translationStore.t('notes.actions.share')"
+                >
+                  <ion-icon name="share-outline"></ion-icon>
+                </ion-button>
+                <ion-button
+                  fill="clear"
+                  class="note-expand"
+                  (click)="openNote(note.id); $event.stopPropagation()"
+                  [attr.aria-label]="translationStore.t('notes.actions.open')"
+                >
+                  <ion-icon name="expand-outline"></ion-icon>
+                </ion-button>
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  (click)="deleteNote(note.id); $event.stopPropagation()"
+                  [attr.aria-label]="translationStore.t('notes.actions.delete')"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
               </div>
-              <p class="note-body">{{ note.body }}</p>
-              @if (note.tags?.length) {
-              <div class="tag-row">
-                @for (tag of note.tags; track tag) {
-                <button type="button" class="tag-chip" (click)="filterByTag(tag, $event)">
-                  {{ tag }}
-                </button>
-                }
-              </div>
-              }
-              <ion-note class="note-meta">
-                @if (note.pinned) {
-                <span class="pinned-label">{{ translationStore.t('notes.pinned') }}</span>
-                }
-                {{ noteMeta(note) }}
-              </ion-note>
-            </ion-label>
-            <div class="note-actions" slot="end">
-              <ion-button
-                fill="clear"
-                class="note-pin"
-                [class.is-pinned]="note.pinned"
-                (click)="togglePin(note, $event)"
-                [attr.aria-pressed]="note.pinned"
-                [attr.aria-label]="
-                  translationStore.t(note.pinned ? 'notes.actions.unpin' : 'notes.actions.pin')
-                "
-              >
-                <ion-icon [name]="note.pinned ? 'pin' : 'pin-outline'"></ion-icon>
-              </ion-button>
-              <ion-button
-                fill="clear"
-                class="note-share"
-                (click)="shareNote(note, $event)"
-                [attr.aria-label]="translationStore.t('notes.actions.share')"
-              >
-                <ion-icon name="share-outline"></ion-icon>
-              </ion-button>
-              <ion-button
-                fill="clear"
-                class="note-expand"
-                (click)="openNote(note.id); $event.stopPropagation()"
-                [attr.aria-label]="translationStore.t('notes.actions.open')"
-              >
-                <ion-icon name="expand-outline"></ion-icon>
-              </ion-button>
-              <ion-button
-                fill="clear"
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option
                 color="danger"
-                (click)="deleteNote(note.id); $event.stopPropagation()"
+                (click)="deleteNote(note.id)"
                 [attr.aria-label]="translationStore.t('notes.actions.delete')"
               >
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </div>
-          </ion-item>
-          <ion-item-options side="end">
-            <ion-item-option
-              color="danger"
-              (click)="deleteNote(note.id)"
-              [attr.aria-label]="translationStore.t('notes.actions.delete')"
-            >
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+          }
+        </ion-reorder-group>
         }
       </ion-list>
       }
@@ -234,9 +255,9 @@
                 ></ion-textarea>
               </ion-item>
               <div class="tag-editor" (keydown.enter)="addActiveTag($event)">
-                @if (note.tags?.length) {
+                @if (editorTags().length) {
                 <div class="tag-row">
-                  @for (tag of note.tags; track tag) {
+                  @for (tag of editorTags(); track tag) {
                   <span class="tag-chip">
                     {{ tag }}
                     <button
@@ -265,12 +286,14 @@
                   </ion-button>
                 </div>
               </div>
+              @if (editorDirty()) {
               <div class="editor-actions">
                 <ion-button type="submit" [disabled]="editForm.invalid">
                   <ion-icon slot="start" name="save-outline"></ion-icon>
                   {{ translationStore.t('notes.editor.save') }}
                 </ion-button>
               </div>
+              }
             </form>
             }
           </div>

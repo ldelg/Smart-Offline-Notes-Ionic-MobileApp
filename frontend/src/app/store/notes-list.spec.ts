@@ -8,6 +8,7 @@ import {
   notesWithoutTag,
   notesWithTag,
   orderNotes,
+  reorderNotesInGroup,
 } from './notes-list';
 
 const legacy = {
@@ -47,6 +48,23 @@ describe('notes list', () => {
     expect(notesWithPinned(notes, 'a', true).find((note) => note.id === 'a')?.body).toBe(
       legacy.body,
     );
+  });
+
+  it('reorders inside the pinned group and inside the unpinned group', () => {
+    const notes = [
+      { ...legacy, id: 'a', pinned: false },
+      { ...legacy, id: 'b', pinned: true },
+      { ...legacy, id: 'c', pinned: false },
+      { ...legacy, id: 'd', pinned: true },
+    ];
+    const pinnedMoved = reorderNotesInGroup(notes, true, 0, 1);
+    expect(orderNotes(pinnedMoved).map((note) => note.id)).toEqual(['d', 'b', 'a', 'c']);
+    expect(pinnedMoved.map((note) => note.id)).toEqual(['a', 'd', 'c', 'b']);
+    expect(pinnedMoved.find((note) => note.id === 'b')?.body).toBe(legacy.body);
+
+    const unpinnedMoved = reorderNotesInGroup(notes, false, 1, 0);
+    expect(orderNotes(unpinnedMoved).map((note) => note.id)).toEqual(['b', 'd', 'c', 'a']);
+    expect(reorderNotesInGroup(notes, true, 0, 5)).toEqual(notes);
   });
 
   it('adds and removes tags without duplicates, and filters them together with search', () => {

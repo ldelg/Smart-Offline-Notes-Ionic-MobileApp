@@ -1,11 +1,11 @@
 import {
   Component,
-  inject,
-  computed,
-  signal,
-  effect,
-  ViewChild,
   ElementRef,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
 } from '@angular/core';
 import {
   IonHeader,
@@ -24,6 +24,8 @@ import {
   IonNote,
   IonTextarea,
   IonInput,
+  IonReorder,
+  IonReorderGroup,
   AlertController,
 } from '@ionic/angular/standalone';
 import {
@@ -32,12 +34,18 @@ import {
   FormBuilder,
   Validators,
 } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NotesStore } from '../store/notes.store';
 import { SettingsStore } from '../store/settings.store';
 import { Note } from '../models/note.model';
 import { TranslationStore } from '../store/translation.store';
 import { collectTags, filterNotes } from '../store/notes-list';
+import {
+  editorTagsAfterAdd,
+  editorTagsAfterRemove,
+  noteEditorDirty,
+} from '../store/note-editor';
 import { sharePlainText } from '../services/note-share';
 import { addIcons } from 'ionicons';
 import {
@@ -73,6 +81,8 @@ import {
     IonNote,
     IonTextarea,
     IonInput,
+    IonReorder,
+    IonReorderGroup,
     FormsModule,
     ReactiveFormsModule,
   ],
@@ -87,7 +97,9 @@ export class NotesPage {
   protected readonly searchTerm = signal('');
   protected readonly activeTag = signal<string | null>(null);
   protected readonly tagDraft = signal('');
-  private loadedFormNoteId: string | null = null;
+  protected readonly editorTags = signal<string[]>([]);
+  private readonly editorFields = signal({ title: '', body: '' });
+  private readonly loadedNoteId = signal<string | null>(null);
   protected readonly openTabIds = signal<string[]>([]);
   protected readonly activeTabId = signal<string | null>(null);
   @ViewChild('noteCarousel', { static: false })
@@ -102,11 +114,33 @@ export class NotesPage {
   protected readonly filteredNotes = computed(() =>
     filterNotes(this.store.notes(), this.searchTerm(), this.activeTag()),
   );
+  protected readonly reorderLocked = computed(
+    () => this.searchTerm().trim().length > 0 || this.activeTag() !== null,
+  );
+  protected readonly noteGroups = computed(() => {
+    const notes = this.filteredNotes();
+    const groups: { pinned: boolean; notes: Note[] }[] = [];
+    const pinned = notes.filter((note) => note.pinned);
+    const rest = notes.filter((note) => !note.pinned);
+    if (pinned.length) groups.push({ pinned: true, notes: pinned });
+    if (rest.length) groups.push({ pinned: false, notes: rest });
+    return groups;
+  });
 
   protected readonly activeNote = computed(() => {
     const id = this.activeTabId();
     if (!id) return null;
     return this.store.notes().find((note) => note.id === id) ?? null;
+  });
+
+  protected readonly editorDirty = computed(() => {
+    const note = this.activeNote();
+    if (!note || this.loadedNoteId() !== note.id) return false;
+    const fields = this.editorFields();
+    return noteEditorDirty(
+      { title: note.title, body: note.body, tags: note.tags ?? [] },
+      { title: fields.title, body: fields.body, tags: this.editorTags() },
+    );
   });
 
   constructor() {
@@ -120,6 +154,12 @@ export class NotesPage {
       shareOutline,
     });
     this.store.loadNotes();
+    this.editForm.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
+      this.editorFields.set({
+        title: value.title ?? '',
+        body: value.body ?? '',
+      });
+    });
 
     effect(() => {
       const selected = this.activeTag();
@@ -133,14 +173,18 @@ export class NotesPage {
     effect(() => {
       const note = this.activeNote();
       if (!note) {
-        this.loadedFormNoteId = null;
+        this.loadedNoteId.set(null);
         this.tagDraft.set('');
-        this.editForm.reset();
+        this.editorTags.set([]);
+        this.editorFields.set({ title: '', body: '' });
+        this.editForm.reset({}, { emitEvent: false });
         return;
       }
-      if (this.loadedFormNoteId === note.id) return;
-      this.loadedFormNoteId = note.id;
+      if (this.loadedNoteId() === note.id) return;
+      this.loadedNoteId.set(note.id);
       this.tagDraft.set('');
+      this.editorTags.set([...(note.tags ?? [])]);
+      this.editorFields.set({ title: note.title, body: note.body });
       this.editForm.patchValue(
         { title: note.title, body: note.body },
         { emitEvent: false },
@@ -186,7 +230,7 @@ export class NotesPage {
 
   protected openNoteFromCard(event: Event, id: string): void {
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.note-actions, .tag-row, .tag-chip')) return;
+    if (target?.closest('.note-actions, .tag-row, .tag-chip, ion-reorder')) return;
     this.openNote(id);
   }
 
@@ -211,16 +255,12 @@ export class NotesPage {
 
   protected addActiveTag(event?: Event): void {
     event?.preventDefault();
-    const id = this.activeTabId();
-    if (!id) return;
-    this.store.addTag(id, this.tagDraft());
+    this.editorTags.set(editorTagsAfterAdd(this.editorTags(), this.tagDraft()));
     this.tagDraft.set('');
   }
 
   protected removeTag(tag: string): void {
-    const id = this.activeTabId();
-    if (!id) return;
-    this.store.removeTag(id, tag);
+    this.editorTags.set(editorTagsAfterRemove(this.editorTags(), tag));
   }
 
   protected async shareNote(note: Note, event?: Event): Promise<void> {
@@ -261,187 +301,18 @@ export class NotesPage {
     this.store.deleteNote(id);
   }
 
-  private draggedNoteId: string | null = null;
-  private touchStartY: number = 0;
-  private touchStartX: number = 0;
-  private touchStartElement: HTMLElement | null = null;
-  private touchCurrentElement: HTMLElement | null = null;
-  private isDragging: boolean = false;
-
-  protected onDragStart(event: DragEvent, noteId: string): void {
-    this.draggedNoteId = noteId;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', noteId);
+  protected onReorder(event: Event, pinned: boolean): void {
+    const detail = (
+      event as CustomEvent<{
+        from: number;
+        to: number;
+        complete: (listOrReorder?: boolean | unknown[]) => Promise<unknown>;
+      }>
+    ).detail;
+    if (!this.reorderLocked() && detail.from !== detail.to) {
+      this.store.reorderWithinGroup(pinned, detail.from, detail.to);
     }
-    const noteItem = (event.currentTarget as HTMLElement).closest(
-      '.note-item',
-    ) as HTMLElement;
-    if (noteItem) {
-      noteItem.classList.add('dragging');
-    }
-  }
-
-  protected onDragOver(event: DragEvent, noteId: string): void {
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'move';
-    }
-    const target = event.currentTarget as HTMLElement;
-    if (this.draggedNoteId && this.draggedNoteId !== noteId) {
-      target.classList.add('drag-over');
-    }
-  }
-
-  protected onDragLeave(event: DragEvent): void {
-    (event.currentTarget as HTMLElement).classList.remove('drag-over');
-  }
-
-  protected onDragEnd(event: DragEvent): void {
-    (event.currentTarget as HTMLElement).classList.remove('dragging');
-    document.querySelectorAll('.note-item').forEach((item) => {
-      item.classList.remove('drag-over', 'dragging');
-    });
-    this.draggedNoteId = null;
-  }
-
-  protected onDrop(event: DragEvent, noteId: string): void {
-    event.preventDefault();
-    const target = event.currentTarget as HTMLElement;
-    target.classList.remove('drag-over');
-
-    if (this.draggedNoteId && this.draggedNoteId !== noteId) {
-      const allNotes = this.store.notes();
-      const fromIndex = allNotes.findIndex((n) => n.id === this.draggedNoteId);
-      const toIndex = allNotes.findIndex((n) => n.id === noteId);
-
-      if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
-        this.store.reorderNotes(fromIndex, toIndex);
-      }
-    }
-
-    document.querySelectorAll('.note-item').forEach((item) => {
-      item.classList.remove('dragging', 'drag-over');
-    });
-    this.draggedNoteId = null;
-  }
-
-  protected onTouchStart(event: TouchEvent, noteId: string): void {
-    const touch = event.touches[0];
-    this.touchStartY = touch.clientY;
-    this.touchStartX = touch.clientX;
-    const handle = event.currentTarget as HTMLElement;
-    this.touchStartElement = handle.closest('.note-item') as HTMLElement;
-    if (!this.touchStartElement) return;
-
-    this.draggedNoteId = noteId;
-    this.isDragging = false;
-    // Don't prevent default yet - wait for movement
-  }
-
-  protected onTouchMove(event: TouchEvent): void {
-    if (!this.touchStartElement || !this.draggedNoteId) return;
-
-    const touch = event.touches[0];
-    const deltaY = Math.abs(touch.clientY - this.touchStartY);
-    const deltaX = Math.abs(touch.clientX - this.touchStartX);
-
-    // Only start dragging if moved more than 10px (to distinguish from tap)
-    if (!this.isDragging && (deltaY > 10 || deltaX > 10)) {
-      this.isDragging = true;
-      this.touchStartElement.classList.add('dragging');
-      event.preventDefault();
-    }
-
-    if (!this.isDragging) return;
-
-    const currentY = touch.clientY;
-    const moveDeltaY = currentY - this.touchStartY;
-
-    // Move the dragged element visually
-    this.touchStartElement.style.transform = `translateY(${moveDeltaY}px)`;
-    this.touchStartElement.style.transition = 'none';
-    this.touchStartElement.style.zIndex = '1000';
-
-    // Find which note item is at the touch position
-    const allNoteItems = Array.from(
-      document.querySelectorAll('.note-item'),
-    ) as HTMLElement[];
-    let targetItem: HTMLElement | null = null;
-
-    for (const item of allNoteItems) {
-      if (item === this.touchStartElement) continue;
-      const rect = item.getBoundingClientRect();
-
-      // Check if touch is over this item
-      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-        targetItem = item;
-        break;
-      }
-    }
-
-    // Remove drag-over from all items
-    allNoteItems.forEach((item) => {
-      if (item !== this.touchStartElement) {
-        item.classList.remove('drag-over');
-      }
-    });
-
-    // Add drag-over to target item
-    if (targetItem) {
-      const targetNoteId = targetItem.getAttribute('data-note-id');
-      if (targetNoteId && targetNoteId !== this.draggedNoteId) {
-        targetItem.classList.add('drag-over');
-        this.touchCurrentElement = targetItem;
-      }
-    } else {
-      this.touchCurrentElement = null;
-    }
-
-    event.preventDefault();
-  }
-
-  protected onTouchEnd(event: TouchEvent): void {
-    if (!this.touchStartElement || !this.draggedNoteId) {
-      this.isDragging = false;
-      return;
-    }
-
-    if (this.isDragging) {
-      const allNotes = this.store.notes();
-      const fromIndex = allNotes.findIndex((n) => n.id === this.draggedNoteId);
-
-      if (this.touchCurrentElement) {
-        const targetNoteId =
-          this.touchCurrentElement.getAttribute('data-note-id');
-        if (targetNoteId) {
-          const toIndex = allNotes.findIndex((n) => n.id === targetNoteId);
-
-          if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
-            this.store.reorderNotes(fromIndex, toIndex);
-          }
-        }
-      }
-    }
-
-    // Reset styles
-    if (this.touchStartElement) {
-      this.touchStartElement.style.transform = '';
-      this.touchStartElement.style.transition = '';
-      this.touchStartElement.style.zIndex = '';
-      this.touchStartElement.classList.remove('dragging');
-    }
-
-    document.querySelectorAll('.note-item').forEach((item) => {
-      item.classList.remove('drag-over', 'dragging');
-    });
-
-    this.draggedNoteId = null;
-    this.touchStartElement = null;
-    this.touchCurrentElement = null;
-    this.touchStartY = 0;
-    this.touchStartX = 0;
-    this.isDragging = false;
+    void detail.complete(false);
   }
 
   protected openNote(id: string): void {
@@ -485,6 +356,7 @@ export class NotesPage {
     this.store.updateNote(id, {
       title: (title || '').trim(),
       body: (body || '').trim(),
+      tags: [...this.editorTags()],
     });
   }
 
