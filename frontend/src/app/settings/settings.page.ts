@@ -67,6 +67,12 @@ import {
 } from '../models/settings.model';
 import { TranslationStore } from '../store/translation.store';
 import { TranslatePipe } from '../pipes/translate.pipe';
+import { AutoTranslateService } from '../services/auto-translate.service';
+import { TranslationService } from '../services/translation.service';
+import { InstalledPack } from '../services/translation-cache';
+import { formatBytes } from '../services/translation-catalog';
+import { isAppLang } from '../models/translation.model';
+import { BERGAMOT_CACHE } from '../services/bergamot-cache';
 
 @Component({
   selector: 'app-settings',
@@ -111,6 +117,8 @@ export class SettingsPage implements ViewWillEnter {
   private readonly platform = inject(Platform);
   readonly networkService = inject(NetworkService);
   private readonly translationStore = inject(TranslationStore);
+  private readonly machine = inject(TranslationService);
+  private readonly autoTranslate = inject(AutoTranslateService);
   private readonly STRIPE_PAYMENT_LINK_URL =
     'https://donate.stripe.com/4gweYZ26zbfY25y9AA';
 
@@ -154,9 +162,12 @@ export class SettingsPage implements ViewWillEnter {
     });
 
     this.translationStore.setLanguage(this.settings.uiLanguage());
+    void this.autoTranslate;
+    void this.machine.refreshInstalled();
   }
   ionViewWillEnter() {
     this.calculateCacheSize();
+    void this.machine.refreshInstalled();
   }
   protected readonly modelPickerOpen = signal(false);
   readonly model = computed(() => this.settings.model());
@@ -164,8 +175,9 @@ export class SettingsPage implements ViewWillEnter {
   readonly multilingual = computed(() => this.settings.multilingual());
   readonly quantized = computed(() => this.settings.quantized());
   readonly language = computed(() => this.settings.language());
-  readonly task = computed(() => this.settings.task());
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
+  readonly autoTranslateTo = computed(() => this.settings.autoTranslateTo());
+  readonly translationPacks = computed(() => this.machine.installed());
 
   readonly modelOptions: ModelOption[] = modelOptions;
   readonly multilingualModels = computed(() =>
@@ -270,9 +282,40 @@ export class SettingsPage implements ViewWillEnter {
     this.settings.setLanguage(language);
   }
 
-  onTaskChange(task: string) {
-    if (task === 'translate' || task === 'transcribe') {
-      this.settings.setTask(task);
+  onAutoTranslateChange(value: string | null | undefined) {
+    if (value !== 'off' && !isAppLang(value)) return;
+    this.settings.setAutoTranslateTo(isAppLang(value) ? value : null);
+  }
+
+  protected langLabel(code: string): string {
+    const label = this.t(`languages.${code}`);
+    return label.startsWith('languages.') ? code.toUpperCase() : label;
+  }
+
+  protected packSize(bytes: number): string {
+    return formatBytes(bytes);
+  }
+
+  async deleteLanguagePack(pack: InstalledPack) {
+    const alert = await this.alertController.create({
+      header: this.t('settings.translation.deleteHeader'),
+      message: `${this.langLabel(pack.src)} → ${this.langLabel(pack.tgt)}. ${this.t('settings.translation.deleteMessage')}`,
+      buttons: [
+        { text: this.t('settings.messages.common.cancel'), role: 'cancel' },
+        { text: this.t('settings.translation.packDelete'), role: 'confirm' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') return;
+    await this.machine.deletePack(pack.id);
+  }
+
+  async openAboutLink(url: string) {
+    try {
+      await this.openStripeUrl(url);
+    } catch (error) {
+      console.error('Error opening link', error);
     }
   }
 
@@ -519,6 +562,7 @@ export class SettingsPage implements ViewWillEnter {
       if ('caches' in self) {
         const cacheNames = await caches.keys();
         for (const cacheName of cacheNames) {
+          if (cacheName === BERGAMOT_CACHE) continue;
           const cache = await caches.open(cacheName);
           const keys = await cache.keys();
           for (const request of keys) {
@@ -633,6 +677,7 @@ export class SettingsPage implements ViewWillEnter {
     const needles = [modelId, encodeURIComponent(modelId)];
     const names = await caches.keys();
     for (const name of names) {
+      if (name === BERGAMOT_CACHE) continue;
       const cache = await caches.open(name);
       const requests = await cache.keys();
       for (const request of requests) {
@@ -648,6 +693,7 @@ export class SettingsPage implements ViewWillEnter {
     if (!('caches' in self)) return;
     const names = await caches.keys();
     for (const name of names) {
+      if (name === BERGAMOT_CACHE) continue;
       if (name === 'transformers-cache' || name.includes('transformers')) {
         await caches.delete(name);
         continue;

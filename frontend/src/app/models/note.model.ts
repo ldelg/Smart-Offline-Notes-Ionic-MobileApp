@@ -1,3 +1,5 @@
+import { NoteTranslations } from './translation.model';
+
 export interface Note {
   id: string;
   title: string;
@@ -10,4 +12,9 @@ export interface Note {
   pinned?: boolean;
   /** Missing on notes saved before tags existed. Treat as no tags. */
   tags?: string[];
+  /**
+   * Translations of `body`, keyed by target language.
+   * Missing on notes saved before translation existed.
+   */
+  translations?: NoteTranslations;
 }

@@ -3,8 +3,12 @@ import {
   SETTINGS_STORAGE_KEY,
   SettingsState,
   ThemePreference,
-  TranscriptionTask,
 } from '../models/settings.model';
+import { AppLang } from '../models/translation.model';
+import {
+  resolveAutoTranslate,
+  settingsNeedMigration,
+} from '../services/settings-migration';
 
 const loadSettings = (): Partial<SettingsState> => {
   try {
@@ -34,11 +38,20 @@ const initialState: SettingsState = {
   quantized: true,
   language: 'english',
   uiLanguage: 'en',
-  task: 'transcribe',
   lastUsedModel: null,
   ...loaded,
   theme,
+  task: 'transcribe',
+  autoTranslateTo: resolveAutoTranslate(loaded),
 };
+
+if (settingsNeedMigration(loaded)) {
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(initialState));
+  } catch (e) {
+    console.warn('Failed to migrate settings', e);
+  }
+}
 
 export const SettingsStore = signalStore(
   { providedIn: 'root' },
@@ -53,9 +66,10 @@ export const SettingsStore = signalStore(
           quantized: store.quantized(),
           language: store.language(),
           uiLanguage: store.uiLanguage(),
-          task: store.task(),
+          task: 'transcribe',
           lastUsedModel: store.lastUsedModel(),
           theme: store.theme(),
+          autoTranslateTo: store.autoTranslateTo(),
         };
         localStorage.setItem(
           SETTINGS_STORAGE_KEY,
@@ -79,14 +93,14 @@ export const SettingsStore = signalStore(
       setUiLanguage(uiLanguage: string) {
         updateSettings({ uiLanguage });
       },
-      setTask(task: TranscriptionTask) {
-        updateSettings({ task });
-      },
       setLastUsedModel(modelName: string | null) {
         updateSettings({ lastUsedModel: modelName });
       },
       setTheme(themePreference: ThemePreference) {
         updateSettings({ theme: themePreference });
+      },
+      setAutoTranslateTo(autoTranslateTo: AppLang | null) {
+        updateSettings({ autoTranslateTo });
       },
     };
   }),

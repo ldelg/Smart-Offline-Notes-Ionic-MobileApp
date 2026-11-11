@@ -36,12 +36,9 @@
       "themeSystem": "Sistema"
     },
     "transcription": {
-      "subtitle": "Idioma y tarea",
+      "subtitle": "Idioma",
       "title": "Modo de transcripción",
-      "selectSource": "Seleccione el idioma de origen",
-      "selectTask": "Seleccione la tarea a realizar",
-      "transcribe": "Transcribir",
-      "translate": "Traducir al inglés"
+      "selectSource": "Seleccione el idioma de origen"
     },
     "network": {
       "subtitle": "Estado de la red",
@@ -123,6 +120,27 @@
         "deletedHeader": "Modelo eliminado",
         "deletedMessage": "Ese modelo se eliminó. Tus notas y los demás modelos descargados se conservan."
       }
+    },
+    "translation": {
+      "subtitle": "En este teléfono",
+      "title": "Traducción",
+      "auto": "Traducir notas nuevas",
+      "autoOff": "Desactivada",
+      "autoHelp": "Al guardar una nota, también se traduce. El original se conserva.",
+      "packs": "Paquetes de idioma",
+      "packsEmpty": "Todavía no hay paquetes. Se descargan la primera vez que traduces.",
+      "packDelete": "Eliminar paquete",
+      "deleteHeader": "¿Eliminar paquete de idioma?",
+      "deleteMessage": "Se quita de este teléfono. Las traducciones ya guardadas en las notas se conservan.",
+      "engine": "Motor de traducción",
+      "credit": "Bergamot (Firefox Translations) funciona en este teléfono. Los paquetes vienen de Mozilla."
+    },
+    "about": {
+      "subtitle": "Acerca de",
+      "title": "Licencias",
+      "body": "La traducción automática usa el motor Bergamot y los modelos de Firefox Translations de Mozilla, con la Mozilla Public License 2.0. El motor y los paquetes se descargan de Mozilla. Las notas permanecen en este teléfono.",
+      "source": "Código y licencia del proyecto",
+      "license": "Licencia MPL 2.0"
     }
   },
   "create": {
@@ -217,7 +235,8 @@
       "pin": "Fijar nota",
       "unpin": "Dejar de fijar",
       "share": "Compartir nota",
-      "delete": "Eliminar nota"
+      "delete": "Eliminar nota",
+      "translate": "Traducir"
     },
     "pinned": "Fijada",
     "tags": {
@@ -233,7 +252,10 @@
       "copiedHeader": "Copiado",
       "copiedMessage": "La nota se copió al portapapeles.",
       "failedHeader": "No se pudo compartir",
-      "failedMessage": "No se pudo compartir ni copiar la nota."
+      "failedMessage": "No se pudo compartir ni copiar la nota.",
+      "choose": "Compartir",
+      "include": "Elige qué incluir",
+      "nothing": "Elige al menos una parte para compartir."
     },
     "editor": {
       "editing": "Editando",
@@ -247,6 +269,28 @@
       "minutes": "min",
       "hours": "h",
       "days": "d"
+    },
+    "translate": {
+      "original": "Original",
+      "add": "Traducir",
+      "machine": "Traducción automática",
+      "stale": "La nota original cambió. Esta traducción puede estar desactualizada.",
+      "update": "Actualizar traducción",
+      "delete": "Eliminar traducción",
+      "pickSource": "Idioma de origen",
+      "pickTarget": "Traducir a",
+      "downloadHeader": "¿Descargar paquete de idioma?",
+      "downloadMessage": "{pack} se descargará una vez desde Mozilla (unos {size}) y se guardará en este teléfono. Después, la traducción funciona sin conexión.",
+      "downloadConfirm": "Descargar",
+      "cancel": "Cancelar",
+      "progressDownload": "Descargando paquete de idioma",
+      "progressLoad": "Cargando traducción",
+      "progressTranslate": "Traduciendo",
+      "failedHeader": "No se pudo traducir",
+      "failedMessage": "No se pudo traducir la nota. Si el paquete de idioma aún no está en el teléfono, comprueba la conexión.",
+      "offlineHeader": "Sin conexión",
+      "offlineMessage": "Estás sin conexión y este paquete de idioma no está en el teléfono.",
+      "noMore": "Esta nota ya tiene una traducción para los otros idiomas."
     }
   }
 }

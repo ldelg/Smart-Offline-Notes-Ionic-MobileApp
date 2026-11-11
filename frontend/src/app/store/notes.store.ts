@@ -3,6 +3,12 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { inject } from '@angular/core';
 import { tap, pipe, switchMap, catchError, EMPTY, finalize } from 'rxjs';
 import { Note } from '../models/note.model';
+import { AppLang, NoteTranslation } from '../models/translation.model';
+import {
+  noteWithTranslation,
+  noteWithoutTranslation,
+  translationsAfterBodyEdit,
+} from '../services/note-translations';
 import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranscriptionService } from '../services/transcription.service';
 import { transcriptTitle } from '../services/transcript-text';
@@ -20,12 +26,15 @@ interface NotesState {
   notes: Note[];
   loading: boolean;
   error: string | null;
+  /** Bumps when a new note is saved, so auto-translate can run once. */
+  noteReady: { id: string; seq: number } | null;
 }
 
 const initialState: NotesState = {
   notes: [],
   loading: false,
   error: null,
+  noteReady: null,
 };
 
 export const NotesStore = signalStore(
@@ -36,7 +45,17 @@ export const NotesStore = signalStore(
       store,
       transcription = inject(TranscriptionService),
       settings = inject(SettingsStore),
-    ) => ({
+    ) => {
+      let readySeq = 0;
+      const persist = (notes: Note[]) => {
+        patchState(store, { notes });
+        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+      };
+      const markReady = (id: string) => {
+        readySeq += 1;
+        patchState(store, { noteReady: { id, seq: readySeq } });
+      };
+      return {
       loadNotes: rxMethod<void>(
         pipe(
           tap(() => patchState(store, { loading: true, error: null })),
@@ -59,8 +78,8 @@ export const NotesStore = signalStore(
       ),
       addNote: (note: Note) => {
         const notes = [...store.notes(), note];
-        patchState(store, { notes });
-        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+        persist(notes);
+        markReady(note.id);
       },
       deleteNote: (id: string) => {
         const notes = store.notes().filter((n) => n.id !== id);
@@ -130,6 +149,7 @@ export const NotesStore = signalStore(
                   settled = true;
                   patchState(store, { loading: false, error: null });
                   settings.setLastUsedModel(model);
+                  if (text) markReady(noteId);
                 }
               }),
               catchError((error) => {
@@ -181,11 +201,34 @@ export const NotesStore = signalStore(
         localStorage.setItem('whisper-notes', JSON.stringify(notes));
       },
       updateNote: (id: string, changes: Partial<Omit<Note, 'id'>>) => {
+        const notes = store.notes().map((note) => {
+          if (note.id !== id) return note;
+          const next = { ...note, ...changes };
+          if (typeof changes.body === 'string' && changes.body !== note.body) {
+            next.translations = translationsAfterBodyEdit(
+              note.translations,
+              changes.body,
+            );
+          }
+          return next;
+        });
+        persist(notes);
+      },
+      setTranslation: (id: string, lang: AppLang, translation: NoteTranslation) => {
         const notes = store
           .notes()
-          .map((note) => (note.id === id ? { ...note, ...changes } : note));
-        patchState(store, { notes });
-        localStorage.setItem('whisper-notes', JSON.stringify(notes));
+          .map((note) =>
+            note.id === id ? noteWithTranslation(note, lang, translation) : note,
+          );
+        persist(notes);
+      },
+      deleteTranslation: (id: string, lang: AppLang) => {
+        const notes = store
+          .notes()
+          .map((note) =>
+            note.id === id ? noteWithoutTranslation(note, lang) : note,
+          );
+        persist(notes);
       },
       reorderNotes: (fromIndex: number, toIndex: number) => {
         const notes = [...store.notes()];
@@ -228,6 +271,7 @@ export const NotesStore = signalStore(
       clearError: () => {
         patchState(store, { error: null });
       },
-    }),
+    };
+    },
   ),
 );

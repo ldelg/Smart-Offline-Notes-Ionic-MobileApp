@@ -36,12 +36,9 @@
       "themeSystem": "Système"
     },
     "transcription": {
-      "subtitle": "Langue et tâche",
+      "subtitle": "Langue",
       "title": "Mode de transcription",
-      "selectSource": "Sélectionnez la langue source",
-      "selectTask": "Sélectionnez la tâche à effectuer",
-      "transcribe": "Transcrire",
-      "translate": "Traduire en anglais"
+      "selectSource": "Sélectionnez la langue source"
     },
     "network": {
       "subtitle": "État du réseau",
@@ -123,6 +120,27 @@
         "deletedHeader": "Modèle supprimé",
         "deletedMessage": "Ce modèle a été supprimé. Vos notes et les autres modèles téléchargés sont conservés."
       }
+    },
+    "translation": {
+      "subtitle": "Sur ce téléphone",
+      "title": "Traduction",
+      "auto": "Traduire les nouvelles notes",
+      "autoOff": "Désactivé",
+      "autoHelp": "Quand une note est enregistrée, elle est aussi traduite. L’original reste sur la note.",
+      "packs": "Packs de langue",
+      "packsEmpty": "Aucun pack pour l’instant. Ils se téléchargent la première fois que vous traduisez.",
+      "packDelete": "Supprimer le pack",
+      "deleteHeader": "Supprimer le pack de langue ?",
+      "deleteMessage": "Il est retiré de ce téléphone. Les traductions déjà enregistrées dans les notes sont conservées.",
+      "engine": "Moteur de traduction",
+      "credit": "Bergamot (Firefox Translations) tourne sur ce téléphone. Les packs viennent de Mozilla."
+    },
+    "about": {
+      "subtitle": "À propos",
+      "title": "Licences",
+      "body": "La traduction automatique utilise le moteur Bergamot et les modèles Firefox Translations de Mozilla, sous la Mozilla Public License 2.0. Le moteur et les packs sont téléchargés depuis Mozilla. Les notes restent sur ce téléphone.",
+      "source": "Source et licence du projet",
+      "license": "Licence MPL 2.0"
     }
   },
   "create": {
@@ -217,7 +235,8 @@
       "pin": "Épingler la note",
       "unpin": "Désépingler la note",
       "share": "Partager la note",
-      "delete": "Supprimer la note"
+      "delete": "Supprimer la note",
+      "translate": "Traduire"
     },
     "pinned": "Épinglée",
     "tags": {
@@ -233,7 +252,10 @@
       "copiedHeader": "Copié",
       "copiedMessage": "La note a été copiée dans le presse-papiers.",
       "failedHeader": "Partage impossible",
-      "failedMessage": "La note n'a pas pu être partagée ni copiée."
+      "failedMessage": "La note n'a pas pu être partagée ni copiée.",
+      "choose": "Partager",
+      "include": "Choisissez quoi inclure",
+      "nothing": "Choisissez au moins une partie à partager."
     },
     "editor": {
       "editing": "Modification",
@@ -247,6 +269,28 @@
       "minutes": "min",
       "hours": "h",
       "days": "j"
+    },
+    "translate": {
+      "original": "Original",
+      "add": "Traduire",
+      "machine": "Traduction automatique",
+      "stale": "La note d’origine a changé. Cette traduction peut être dépassée.",
+      "update": "Mettre à jour la traduction",
+      "delete": "Supprimer la traduction",
+      "pickSource": "Langue source",
+      "pickTarget": "Traduire vers",
+      "downloadHeader": "Télécharger le pack de langue ?",
+      "downloadMessage": "{pack} sera téléchargé une fois depuis Mozilla (environ {size}) et enregistré sur ce téléphone. Ensuite, la traduction fonctionne hors ligne.",
+      "downloadConfirm": "Télécharger",
+      "cancel": "Annuler",
+      "progressDownload": "Téléchargement du pack de langue",
+      "progressLoad": "Chargement de la traduction",
+      "progressTranslate": "Traduction",
+      "failedHeader": "Échec de la traduction",
+      "failedMessage": "La note n’a pas pu être traduite. Si le pack de langue n’est pas encore sur le téléphone, vérifiez la connexion.",
+      "offlineHeader": "Hors ligne",
+      "offlineMessage": "Vous êtes hors ligne et ce pack de langue n’est pas sur le téléphone.",
+      "noMore": "Cette note a déjà une traduction pour chaque autre langue."
     }
   }
 }

@@ -1,0 +1,91 @@
+name: Translation debug APK
+
+# One plain APK on a prerelease. The tag is test-translation-debug,
+# which does not match the Play workflow (v* only) and is not marked latest.
+on:
+  push:
+    tags:
+      - "test-translation-debug"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Install npm dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web app
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+      - name: Capacitor sync
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Assemble debug APK
+        working-directory: frontend/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Check the debug id and name
+        run: |
+          set -euo pipefail
+          SRC="frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/aapt" dump badging "$SRC" | tee /tmp/badging.txt
+          grep -F "name='io.ldelg.smartofflinenotes.debug'" /tmp/badging.txt
+          grep -F "SmartNotes Debug" /tmp/badging.txt
+          cp "$SRC" SmartNotes-Debug-translation.apk
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          NOTES="Side-by-side debug build for on-device translation. Install SmartNotes-Debug-translation.apk directly. Package id io.ldelg.smartofflinenotes.debug, launcher name SmartNotes Debug. This prerelease is not Latest and does not publish to Play."
+          if gh release view test-translation-debug >/dev/null 2>&1; then
+            gh release upload test-translation-debug SmartNotes-Debug-translation.apk --clobber
+            gh release edit test-translation-debug \
+              --prerelease \
+              --latest=false \
+              --draft=false \
+              --title "Test build: on-device translation" \
+              --target "${GITHUB_SHA}" \
+              --notes "$NOTES"
+          else
+            gh release create test-translation-debug SmartNotes-Debug-translation.apk \
+              --prerelease \
+              --latest=false \
+              --title "Test build: on-device translation" \
+              --target "${GITHUB_SHA}" \
+              --notes "$NOTES"
+          fi

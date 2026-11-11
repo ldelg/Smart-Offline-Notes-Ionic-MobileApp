@@ -1,4 +1,5 @@
 import { Note } from '../models/note.model';
+import { normalizeTranslations } from '../services/note-translations';
 
 const MAX_TAG_LENGTH = 40;
 const MAX_TAGS = 20;
@@ -64,6 +65,9 @@ export function normalizeStoredNote(value: unknown): Note | null {
   } else {
     delete note.duration;
   }
+  const translations = normalizeTranslations(raw['translations'], raw['body']);
+  if (translations) note.translations = translations;
+  else delete note.translations;
   return note;
 }
 
@@ -190,7 +194,10 @@ export function filterNotes(
       if (!tags.some((item) => tagKey(item) === selected)) return false;
     }
     if (!term) return true;
-    const haystack = [note.title, note.body, ...(note.tags ?? [])]
+    const translated = Object.values(note.translations ?? {})
+      .map((item) => item?.text ?? '')
+      .filter(Boolean);
+    const haystack = [note.title, note.body, ...translated, ...(note.tags ?? [])]
       .join('\n')
       .toLocaleLowerCase();
     return haystack.includes(term);

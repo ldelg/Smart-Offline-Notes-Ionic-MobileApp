@@ -1,0 +1,21 @@
+Bergamot translator glue
+========================
+
+frontend/src/assets/bergamot/bergamot-translator.js is the Emscripten glue
+for Bergamot / Firefox Translations, generated from
+https://github.com/mozilla/translations (v0.6.0+eea6e5a8) and vendored from
+https://github.com/mozilla-firefox/firefox/tree/main/toolkit/components/translations/bergamot-translator
+
+It is Mozilla Public License 2.0. The license text is in LICENSE next to
+this notice.
+
+The WASM engine and the Firefox Translations model files are not stored in
+this repository. The app downloads them from Mozilla's Firefox Remote
+Settings attachment CDN:
+
+https://firefox-settings-attachments.cdn.mozilla.net/
+
+- translations-wasm, bergamot-translator version 3.0 (release v0.6.0), MPL-2.0
+- translations-models-v2, base-memory version 3.0, MPL-2.0
+
+See the project README for checksums and the language pairs.

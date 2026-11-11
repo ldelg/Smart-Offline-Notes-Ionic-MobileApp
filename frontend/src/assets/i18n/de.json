@@ -36,12 +36,9 @@
       "themeSystem": "System"
     },
     "transcription": {
-      "subtitle": "Sprache und Aufgabe",
+      "subtitle": "Sprache",
       "title": "Transkriptionsmodus",
-      "selectSource": "Wählen Sie die Quellsprache",
-      "selectTask": "Wählen Sie die Aufgabe",
-      "transcribe": "Transkribieren",
-      "translate": "Ins Englische übersetzen"
+      "selectSource": "Wählen Sie die Quellsprache"
     },
     "network": {
       "subtitle": "Netzwerkstatus",
@@ -123,6 +120,27 @@
         "deletedHeader": "Modell gelöscht",
         "deletedMessage": "Dieses Modell wurde entfernt. Ihre Notizen und die anderen heruntergeladenen Modelle bleiben erhalten."
       }
+    },
+    "translation": {
+      "subtitle": "Auf diesem Telefon",
+      "title": "Übersetzung",
+      "auto": "Neue Notizen übersetzen",
+      "autoOff": "Aus",
+      "autoHelp": "Beim Speichern einer Notiz wird sie zusätzlich übersetzt. Das Original bleibt erhalten.",
+      "packs": "Sprachpakete",
+      "packsEmpty": "Noch keine Sprachpakete. Sie werden beim ersten Übersetzen geladen.",
+      "packDelete": "Sprachpaket löschen",
+      "deleteHeader": "Sprachpaket löschen?",
+      "deleteMessage": "Es wird von diesem Telefon entfernt. Übersetzungen, die schon in Notizen gespeichert sind, bleiben erhalten.",
+      "engine": "Übersetzungsmodul",
+      "credit": "Bergamot (Firefox Translations) läuft auf diesem Telefon. Die Sprachpakete kommen von Mozilla."
+    },
+    "about": {
+      "subtitle": "Info",
+      "title": "Lizenzen",
+      "body": "Die maschinelle Übersetzung nutzt die Bergamot-Engine und die Firefox-Translations-Modelle von Mozilla unter der Mozilla Public License 2.0. Engine und Sprachpakete werden von Mozilla geladen. Notizen bleiben auf diesem Telefon.",
+      "source": "Quellcode und Lizenz",
+      "license": "MPL-2.0-Lizenz"
     }
   },
   "create": {
@@ -217,7 +235,8 @@
       "pin": "Notiz anheften",
       "unpin": "Anheftung aufheben",
       "share": "Notiz teilen",
-      "delete": "Notiz löschen"
+      "delete": "Notiz löschen",
+      "translate": "Übersetzen"
     },
     "pinned": "Angeheftet",
     "tags": {
@@ -233,7 +252,10 @@
       "copiedHeader": "Kopiert",
       "copiedMessage": "Die Notiz wurde in die Zwischenablage kopiert.",
       "failedHeader": "Teilen fehlgeschlagen",
-      "failedMessage": "Die Notiz konnte weder geteilt noch kopiert werden."
+      "failedMessage": "Die Notiz konnte weder geteilt noch kopiert werden.",
+      "choose": "Teilen",
+      "include": "Auswählen, was geteilt wird",
+      "nothing": "Wähle mindestens einen Teil zum Teilen."
     },
     "editor": {
       "editing": "Bearbeiten",
@@ -247,6 +269,28 @@
       "minutes": "Min.",
       "hours": "Std.",
       "days": "T."
+    },
+    "translate": {
+      "original": "Original",
+      "add": "Übersetzen",
+      "machine": "Maschinelle Übersetzung",
+      "stale": "Die ursprüngliche Notiz hat sich geändert. Diese Übersetzung kann veraltet sein.",
+      "update": "Übersetzung aktualisieren",
+      "delete": "Übersetzung löschen",
+      "pickSource": "Ausgangssprache",
+      "pickTarget": "Übersetzen nach",
+      "downloadHeader": "Sprachpaket herunterladen?",
+      "downloadMessage": "{pack} wird einmal von Mozilla geladen (etwa {size}) und auf diesem Telefon gespeichert. Danach funktioniert die Übersetzung offline.",
+      "downloadConfirm": "Herunterladen",
+      "cancel": "Abbrechen",
+      "progressDownload": "Sprachpaket wird geladen",
+      "progressLoad": "Übersetzung wird geladen",
+      "progressTranslate": "Übersetzen",
+      "failedHeader": "Übersetzung fehlgeschlagen",
+      "failedMessage": "Die Notiz konnte nicht übersetzt werden. Wenn das Sprachpaket noch nicht auf dem Telefon ist, prüfe die Verbindung.",
+      "offlineHeader": "Offline",
+      "offlineMessage": "Du bist offline und dieses Sprachpaket ist noch nicht auf dem Telefon.",
+      "noMore": "Diese Notiz hat schon eine Übersetzung für jede andere Sprache."
     }
   }
 }

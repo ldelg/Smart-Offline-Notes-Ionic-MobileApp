@@ -38,6 +38,26 @@ export async function copyText(text: string): Promise<void> {
   if (!copied) throw new Error('Clipboard is not available');
 }
 
+export interface SharePiece {
+  heading: string;
+  text: string;
+  kind: 'original' | 'translation';
+}
+
+/** One original part is shared as plain text. Anything else is labelled. */
+export function composeShareText(parts: readonly SharePiece[]): string {
+  const usable = parts
+    .map((part) => ({
+      heading: part.heading.trim(),
+      text: part.text.trim(),
+      kind: part.kind,
+    }))
+    .filter((part) => part.text);
+  if (!usable.length) return '';
+  if (usable.length === 1 && usable[0].kind === 'original') return usable[0].text;
+  return usable.map((part) => `${part.heading}\n${part.text}`).join('\n\n');
+}
+
 /**
  * Opens the native share sheet. When the platform cannot share, or the sheet
  * fails for a reason other than the user dismissing it, copies the text.

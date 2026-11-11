@@ -37,6 +37,7 @@ import { TranscriptionService } from '../services/transcription.service';
 import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { TranslationStore } from '../store/translation.store';
+import { AutoTranslateService } from '../services/auto-translate.service';
 
 @Component({
   selector: 'app-create',
@@ -65,6 +66,7 @@ export class CreatePage {
   protected readonly store = inject(NotesStore);
   private readonly networkService = inject(NetworkService);
   private readonly settings = inject(SettingsStore);
+  private readonly autoTranslate = inject(AutoTranslateService);
   private readonly transcriptionService = inject(TranscriptionService);
   private readonly alertController = inject(AlertController);
   private readonly translationStore = inject(TranslationStore);
@@ -86,6 +88,7 @@ export class CreatePage {
   private chunks: BlobPart[] = [];
 
   constructor() {
+    void this.autoTranslate;
     addIcons({
       micOutline,
       stopCircleOutline,

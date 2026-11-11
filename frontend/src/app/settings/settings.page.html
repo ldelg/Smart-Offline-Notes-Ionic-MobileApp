@@ -120,28 +120,61 @@
             }
           </ion-select>
         </ion-item>
-
-        <ion-item lines="full">
-          <ion-label position="stacked"
-            >{{ 'settings.transcription.selectTask' | translate }}</ion-label
-          >
-          <ion-select
-            [value]="task()"
-            interface="popover"
-            [interfaceOptions]="settingsSelectInterfaceOptions"
-            (ionChange)="onTaskChange($event.detail.value)"
-          >
-            <ion-select-option value="transcribe">
-              {{ 'settings.transcription.transcribe' | translate }}
-            </ion-select-option>
-            <ion-select-option value="translate">
-              {{ 'settings.transcription.translate' | translate }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
       </ion-card-content>
     </ion-card>
     }
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>{{ 'settings.translation.subtitle' | translate }}</ion-card-subtitle>
+        <ion-card-title>{{ 'settings.translation.title' | translate }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="full">
+          <ion-label position="stacked">{{ 'settings.translation.auto' | translate }}</ion-label>
+          <ion-select
+            [value]="autoTranslateTo() || 'off'"
+            interface="popover"
+            [interfaceOptions]="settingsSelectInterfaceOptions"
+            (ionChange)="onAutoTranslateChange($event.detail.value)"
+          >
+            <ion-select-option value="off">
+              {{ 'settings.translation.autoOff' | translate }}
+            </ion-select-option>
+            @for (lang of translatedUiLanguages(); track lang.id) {
+            <ion-select-option [value]="lang.id">{{ lang.label }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        <p class="model-status">{{ 'settings.translation.autoHelp' | translate }}</p>
+        <p class="model-status">{{ 'settings.translation.credit' | translate }}</p>
+      </ion-card-content>
+      <ion-list lines="full" class="delete-list">
+        <ion-list-header>
+          <ion-label>{{ 'settings.translation.packs' | translate }}</ion-label>
+        </ion-list-header>
+        @if (!translationPacks().length) {
+        <ion-item lines="none">
+          <ion-label>
+            <ion-note>{{ 'settings.translation.packsEmpty' | translate }}</ion-note>
+          </ion-label>
+        </ion-item>
+        }
+        @for (pack of translationPacks(); track pack.id) {
+        <ion-item
+          button
+          detail="false"
+          class="danger-row"
+          (click)="deleteLanguagePack(pack)"
+        >
+          <ion-label>
+            <h2>{{ langLabel(pack.src) }} → {{ langLabel(pack.tgt) }}</h2>
+            <ion-note>{{ packSize(pack.bytes) }} · {{ 'settings.translation.packDelete' | translate }}</ion-note>
+          </ion-label>
+        </ion-item>
+        }
+      </ion-list>
+    </ion-card>
 
     <ion-card class="glass-card">
       <ion-card-header>
@@ -244,6 +277,24 @@
           (change)="handleFileImport($event)"
           style="display: none"
         />
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="glass-card">
+      <ion-card-header>
+        <ion-card-subtitle>{{ 'settings.about.subtitle' | translate }}</ion-card-subtitle>
+        <ion-card-title>{{ 'settings.about.title' | translate }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="data-description">{{ 'settings.about.body' | translate }}</p>
+        <div class="data-actions">
+          <ion-button expand="block" fill="outline" class="data-button" (click)="openAboutLink('https://github.com/mozilla/translations')">
+            {{ 'settings.about.source' | translate }}
+          </ion-button>
+          <ion-button expand="block" fill="outline" class="data-button" (click)="openAboutLink('https://www.mozilla.org/MPL/2.0/')">
+            {{ 'settings.about.license' | translate }}
+          </ion-button>
+        </div>
       </ion-card-content>
     </ion-card>
 

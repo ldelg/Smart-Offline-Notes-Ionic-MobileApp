@@ -50,14 +50,33 @@ export class TranscriptionService {
   private progressTimer: ReturnType<typeof setTimeout> | null = null;
   private requestSeq = 0;
   private activeHandler?: (event: MessageEvent) => void;
+  private readonly beforeStart: Array<() => void> = [];
 
   constructor() {
-    if (typeof Worker !== 'undefined') {
+    this.ensureWorker();
+  }
+
+  /** Drops the speech model before translation loads its own WASM heap. */
+  releaseModels(): void {
+    this.detachActiveHandler();
+    this.requestSeq += 1;
+    this.stopProgress();
+    this.worker?.terminate();
+    this.worker = undefined;
+  }
+
+  registerBeforeStart(hook: () => void): void {
+    this.beforeStart.push(hook);
+  }
+
+  private ensureWorker(): Worker | undefined {
+    if (!this.worker && typeof Worker !== 'undefined') {
       this.worker = new Worker(
         new URL('./transcription.worker', import.meta.url),
         { type: 'module' },
       );
     }
+    return this.worker;
   }
 
   transcribe(file: File): Observable<TranscriptionUpdate> {
@@ -66,6 +85,8 @@ export class TranscriptionService {
       const start = performance.now();
 
       this.resetProgress();
+      for (const hook of this.beforeStart) hook();
+      this.ensureWorker();
 
       if (!this.worker) {
         subscriber.error(
@@ -166,7 +187,7 @@ export class TranscriptionService {
     const model = this.settings.model();
     const multilingual = this.settings.multilingual();
     const language = multilingual ? this.settings.language() : null;
-    const subtask = multilingual ? this.settings.task() : null;
+    const subtask = multilingual ? 'transcribe' : null;
     const isOnline = this.networkService.getStatus();
     const lastUsedModel = this.settings.lastUsedModel();
 
