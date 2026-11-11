@@ -2,6 +2,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { AppLang } from '../models/translation.model';
 import { TranscriptionService } from './transcription.service';
 import { LangPair, translationRoute } from './translation-route';
+import {
+  copiedSourceWord,
+  extractMarkedTitle,
+  frameTitle,
+  polishTitle,
+} from './translation-title';
 import { packIdsForLanguage } from './translation-languages';
 import { CatalogPack } from './translation-catalog';
 import {
@@ -158,12 +164,44 @@ export class TranslationService {
     await this.refreshInstalled();
   }
 
+  /**
+   * Translates a short title inside a sentence so word order can change,
+   * then reads the marked span back out. The note body is never part of
+   * this call. A copied source word is tried once more with an article,
+   * and a lost mark falls back to translating the title on its own.
+   */
+  async translateTitle(
+    title: string,
+    src: AppLang,
+    tgt: AppLang,
+    noteId: string | null,
+    quiet = false,
+  ): Promise<string> {
+    const primary = polishTitle(
+      title,
+      extractMarkedTitle(await this.translate(frameTitle(title, src), src, tgt, noteId, quiet, true)),
+    );
+    if (primary && !copiedSourceWord(title, primary)) return primary;
+    if (src === 'en') {
+      const retry = polishTitle(
+        title,
+        extractMarkedTitle(
+          await this.translate(frameTitle(title, src, true), src, tgt, noteId, quiet, true),
+        ),
+      );
+      if (retry && !copiedSourceWord(title, retry)) return retry;
+    }
+    const plain = (await this.translate(title, src, tgt, noteId, quiet)).trim();
+    return plain || title;
+  }
+
   async translate(
     text: string,
     src: AppLang,
     tgt: AppLang,
     noteId: string | null,
     quiet = false,
+    html = false,
   ): Promise<string> {
     const route = translationRoute(src, tgt);
     if (!route.length) return text;
@@ -234,6 +272,7 @@ export class TranslationService {
           text,
           sourceLang: src,
           targetLang: tgt,
+          html,
           hops: route.map((pair) => ({ id: pair.id })),
           wasm: wasm ?? undefined,
           models,

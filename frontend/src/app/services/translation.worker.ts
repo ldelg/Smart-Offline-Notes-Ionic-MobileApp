@@ -18,6 +18,7 @@ interface TranslateMessage {
   text: string;
   sourceLang?: AppLang;
   targetLang?: AppLang;
+  html?: boolean;
   hops: { id: string }[];
   wasm?: ArrayBuffer;
   models?: ModelPayload[];
@@ -95,11 +96,11 @@ function loadModel(payload: ModelPayload): void {
   loaded.set(payload.id, model);
 }
 
-function translateBlocking(text: string, hops: { id: string }[]): string {
+function translateBlocking(text: string, hops: { id: string }[], html = false): string {
   const messages = new bergamot.VectorString();
   const options = new bergamot.VectorResponseOptions();
   messages.push_back(text);
-  options.push_back({ qualityScores: false, alignment: false, html: false });
+  options.push_back({ qualityScores: false, alignment: false, html });
   const first = loaded.get(hops[0].id);
   const response =
     hops.length === 1
@@ -118,13 +119,19 @@ async function translateNote(
   jobId: number,
   source: AppLang | null,
   target: AppLang | null,
+  html = false,
 ): Promise<string> {
   const protectedText = protectNumbers(text);
+  if (html) {
+    const translated = translateBlocking(protectedText.text, hops, true);
+    post({ status: 'progress', jobId, phase: 'translate', percent: 100 });
+    return restoreNumbers(translated, protectedText.numbers, source, target);
+  }
   const pieces = segmentForTranslation(protectedText.text);
   if (!pieces.length) return '';
   const translated: string[] = [];
   for (let index = 0; index < pieces.length; index++) {
-    translated.push(translateBlocking(pieces[index].text, hops));
+    translated.push(translateBlocking(pieces[index].text, hops, false));
     post({
       status: 'progress',
       jobId,
@@ -160,7 +167,14 @@ self.addEventListener('message', (event: MessageEvent<TranslateMessage>) => {
       }
       const source = isAppLang(message.sourceLang) ? message.sourceLang : null;
       const target = isAppLang(message.targetLang) ? message.targetLang : null;
-      const text = await translateNote(message.text, message.hops, jobId, source, target);
+      const text = await translateNote(
+        message.text,
+        message.hops,
+        jobId,
+        source,
+        target,
+        message.html === true,
+      );
       post({ status: 'complete', jobId, text });
     } catch (error) {
       post({

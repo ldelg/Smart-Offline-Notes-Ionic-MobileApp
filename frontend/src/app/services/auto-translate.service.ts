@@ -56,7 +56,7 @@ export class AutoTranslateService {
       await this.translation.ensurePacks(route, note.id, bytes);
       const current = this.notes.notes().find((item) => item.id === id) ?? note;
       const translatedTitle = current.title.trim()
-        ? (await this.translation.translate(current.title, source, target, note.id)).trim()
+        ? (await this.translation.translateTitle(current.title, source, target, note.id)).trim()
         : '';
       const midway = this.notes.notes().find((item) => item.id === id);
       if (!midway || midway.title !== current.title || midway.body !== current.body) return;

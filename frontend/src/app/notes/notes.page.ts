@@ -511,7 +511,7 @@ export class NotesPage {
       await this.machine.ensurePacks(route, noteId, total);
       const current = this.store.notes().find((item) => item.id === noteId) ?? note;
       const translatedTitle = current.title.trim()
-        ? (await this.machine.translate(current.title, source, target, noteId)).trim()
+        ? (await this.machine.translateTitle(current.title, source, target, noteId)).trim()
         : '';
       const midway = this.store.notes().find((item) => item.id === noteId);
       if (!midway || midway.title !== current.title || midway.body !== current.body) return;
@@ -592,7 +592,7 @@ export class NotesPage {
     this.titleJobs.add(key);
     try {
       const translated = (
-        await this.machine.translate(note.title, item.sourceLang, lang, note.id, true)
+        await this.machine.translateTitle(note.title, item.sourceLang, lang, note.id, true)
       ).trim();
       const current = this.store.notes().find((entry) => entry.id === note.id);
       const still = current?.translations?.[lang];
