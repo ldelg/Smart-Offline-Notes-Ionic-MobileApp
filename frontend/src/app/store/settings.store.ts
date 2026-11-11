@@ -26,7 +26,10 @@ const theme: ThemePreference =
     : 'system';
 
 const initialState: SettingsState = {
-  model: 'Xenova/whisper-tiny',
+  // New installs use Whisper base. It stays multilingual, and at q8 it
+  // punctuates without the tiny model's loops and cut-off text. A model
+  // already saved in localStorage still wins via the spread below.
+  model: 'Xenova/whisper-base',
   multilingual: false,
   quantized: true,
   language: 'english',

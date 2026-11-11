@@ -24,6 +24,7 @@ import {
   IonNote,
   IonTextarea,
   IonInput,
+  AlertController,
 } from '@ionic/angular/standalone';
 import {
   FormsModule,
@@ -36,12 +37,17 @@ import { NotesStore } from '../store/notes.store';
 import { SettingsStore } from '../store/settings.store';
 import { Note } from '../models/note.model';
 import { TranslationStore } from '../store/translation.store';
+import { collectTags, filterNotes } from '../store/notes-list';
+import { sharePlainText } from '../services/note-share';
 import { addIcons } from 'ionicons';
 import {
   trashOutline,
   expandOutline,
   closeOutline,
   saveOutline,
+  pin,
+  pinOutline,
+  shareOutline,
 } from 'ionicons/icons';
 
 @Component({
@@ -75,9 +81,13 @@ export class NotesPage {
   private readonly store = inject(NotesStore);
   private readonly settings = inject(SettingsStore);
   protected readonly translationStore = inject(TranslationStore);
+  private readonly alertController = inject(AlertController);
   protected readonly hasNotes = computed(() => this.store.notes().length > 0);
   private readonly fb = inject(FormBuilder);
   protected readonly searchTerm = signal('');
+  protected readonly activeTag = signal<string | null>(null);
+  protected readonly tagDraft = signal('');
+  private loadedFormNoteId: string | null = null;
   protected readonly openTabIds = signal<string[]>([]);
   protected readonly activeTabId = signal<string | null>(null);
   @ViewChild('noteCarousel', { static: false })
@@ -88,17 +98,10 @@ export class NotesPage {
     body: ['', [Validators.required, Validators.minLength(1)]],
   });
 
-  protected readonly filteredNotes = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    if (!term) return this.store.notes();
-    return this.store
-      .notes()
-      .filter(
-        (note) =>
-          note.title.toLowerCase().includes(term) ||
-          note.body.toLowerCase().includes(term),
-      );
-  });
+  protected readonly availableTags = computed(() => collectTags(this.store.notes()));
+  protected readonly filteredNotes = computed(() =>
+    filterNotes(this.store.notes(), this.searchTerm(), this.activeTag()),
+  );
 
   protected readonly activeNote = computed(() => {
     const id = this.activeTabId();
@@ -107,19 +110,41 @@ export class NotesPage {
   });
 
   constructor() {
-    addIcons({ trashOutline, expandOutline, closeOutline, saveOutline });
+    addIcons({
+      trashOutline,
+      expandOutline,
+      closeOutline,
+      saveOutline,
+      pin,
+      pinOutline,
+      shareOutline,
+    });
     this.store.loadNotes();
 
     effect(() => {
+      const selected = this.activeTag();
+      if (!selected) return;
+      const stillThere = this.availableTags().some(
+        (tag) => tag.toLocaleLowerCase() === selected.toLocaleLowerCase(),
+      );
+      if (!stillThere) this.activeTag.set(null);
+    });
+
+    effect(() => {
       const note = this.activeNote();
-      if (note) {
-        this.editForm.patchValue(
-          { title: note.title, body: note.body },
-          { emitEvent: false },
-        );
-      } else {
+      if (!note) {
+        this.loadedFormNoteId = null;
+        this.tagDraft.set('');
         this.editForm.reset();
+        return;
       }
+      if (this.loadedFormNoteId === note.id) return;
+      this.loadedFormNoteId = note.id;
+      this.tagDraft.set('');
+      this.editForm.patchValue(
+        { title: note.title, body: note.body },
+        { emitEvent: false },
+      );
     });
   }
 
@@ -161,8 +186,75 @@ export class NotesPage {
 
   protected openNoteFromCard(event: Event, id: string): void {
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.note-actions')) return;
+    if (target?.closest('.note-actions, .tag-row, .tag-chip')) return;
     this.openNote(id);
+  }
+
+  protected tagIsActive(tag: string): boolean {
+    const selected = this.activeTag();
+    return !!selected && selected.toLocaleLowerCase() === tag.toLocaleLowerCase();
+  }
+
+  protected setTagFilter(tag: string | null): void {
+    this.activeTag.set(tag);
+  }
+
+  protected filterByTag(tag: string, event: Event): void {
+    event.stopPropagation();
+    this.activeTag.set(this.tagIsActive(tag) ? null : tag);
+  }
+
+  protected togglePin(note: Note, event?: Event): void {
+    event?.stopPropagation();
+    this.store.setPinned(note.id, !note.pinned);
+  }
+
+  protected addActiveTag(event?: Event): void {
+    event?.preventDefault();
+    const id = this.activeTabId();
+    if (!id) return;
+    this.store.addTag(id, this.tagDraft());
+    this.tagDraft.set('');
+  }
+
+  protected removeTag(tag: string): void {
+    const id = this.activeTabId();
+    if (!id) return;
+    this.store.removeTag(id, tag);
+  }
+
+  protected async shareNote(note: Note, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    const text = note.body.trim() || note.title.trim();
+    if (!text) return;
+    try {
+      const result = await sharePlainText({
+        title: note.title.trim() || text.slice(0, 60),
+        text,
+        dialogTitle: this.translationStore.t('notes.share.dialogTitle'),
+      });
+      if (result === 'copied') {
+        await this.showAlert(
+          this.translationStore.t('notes.share.copiedHeader'),
+          this.translationStore.t('notes.share.copiedMessage'),
+        );
+      }
+    } catch (error) {
+      console.error('Share failed', error);
+      await this.showAlert(
+        this.translationStore.t('notes.share.failedHeader'),
+        this.translationStore.t('notes.share.failedMessage'),
+      );
+    }
+  }
+
+  private async showAlert(header: string, message: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [this.translationStore.t('create.alerts.ok')],
+    });
+    await alert.present();
   }
 
   protected deleteNote(id: string): void {

@@ -161,7 +161,7 @@ ion-searchbar {
   overflow: hidden;
   overflow-wrap: break-word;
   word-break: break-word;
-  white-space: normal;
+  white-space: pre-line;
 }
 
 .note-item ion-label {
@@ -170,8 +170,8 @@ ion-searchbar {
 }
 
 .note-actions {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 36px);
   flex-shrink: 0;
 }
 
@@ -183,8 +183,14 @@ ion-searchbar {
   width: 36px;
 }
 
-.note-expand {
+.note-expand,
+.note-pin,
+.note-share {
   --color: var(--app-text-muted);
+}
+
+.note-pin.is-pinned {
+  --color: var(--app-primary);
 }
 
 .editor-stage {

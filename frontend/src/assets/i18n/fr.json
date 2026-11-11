@@ -207,13 +207,33 @@
       "title": "Aucune note pour l'instant",
       "description": "Créez votre première note dans l'onglet Créer",
       "action": "Enregistrer une note",
-      "noMatches": "Aucune note ne correspond à la recherche."
+      "noMatches": "Aucune note ne correspond à la recherche.",
+      "noTagged": "Aucune note avec cette étiquette."
     },
     "actions": {
       "closeTab": "Fermer l'onglet de note",
       "dragReorder": "Glisser pour réorganiser",
       "open": "Ouvrir la note",
+      "pin": "Épingler la note",
+      "unpin": "Désépingler la note",
+      "share": "Partager la note",
       "delete": "Supprimer la note"
+    },
+    "pinned": "Épinglée",
+    "tags": {
+      "label": "Étiquettes",
+      "placeholder": "Ajouter une étiquette",
+      "add": "Ajouter",
+      "remove": "Retirer l'étiquette",
+      "all": "Toutes",
+      "filter": "Filtrer par étiquette"
+    },
+    "share": {
+      "dialogTitle": "Partager la note",
+      "copiedHeader": "Copié",
+      "copiedMessage": "La note a été copiée dans le presse-papiers.",
+      "failedHeader": "Partage impossible",
+      "failedMessage": "La note n'a pas pu être partagée ni copiée."
     },
     "editor": {
       "editing": "Modification",
