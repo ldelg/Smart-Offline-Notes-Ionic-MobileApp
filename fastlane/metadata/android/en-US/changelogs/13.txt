@@ -1,0 +1,1 @@
+Transcripts keep punctuation and break into paragraphs at pauses. Notes can be pinned, tagged, shared, and reordered. Version 1.5.0.
