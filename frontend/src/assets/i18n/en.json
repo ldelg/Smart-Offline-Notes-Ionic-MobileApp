@@ -138,9 +138,12 @@
       "packsEmpty": "No language packs yet. They download the first time you translate.",
       "packDelete": "Delete language pack",
       "deleteHeader": "Delete language pack?",
-      "deleteMessage": "This removes the pack from this phone. Translations already saved on notes are kept.",
+      "deleteMessage": "This removes the downloaded files for that language. Translations already saved on notes are kept.",
       "engine": "Translation engine",
-      "credit": "Bergamot (Firefox Translations) runs on this phone. Language packs come from Mozilla."
+      "credit": "Bergamot (Firefox Translations) runs on this phone. Language packs come from Mozilla.",
+      "languagesTitle": "Translation languages",
+      "helper": "Downloaded once, used for every pair. Works offline.",
+      "total": "Total"
     },
     "about": {
       "subtitle": "About",
@@ -297,7 +300,16 @@
       "failedMessage": "The note could not be translated. If the language pack is not on the phone yet, check your connection.",
       "offlineHeader": "Offline",
       "offlineMessage": "You are offline and this language pack is not on the phone yet.",
-      "noMore": "This note already has a translation for every other language."
+      "noMore": "This note already has a translation for every other language.",
+      "outOfDate": "Out of date",
+      "ready": "Ready",
+      "downloadAmount": "Download {size}",
+      "needs": "{from} → {to} needs {langs}.",
+      "and": "and",
+      "downloadingAmount": "Downloading {done} / {total}, one time only",
+      "deleteHeader": "Delete translation?",
+      "deleteConfirm": "This removes the translation. The original note stays.",
+      "noteIn": "Note in {lang}"
     }
   }
 }

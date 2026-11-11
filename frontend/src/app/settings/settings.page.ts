@@ -69,8 +69,9 @@ import { TranslationStore } from '../store/translation.store';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { AutoTranslateService } from '../services/auto-translate.service';
 import { TranslationService } from '../services/translation.service';
-import { InstalledPack } from '../services/translation-cache';
 import { formatBytes } from '../services/translation-catalog';
+import { languageRows } from '../services/translation-languages';
+import { AppLang } from '../models/translation.model';
 import { isAppLang } from '../models/translation.model';
 import { BERGAMOT_CACHE } from '../services/bergamot-cache';
 
@@ -177,7 +178,10 @@ export class SettingsPage implements ViewWillEnter {
   readonly language = computed(() => this.settings.language());
   readonly lastUsedModel = computed(() => this.settings.lastUsedModel());
   readonly autoTranslateTo = computed(() => this.settings.autoTranslateTo());
-  readonly translationPacks = computed(() => this.machine.installed());
+  readonly translationLanguages = computed(() => languageRows(this.machine.installed()));
+  readonly translationTotal = computed(() =>
+    this.translationLanguages().reduce((sum, row) => sum + row.bytes, 0),
+  );
 
   readonly modelOptions: ModelOption[] = modelOptions;
   readonly multilingualModels = computed(() =>
@@ -296,19 +300,19 @@ export class SettingsPage implements ViewWillEnter {
     return formatBytes(bytes);
   }
 
-  async deleteLanguagePack(pack: InstalledPack) {
+  async deleteTranslationLanguage(lang: AppLang) {
     const alert = await this.alertController.create({
       header: this.t('settings.translation.deleteHeader'),
-      message: `${this.langLabel(pack.src)} → ${this.langLabel(pack.tgt)}. ${this.t('settings.translation.deleteMessage')}`,
+      message: `${this.langLabel(lang)}. ${this.t('settings.translation.deleteMessage')}`,
       buttons: [
         { text: this.t('settings.messages.common.cancel'), role: 'cancel' },
-        { text: this.t('settings.translation.packDelete'), role: 'confirm' },
+        { text: this.t('settings.translation.packDelete'), role: 'destructive' },
       ],
     });
     await alert.present();
     const { role } = await alert.onDidDismiss();
-    if (role !== 'confirm') return;
-    await this.machine.deletePack(pack.id);
+    if (role !== 'destructive' && role !== 'confirm') return;
+    await this.machine.deleteLanguage(lang);
   }
 
   async openAboutLink(url: string) {

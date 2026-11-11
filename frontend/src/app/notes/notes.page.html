@@ -267,9 +267,13 @@
                   type="button"
                   class="lang-chip"
                   [class.active]="viewLang(note) === lang"
+                  [class.stale]="note.translations?.[lang]?.stale"
                   (click)="showTranslation(note, lang)"
                 >
                   {{ lang.toUpperCase() }}
+                  @if (note.translations?.[lang]?.stale) {
+                  <span class="stale-tag">{{ translationStore.t('notes.translate.outOfDate') }}</span>
+                  }
                 </button>
                 }
                 <button
@@ -280,14 +284,28 @@
                   + {{ translationStore.t('notes.translate.add') }}
                 </button>
               </div>
+              @if (pickerFor(note.id)) {
+              <div class="translate-picker">
+                <p class="picker-heading">{{ translationStore.t('notes.translate.pickTarget') }}</p>
+                @if (pickerSource(); as source) {
+                <p class="picker-source">
+                  {{ translationStore.t('notes.translate.noteIn').replace('{lang}', langName(source)) }}
+                </p>
+                }
+                @for (choice of pickerChoices(); track choice.target) {
+                <button type="button" class="picker-row" (click)="chooseTarget(choice)">
+                  <span>{{ langName(choice.target) }}</span>
+                  <span class="picker-meta">{{ choiceLabel(choice) }}</span>
+                </button>
+                }
+              </div>
+              }
               @if (progressFor(note); as progress) {
               <div class="translate-progress">
-                <span>
-                  {{ progressLabel(progress) }}
-                  @if (progress.percent !== null) {
-                  {{ progress.percent }}%
-                  }
-                </span>
+                @if (needsLine(note.id)) {
+                <p class="needs-line">{{ needsLine(note.id) }}</p>
+                }
+                <span>{{ progressLabel(progress) }}</span>
                 <ion-progress-bar
                   [type]="progress.percent === null ? 'indeterminate' : 'determinate'"
                   [value]="(progress.percent ?? 0) / 100"
@@ -317,14 +335,15 @@
               <div class="mt-panel">
                 <p class="mt-label">{{ translationStore.t('notes.translate.machine') }}</p>
                 @if (activeTranslation(note)?.stale) {
-                <p class="mt-stale">{{ translationStore.t('notes.translate.stale') }}</p>
-                <button type="button" class="mt-action" (click)="retranslate(note)">
-                  <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
-                  {{ translationStore.t('notes.translate.update') }}
-                </button>
+                <p class="mt-quiet">
+                  <span class="stale-tag">{{ translationStore.t('notes.translate.outOfDate') }}</span>
+                  <button type="button" class="text-button" (click)="retranslate(note)">
+                    {{ translationStore.t('notes.translate.update') }}
+                  </button>
+                </p>
                 }
                 <p class="mt-body">{{ activeTranslation(note)?.text }}</p>
-                <button type="button" class="mt-action mt-delete" (click)="deleteTranslation(note)">
+                <button type="button" class="text-button" (click)="confirmDeleteTranslation(note)">
                   {{ translationStore.t('notes.translate.delete') }}
                 </button>
               </div>

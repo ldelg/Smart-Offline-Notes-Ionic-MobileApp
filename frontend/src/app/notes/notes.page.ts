@@ -59,6 +59,12 @@ import { AppLang, isAppLang } from '../models/translation.model';
 import { makeTranslation, storedSourceLanguage } from '../services/note-translations';
 import { detectLanguage } from '../services/translation-detect';
 import { formatBytes } from '../services/translation-catalog';
+import {
+  MissingLanguage,
+  TranslateChoice,
+  groupMissingByLanguage,
+  translateChoices,
+} from '../services/translation-languages';
 import { addIcons } from 'ionicons';
 import {
   trashOutline,
@@ -121,6 +127,15 @@ export class NotesPage {
   protected readonly openTabIds = signal<string[]>([]);
   protected readonly activeTabId = signal<string | null>(null);
   private readonly translationViews = signal<Record<string, AppLang | 'original'>>({});
+  protected readonly pickerOpen = signal(false);
+  protected readonly pickerChoices = signal<TranslateChoice[]>([]);
+  protected readonly pickerSource = signal<AppLang | null>(null);
+  protected readonly downloadPlan = signal<{
+    from: AppLang;
+    to: AppLang;
+    parts: MissingLanguage[];
+    total: number;
+  } | null>(null);
   @ViewChild('noteCarousel', { static: false })
   private noteCarousel?: ElementRef<HTMLDivElement>;
   private isScrollingProgrammatically = false;
@@ -318,11 +333,47 @@ export class NotesPage {
   }
 
   protected progressLabel(progress: TranslationProgress): string {
-    if (progress.phase === 'download') return this.translationStore.t('notes.translate.progressDownload');
+    if (progress.phase === 'download' && progress.totalBytes) {
+      const done = formatBytes(progress.loadedBytes ?? 0);
+      const total = formatBytes(progress.totalBytes);
+      return this.translationStore
+        .t('notes.translate.downloadingAmount')
+        .replace('{done}', done)
+        .replace('{total}', total);
+    }
+    if (progress.phase === 'download') {
+      return this.translationStore.t('notes.translate.progressDownload');
+    }
     if (progress.phase === 'translate') {
       return this.translationStore.t('notes.translate.progressTranslate');
     }
     return this.translationStore.t('notes.translate.progressLoad');
+  }
+
+  protected needsLine(noteId: string): string {
+    const plan = this.downloadPlan();
+    if (!plan || this.pickerNoteId !== noteId) return '';
+    const langs = plan.parts
+      .map((part) => `${this.langName(part.lang)} (${formatBytes(part.bytes)})`)
+      .join(` ${this.translationStore.t('notes.translate.and')} `);
+    return this.translationStore
+      .t('notes.translate.needs')
+      .replace('{from}', this.langName(plan.from))
+      .replace('{to}', this.langName(plan.to))
+      .replace('{langs}', langs);
+  }
+
+  protected choiceLabel(choice: TranslateChoice): string {
+    if (choice.ready) return this.translationStore.t('notes.translate.ready');
+    return this.translationStore
+      .t('notes.translate.downloadAmount')
+      .replace('{size}', formatBytes(choice.missingBytes));
+  }
+
+  private pickerNoteId: string | null = null;
+
+  protected pickerFor(noteId: string): boolean {
+    return this.pickerOpen() && this.pickerNoteId === noteId;
   }
 
   protected async translateNote(note: Note, event?: Event): Promise<void> {
@@ -343,23 +394,31 @@ export class NotesPage {
         detectLanguage(note.body),
       ));
     if (!source) return;
-    const targets = (['en', 'es', 'fr', 'de', 'it'] as const).filter(
-      (lang) => lang !== source && !note.translations?.[lang],
+    const already = new Set(this.translationLangs(note));
+    await this.machine.refreshInstalled();
+    const installed = new Set(this.machine.installed().map((pack) => pack.id));
+    const choices = translateChoices(source, installed).filter(
+      (choice) => !already.has(choice.target),
     );
-    if (!targets.length) {
+    if (!choices.length) {
       await this.showAlert(
         this.translationStore.t('notes.translate.add'),
         this.translationStore.t('notes.translate.noMore'),
       );
       return;
     }
-    const target = await this.pickLanguage(
-      this.translationStore.t('notes.translate.pickTarget'),
-      targets,
-      targets[0],
-    );
-    if (!target || target === source) return;
-    await this.runTranslation(note.id, source, target);
+    this.pickerNoteId = noteId;
+    this.pickerSource.set(source);
+    this.pickerChoices.set(choices);
+    this.pickerOpen.set(true);
+  }
+
+  protected async chooseTarget(choice: TranslateChoice): Promise<void> {
+    const source = this.pickerSource();
+    const noteId = this.pickerNoteId;
+    if (!source || !noteId) return;
+    this.pickerOpen.set(false);
+    await this.runTranslation(noteId, source, choice.target, choice);
   }
 
   protected async retranslate(note: Note): Promise<void> {
@@ -370,21 +429,43 @@ export class NotesPage {
     await this.runTranslation(note.id, source, lang);
   }
 
-  protected deleteTranslation(note: Note): void {
+  protected async confirmDeleteTranslation(note: Note): Promise<void> {
     const lang = this.viewLang(note);
     if (lang === 'original') return;
+    const alert = await this.alertController.create({
+      header: this.translationStore.t('notes.translate.deleteHeader'),
+      message: this.translationStore.t('notes.translate.deleteConfirm'),
+      buttons: [
+        { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
+        { text: this.translationStore.t('notes.translate.delete'), role: 'destructive' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') return;
     this.store.deleteTranslation(note.id, lang);
     this.showOriginal(note);
   }
 
-  private async runTranslation(noteId: string, source: AppLang, target: AppLang): Promise<void> {
+  private async runTranslation(
+    noteId: string,
+    source: AppLang,
+    target: AppLang,
+    choice?: TranslateChoice,
+  ): Promise<void> {
     const note = this.store.notes().find((item) => item.id === noteId);
     if (!note) return;
+    const route = this.machine.routeFor(source, target);
+    const parts =
+      choice?.missingLanguages ??
+      groupMissingByLanguage(await this.machine.missingFor(route));
+    const total = parts.reduce((sum, part) => sum + part.bytes, 0);
+    if (parts.length) {
+      this.pickerNoteId = noteId;
+      this.downloadPlan.set({ from: source, to: target, parts, total });
+    }
     try {
-      const route = this.machine.routeFor(source, target);
-      await this.machine.ensurePacks(route, noteId, (packs, engineBytes) =>
-        this.confirmDownload(packs, engineBytes),
-      );
+      await this.machine.ensurePacks(route, noteId, total);
       const current = this.store.notes().find((item) => item.id === noteId) ?? note;
       const text = await this.machine.translate(current.body, source, target, noteId);
       const after = this.store.notes().find((item) => item.id === noteId);
@@ -406,10 +487,12 @@ export class NotesPage {
           offline ? 'notes.translate.offlineMessage' : 'notes.translate.failedMessage',
         ),
       );
+    } finally {
+      this.downloadPlan.set(null);
     }
   }
 
-  private langName(code: AppLang): string {
+  protected langName(code: AppLang): string {
     const label = this.translationStore.t(`languages.${code}`);
     return label.startsWith('languages.') ? code.toUpperCase() : label;
   }
@@ -440,34 +523,6 @@ export class NotesPage {
         ? (result.data as { values?: unknown }).values
         : undefined;
     return isAppLang(value) ? value : current;
-  }
-
-  private async confirmDownload(
-    packs: { src: AppLang; tgt: AppLang; bytes: number }[],
-    engineBytes: number,
-  ): Promise<boolean> {
-    const pairText = packs
-      .map((pack) => `${this.langName(pack.src)} → ${this.langName(pack.tgt)}`)
-      .join(', ');
-    const bytes = packs.reduce((sum, pack) => sum + pack.bytes, 0) + engineBytes;
-    const message = this.translationStore
-      .t('notes.translate.downloadMessage')
-      .replace('{pack}', pairText || this.translationStore.t('settings.translation.engine'))
-      .replace('{size}', formatBytes(bytes));
-    const alert = await this.alertController.create({
-      header: this.translationStore.t('notes.translate.downloadHeader'),
-      message,
-      buttons: [
-        { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
-        {
-          text: this.translationStore.t('notes.translate.downloadConfirm'),
-          role: 'confirm',
-        },
-      ],
-    });
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    return role === 'confirm';
   }
 
   private async chooseShareText(note: Note, langs: readonly AppLang[]): Promise<string | null> {

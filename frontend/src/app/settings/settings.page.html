@@ -147,33 +147,30 @@
           </ion-select>
         </ion-item>
         <p class="model-status">{{ 'settings.translation.autoHelp' | translate }}</p>
+        <p class="field-label pack-heading">{{ 'settings.translation.languagesTitle' | translate }}</p>
+        <p class="model-status">{{ 'settings.translation.helper' | translate }}</p>
+        @if (!translationLanguages().length) {
+        <p class="model-status">{{ 'settings.translation.packsEmpty' | translate }}</p>
+        } @else {
+        <div class="pack-list">
+          @for (row of translationLanguages(); track row.lang) {
+          <div class="pack-row">
+            <div>
+              <p class="pack-name">{{ langLabel(row.lang) }}</p>
+              <p class="pack-size">{{ packSize(row.bytes) }}</p>
+            </div>
+            <button type="button" class="pack-delete" (click)="deleteTranslationLanguage(row.lang)">
+              {{ 'settings.translation.packDelete' | translate }}
+            </button>
+          </div>
+          }
+        </div>
+        <p class="pack-total">
+          {{ 'settings.translation.total' | translate }} {{ packSize(translationTotal()) }}
+        </p>
+        }
         <p class="model-status">{{ 'settings.translation.credit' | translate }}</p>
       </ion-card-content>
-      <ion-list lines="full" class="delete-list">
-        <ion-list-header>
-          <ion-label>{{ 'settings.translation.packs' | translate }}</ion-label>
-        </ion-list-header>
-        @if (!translationPacks().length) {
-        <ion-item lines="none">
-          <ion-label>
-            <ion-note>{{ 'settings.translation.packsEmpty' | translate }}</ion-note>
-          </ion-label>
-        </ion-item>
-        }
-        @for (pack of translationPacks(); track pack.id) {
-        <ion-item
-          button
-          detail="false"
-          class="danger-row"
-          (click)="deleteLanguagePack(pack)"
-        >
-          <ion-label>
-            <h2>{{ langLabel(pack.src) }} → {{ langLabel(pack.tgt) }}</h2>
-            <ion-note>{{ packSize(pack.bytes) }} · {{ 'settings.translation.packDelete' | translate }}</ion-note>
-          </ion-label>
-        </ion-item>
-        }
-      </ion-list>
     </ion-card>
 
     <ion-card class="glass-card">

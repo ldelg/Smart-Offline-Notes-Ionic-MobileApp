@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { AppLang } from '../models/translation.model';
 import { TranscriptionService } from './transcription.service';
 import { LangPair, translationRoute } from './translation-route';
+import { packIdsForLanguage } from './translation-languages';
 import { CatalogPack } from './translation-catalog';
 import {
   InstalledPack,
@@ -18,6 +19,8 @@ export interface TranslationProgress {
   phase: 'download' | 'load' | 'translate';
   percent: number | null;
   noteId: string | null;
+  loadedBytes: number | null;
+  totalBytes: number | null;
 }
 
 export class TranslationCancelled extends Error {
@@ -76,9 +79,18 @@ export class TranslationService {
   }
 
   async deletePack(id: string): Promise<void> {
+    await this.deletePackIds([id]);
+  }
+
+  /** Removes every downloaded direction for one non-English language. */
+  async deleteLanguage(lang: AppLang): Promise<void> {
+    await this.deletePackIds(packIdsForLanguage(lang));
+  }
+
+  private async deletePackIds(ids: readonly string[]): Promise<void> {
     this.release();
     if (typeof caches === 'undefined') return;
-    await deleteInstalledPack(id);
+    for (const id of ids) await deleteInstalledPack(id);
     await this.refreshInstalled();
   }
 
@@ -98,13 +110,14 @@ export class TranslationService {
   }
 
   /**
-   * Downloads any missing packs for this route. `confirm` is called only when
-   * a download is required. The speech model is released before the engine loads.
+   * Downloads any missing packs for this route. Turning auto-translate on, or
+   * picking a language that shows a download size, is the consent. There is
+   * no second prompt. `displayBytes` is the pack total shown on the progress line.
    */
   async ensurePacks(
     route: readonly LangPair[],
     noteId: string | null,
-    confirm: (packs: CatalogPack[], engineBytes: number) => Promise<boolean>,
+    displayBytes = 0,
   ): Promise<void> {
     const missing = await this.missingFor(route);
     const engine = (await this.engineMissing()) ? 4960506 : 0;
@@ -112,15 +125,23 @@ export class TranslationService {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       throw new TranslationOffline();
     }
-    const accepted = await confirm(missing, engine);
-    if (!accepted) throw new TranslationCancelled();
+    const shown = displayBytes > 0 ? displayBytes : missing.reduce((sum, pack) => sum + pack.bytes, 0);
     const epoch = this.epoch;
-    this.progress.set({ phase: 'download', percent: 0, noteId });
+    this.progress.set({
+      phase: 'download',
+      percent: 0,
+      noteId,
+      loadedBytes: 0,
+      totalBytes: shown,
+    });
     await downloadPacks(missing, engine > 0, (ratio) => {
+      const clamped = Math.max(0, Math.min(1, ratio));
       this.progress.set({
         phase: 'download',
-        percent: Math.round(ratio * 100),
+        percent: Math.round(clamped * 100),
         noteId,
+        loadedBytes: Math.round(clamped * shown),
+        totalBytes: shown,
       });
     });
     if (epoch !== this.epoch) throw new TranslationCancelled();
@@ -145,7 +166,13 @@ export class TranslationService {
     this.speech.releaseModels();
     const epoch = this.epoch;
     const jobId = ++this.jobSeq;
-    this.progress.set({ phase: 'load', percent: null, noteId });
+    this.progress.set({
+      phase: 'load',
+      percent: null,
+      noteId,
+      loadedBytes: null,
+      totalBytes: null,
+    });
     const worker = this.ensureWorker();
     const sendWasm = !this.wasmReady;
     const sendModels = this.loadedKey !== key;
@@ -173,6 +200,8 @@ export class TranslationService {
             phase: event.data.phase === 'translate' ? 'translate' : 'load',
             percent: event.data.percent ?? null,
             noteId,
+            loadedBytes: null,
+            totalBytes: null,
           });
           return;
         }

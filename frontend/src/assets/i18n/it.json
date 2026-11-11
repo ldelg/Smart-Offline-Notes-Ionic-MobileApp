@@ -131,9 +131,12 @@
       "packsEmpty": "Nessun pacchetto per ora. Si scaricano la prima volta che traduci.",
       "packDelete": "Elimina pacchetto",
       "deleteHeader": "Eliminare il pacchetto lingua?",
-      "deleteMessage": "Viene rimosso da questo telefono. Le traduzioni già salvate nelle note restano.",
+      "deleteMessage": "Vengono rimossi i file scaricati per quella lingua. Le traduzioni già salvate nelle note restano.",
       "engine": "Motore di traduzione",
-      "credit": "Bergamot (Firefox Translations) gira su questo telefono. I pacchetti arrivano da Mozilla."
+      "credit": "Bergamot (Firefox Translations) gira su questo telefono. I pacchetti arrivano da Mozilla.",
+      "languagesTitle": "Lingue di traduzione",
+      "helper": "Scaricato una volta, usato per ogni coppia. Funziona offline.",
+      "total": "Totale"
     },
     "about": {
       "subtitle": "Info",
@@ -290,7 +293,16 @@
       "failedMessage": "Non è stato possibile tradurre la nota. Se il pacchetto lingua non è ancora sul telefono, controlla la connessione.",
       "offlineHeader": "Offline",
       "offlineMessage": "Sei offline e questo pacchetto lingua non è sul telefono.",
-      "noMore": "Questa nota ha già una traduzione per ogni altra lingua."
+      "noMore": "Questa nota ha già una traduzione per ogni altra lingua.",
+      "outOfDate": "Non aggiornata",
+      "ready": "Pronta",
+      "downloadAmount": "Scarica {size}",
+      "needs": "{from} → {to} richiede {langs}.",
+      "and": "e",
+      "downloadingAmount": "Download {done} / {total}, una volta sola",
+      "deleteHeader": "Eliminare la traduzione?",
+      "deleteConfirm": "La traduzione viene eliminata. La nota originale resta.",
+      "noteIn": "Nota in {lang}"
     }
   }
 }

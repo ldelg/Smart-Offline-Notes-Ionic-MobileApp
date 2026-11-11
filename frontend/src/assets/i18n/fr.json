@@ -131,9 +131,12 @@
       "packsEmpty": "Aucun pack pour l’instant. Ils se téléchargent la première fois que vous traduisez.",
       "packDelete": "Supprimer le pack",
       "deleteHeader": "Supprimer le pack de langue ?",
-      "deleteMessage": "Il est retiré de ce téléphone. Les traductions déjà enregistrées dans les notes sont conservées.",
+      "deleteMessage": "Les fichiers téléchargés pour cette langue sont supprimés. Les traductions déjà enregistrées dans les notes sont conservées.",
       "engine": "Moteur de traduction",
-      "credit": "Bergamot (Firefox Translations) tourne sur ce téléphone. Les packs viennent de Mozilla."
+      "credit": "Bergamot (Firefox Translations) tourne sur ce téléphone. Les packs viennent de Mozilla.",
+      "languagesTitle": "Langues de traduction",
+      "helper": "Téléchargé une fois, utilisé pour chaque paire. Fonctionne hors ligne.",
+      "total": "Total"
     },
     "about": {
       "subtitle": "À propos",
@@ -290,7 +293,16 @@
       "failedMessage": "La note n’a pas pu être traduite. Si le pack de langue n’est pas encore sur le téléphone, vérifiez la connexion.",
       "offlineHeader": "Hors ligne",
       "offlineMessage": "Vous êtes hors ligne et ce pack de langue n’est pas sur le téléphone.",
-      "noMore": "Cette note a déjà une traduction pour chaque autre langue."
+      "noMore": "Cette note a déjà une traduction pour chaque autre langue.",
+      "outOfDate": "Périmée",
+      "ready": "Prête",
+      "downloadAmount": "Télécharger {size}",
+      "needs": "{from} → {to} a besoin de {langs}.",
+      "and": "et",
+      "downloadingAmount": "Téléchargement {done} / {total}, une seule fois",
+      "deleteHeader": "Supprimer la traduction ?",
+      "deleteConfirm": "La traduction est supprimée. La note d’origine reste.",
+      "noteIn": "Note en {lang}"
     }
   }
 }
