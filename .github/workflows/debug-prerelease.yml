@@ -1,0 +1,80 @@
+name: Debug prerelease APK
+
+# Publishes one plain APK on a prerelease. The tag is test-pr12-debug,
+# which does not match the Play workflow (v* only) and is not on main.
+on:
+  push:
+    tags:
+      - "test-pr12-debug"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Install npm dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web app
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+      - name: Capacitor sync
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Assemble debug APK
+        working-directory: frontend/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Check the debug id and name
+        run: |
+          set -euo pipefail
+          SRC="frontend/android/app/build/outputs/apk/debug/app-debug.apk"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/aapt" dump badging "$SRC" | tee /tmp/badging.txt
+          grep -F "name='io.ldelg.smartofflinenotes.debug'" /tmp/badging.txt
+          grep -F "SmartNotes Debug" /tmp/badging.txt
+          cp "$SRC" SmartNotes-Debug-pr12.apk
+
+      - name: Publish prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-pr12-debug
+          name: "Test build: punctuation, pin, tags"
+          prerelease: true
+          make_latest: false
+          generate_release_notes: false
+          body: |
+            Side-by-side debug build for pull request 12.
+            Install SmartNotes-Debug-pr12.apk directly. Package id io.ldelg.smartofflinenotes.debug, launcher name SmartNotes Debug.
+            This prerelease is not Latest and does not publish to Play.
+          files: SmartNotes-Debug-pr12.apk
