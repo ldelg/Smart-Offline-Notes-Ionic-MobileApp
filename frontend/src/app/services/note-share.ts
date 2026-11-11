@@ -1,5 +1,15 @@
 import { Share } from '@capacitor/share';
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return String(error ?? '');
+}
+
+/** A dismissed sheet, or a second share while Android still has one open. */
 export function shareWasCancelled(error: unknown): boolean {
   if (
     error &&
@@ -9,11 +19,11 @@ export function shareWasCancelled(error: unknown): boolean {
   ) {
     return true;
   }
-  const message = error instanceof Error ? error.message : String(error ?? '');
+  const message = errorMessage(error).toLowerCase();
   return (
     message.includes('cancel') ||
-    message.includes('User') ||
-    message.toLowerCase().includes('abort')
+    message.includes('abort') ||
+    message.includes('in progress')
   );
 }
 

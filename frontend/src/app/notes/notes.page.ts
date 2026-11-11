@@ -147,6 +147,7 @@ export class NotesPage {
   @ViewChild('noteCarousel', { static: false })
   private noteCarousel?: ElementRef<HTMLDivElement>;
   private isScrollingProgrammatically = false;
+  private shareInProgress = false;
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     body: ['', [Validators.required, Validators.minLength(1)]],
@@ -686,6 +687,16 @@ export class NotesPage {
 
   protected async shareNote(note: Note, event?: Event): Promise<void> {
     event?.stopPropagation();
+    if (this.shareInProgress) return;
+    this.shareInProgress = true;
+    try {
+      await this.shareNoteNow(note);
+    } finally {
+      this.shareInProgress = false;
+    }
+  }
+
+  private async shareNoteNow(note: Note): Promise<void> {
     const langs = this.translationLangs(note);
     let text = note.body.trim() || note.title.trim();
     let title = note.title.trim() || text.slice(0, 60);
