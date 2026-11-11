@@ -163,6 +163,7 @@ export class TranslationService {
     src: AppLang,
     tgt: AppLang,
     noteId: string | null,
+    quiet = false,
   ): Promise<string> {
     const route = translationRoute(src, tgt);
     if (!route.length) return text;
@@ -176,13 +177,15 @@ export class TranslationService {
     this.speech.releaseModels();
     const epoch = this.epoch;
     const jobId = ++this.jobSeq;
-    this.progress.set({
-      phase: 'load',
-      percent: null,
-      noteId,
-      loadedBytes: null,
-      totalBytes: null,
-    });
+    if (!quiet) {
+      this.progress.set({
+        phase: 'load',
+        percent: null,
+        noteId,
+        loadedBytes: null,
+        totalBytes: null,
+      });
+    }
     const worker = this.ensureWorker();
     const sendWasm = !this.wasmReady;
     const sendModels = this.loadedKey !== key;
@@ -206,13 +209,15 @@ export class TranslationService {
           return;
         }
         if (event.data.status === 'progress') {
-          this.progress.set({
-            phase: event.data.phase === 'translate' ? 'translate' : 'load',
-            percent: event.data.percent ?? null,
-            noteId,
-            loadedBytes: null,
-            totalBytes: null,
-          });
+          if (!quiet) {
+            this.progress.set({
+              phase: event.data.phase === 'translate' ? 'translate' : 'load',
+              percent: event.data.percent ?? null,
+              noteId,
+              loadedBytes: null,
+              totalBytes: null,
+            });
+          }
           return;
         }
         cleanup();
@@ -227,6 +232,8 @@ export class TranslationService {
           jobId,
           glueUrl,
           text,
+          sourceLang: src,
+          targetLang: tgt,
           hops: route.map((pair) => ({ id: pair.id })),
           wasm: wasm ?? undefined,
           models,
@@ -237,10 +244,10 @@ export class TranslationService {
     if (epoch !== this.epoch) throw new TranslationCancelled();
     this.wasmReady = true;
     this.loadedKey = key;
-    this.progress.set(null);
+    if (!quiet) this.progress.set(null);
     return result;
     } catch (error) {
-      if (epoch === this.epoch) this.progress.set(null);
+      if (!quiet && epoch === this.epoch) this.progress.set(null);
       throw error;
     }
   }

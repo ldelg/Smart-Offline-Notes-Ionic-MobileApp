@@ -105,6 +105,26 @@ describe('notes list', () => {
       'Home',
     );
     expect(filterNotes(translated, 'kitchen', null).map((item) => item.id)).toEqual(['c']);
+    const titled = [
+      {
+        ...legacy,
+        id: 'd',
+        title: 'Nota',
+        body: 'Solo original',
+        tags: [],
+        translations: {
+          en: {
+            text: 'Hello',
+            title: 'Pantry',
+            sourceLang: 'it' as const,
+            sourceHash: 'x',
+            createdAt: 1,
+            stale: false,
+          },
+        },
+      },
+    ];
+    expect(filterNotes(titled, 'pantry', null).map((item) => item.id)).toEqual(['d']);
     expect(collectTags(notes)).toEqual(['Work', 'Home']);
 
     notes = notesWithoutTag(notes, 'a', 'WORK');

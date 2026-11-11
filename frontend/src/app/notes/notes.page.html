@@ -210,7 +210,7 @@
                 <p class="eyebrow">
                   {{ translationStore.t('notes.editor.editing') }}
                 </p>
-                <h2>{{ note.title }}</h2>
+                <h2>{{ headingTitle(note) }}</h2>
               </div>
               @if (activeTabId() === note.id) {
               <div class="editor-tools">
@@ -330,7 +330,7 @@
                 </button>
               </div>
               }
-              <ion-item lines="none">
+              <ion-item lines="none" [hidden]="viewLang(note) !== 'original'">
                 <ion-input
                   [label]="translationStore.t('notes.editor.titleLabel')"
                   labelPlacement="stacked"
@@ -338,6 +338,16 @@
                   [placeholder]="translationStore.t('notes.editor.titlePlaceholder')"
                 ></ion-input>
               </ion-item>
+              @if (viewLang(note) !== 'original') {
+              <ion-item lines="none">
+                <ion-input
+                  [label]="translationStore.t('notes.editor.titleLabel')"
+                  labelPlacement="stacked"
+                  [value]="headingTitle(note)"
+                  readonly="true"
+                ></ion-input>
+              </ion-item>
+              }
               <div [hidden]="viewLang(note) !== 'original'">
                 <ion-item lines="none">
                   <ion-textarea

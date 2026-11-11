@@ -56,7 +56,7 @@ import {
   TranslationService,
 } from '../services/translation.service';
 import { AppLang, isAppLang } from '../models/translation.model';
-import { hashText, makeTranslation } from '../services/note-translations';
+import { hashText, makeTranslation, sourceFingerprint } from '../services/note-translations';
 import { resolveSourceLanguage } from '../services/translation-detect';
 import { formatBytes } from '../services/translation-catalog';
 import {
@@ -136,6 +136,7 @@ export class NotesPage {
   } | null>(null);
   protected readonly infoOpen = signal(false);
   protected readonly downloadError = signal<{ noteId: string; message: string } | null>(null);
+  private readonly titleJobs = new Set<string>();
   private retryJob: {
     noteId: string;
     source: AppLang;
@@ -324,6 +325,14 @@ export class NotesPage {
 
   protected showTranslation(note: Note, lang: AppLang): void {
     this.translationViews.update((views) => ({ ...views, [note.id]: lang }));
+    void this.fillMissingTitle(note, lang);
+  }
+
+  protected headingTitle(note: Note): string {
+    const lang = this.viewLang(note);
+    if (lang === 'original') return note.title;
+    const translated = note.translations?.[lang]?.title;
+    return translated?.trim() ? translated : note.title;
   }
 
   protected activeTranslation(note: Note) {
@@ -501,13 +510,21 @@ export class NotesPage {
     try {
       await this.machine.ensurePacks(route, noteId, total);
       const current = this.store.notes().find((item) => item.id === noteId) ?? note;
-      const text = await this.machine.translate(current.body, source, target, noteId);
+      const translatedTitle = current.title.trim()
+        ? (await this.machine.translate(current.title, source, target, noteId)).trim()
+        : '';
+      const midway = this.store.notes().find((item) => item.id === noteId);
+      if (!midway || midway.title !== current.title || midway.body !== current.body) return;
+      const text = await this.machine.translate(midway.body, source, target, noteId);
       const after = this.store.notes().find((item) => item.id === noteId);
-      if (!after || after.body !== current.body) return;
+      if (!after || after.body !== midway.body || after.title !== midway.title) return;
       this.store.setTranslation(
         noteId,
         target,
-        makeTranslation(text, source, after.body, Date.now()),
+        makeTranslation(text, source, after.body, Date.now(), {
+          original: after.title,
+          translated: translatedTitle || after.title,
+        }),
       );
       this.showTranslation(after, target);
     } catch (error) {
@@ -555,7 +572,49 @@ export class NotesPage {
     return isAppLang(value) ? value : current;
   }
 
-  private async chooseShareText(note: Note, langs: readonly AppLang[]): Promise<string | null> {
+  private translationShareText(item: { title?: string; text: string } | undefined): string {
+    if (!item) return '';
+    return [item.title?.trim(), item.text.trim()].filter(Boolean).join('\n\n');
+  }
+
+  private async fillMissingTitle(note: Note, lang: AppLang): Promise<void> {
+    const key = `${note.id}:${lang}`;
+    const item = note.translations?.[lang];
+    if (!item || item.title !== undefined || item.stale || this.titleJobs.has(key)) return;
+    if (!note.title.trim()) {
+      this.store.setTranslation(note.id, lang, {
+        ...item,
+        title: '',
+        sourceHash: sourceFingerprint(note.title, note.body),
+      });
+      return;
+    }
+    this.titleJobs.add(key);
+    try {
+      const translated = (
+        await this.machine.translate(note.title, item.sourceLang, lang, note.id, true)
+      ).trim();
+      const current = this.store.notes().find((entry) => entry.id === note.id);
+      const still = current?.translations?.[lang];
+      if (!current || !still || still.title !== undefined || still.stale) return;
+      if (current.title !== note.title || current.body !== note.body) return;
+      this.store.setTranslation(note.id, lang, {
+        ...still,
+        title: translated || current.title,
+        sourceHash: sourceFingerprint(current.title, current.body),
+        stale: false,
+      });
+    } catch (error) {
+      console.warn('Title translation skipped', error);
+    } finally {
+      this.titleJobs.delete(key);
+    }
+  }
+
+  private async chooseShareText(
+    note: Note,
+    langs: readonly AppLang[],
+  ): Promise<{ text: string; title: string } | null> {
     const alert = await this.alertController.create({
       header: this.translationStore.t('notes.share.choose'),
       message: this.translationStore.t('notes.share.include'),
@@ -593,7 +652,7 @@ export class NotesPage {
       );
       return null;
     }
-    return composeShareText([
+    const text = composeShareText([
       ...(selected.has('original')
         ? [
             {
@@ -607,25 +666,34 @@ export class NotesPage {
         .filter((lang) => selected.has(lang))
         .map((lang) => ({
           heading: `${lang.toUpperCase()} · ${this.translationStore.t('notes.translate.machine')}`,
-          text: note.translations?.[lang]?.text ?? '',
+          text: this.translationShareText(note.translations?.[lang]),
           kind: 'translation' as const,
         })),
     ]);
+    if (!text) return null;
+    const chosenLangs = langs.filter((lang) => selected.has(lang));
+    let title = note.title.trim();
+    if (!selected.has('original') && chosenLangs.length === 1) {
+      title = note.translations?.[chosenLangs[0]]?.title?.trim() || title;
+    }
+    return { text, title };
   }
 
   protected async shareNote(note: Note, event?: Event): Promise<void> {
     event?.stopPropagation();
     const langs = this.translationLangs(note);
     let text = note.body.trim() || note.title.trim();
+    let title = note.title.trim() || text.slice(0, 60);
     if (langs.length) {
       const chosen = await this.chooseShareText(note, langs);
       if (chosen === null) return;
-      text = chosen;
+      text = chosen.text;
+      title = chosen.title || title;
     }
     if (!text) return;
     try {
       const result = await sharePlainText({
-        title: note.title.trim() || text.slice(0, 60),
+        title,
         text,
         dialogTitle: this.translationStore.t('notes.share.dialogTitle'),
       });

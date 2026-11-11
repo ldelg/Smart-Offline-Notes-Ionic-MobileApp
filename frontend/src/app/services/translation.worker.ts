@@ -1,3 +1,4 @@
+import { AppLang, isAppLang } from '../models/translation.model';
 import { joinTranslatedPieces, segmentForTranslation } from './translation-chunk';
 import { protectNumbers, restoreNumbers } from './translation-numbers';
 
@@ -15,6 +16,8 @@ interface TranslateMessage {
   jobId: number;
   glueUrl: string;
   text: string;
+  sourceLang?: AppLang;
+  targetLang?: AppLang;
   hops: { id: string }[];
   wasm?: ArrayBuffer;
   models?: ModelPayload[];
@@ -109,7 +112,13 @@ function translateBlocking(text: string, hops: { id: string }[]): string {
   return translated;
 }
 
-async function translateNote(text: string, hops: { id: string }[], jobId: number): Promise<string> {
+async function translateNote(
+  text: string,
+  hops: { id: string }[],
+  jobId: number,
+  source: AppLang | null,
+  target: AppLang | null,
+): Promise<string> {
   const protectedText = protectNumbers(text);
   const pieces = segmentForTranslation(protectedText.text);
   if (!pieces.length) return '';
@@ -124,7 +133,12 @@ async function translateNote(text: string, hops: { id: string }[], jobId: number
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
-  return restoreNumbers(joinTranslatedPieces(translated, pieces), protectedText.numbers);
+  return restoreNumbers(
+    joinTranslatedPieces(translated, pieces),
+    protectedText.numbers,
+    source,
+    target,
+  );
 }
 
 self.addEventListener('message', (event: MessageEvent<TranslateMessage>) => {
@@ -144,7 +158,9 @@ self.addEventListener('message', (event: MessageEvent<TranslateMessage>) => {
       for (const hop of message.hops) {
         if (!loaded.has(hop.id)) throw new Error(`Language pack ${hop.id} is not loaded`);
       }
-      const text = await translateNote(message.text, message.hops, jobId);
+      const source = isAppLang(message.sourceLang) ? message.sourceLang : null;
+      const target = isAppLang(message.targetLang) ? message.targetLang : null;
+      const text = await translateNote(message.text, message.hops, jobId, source, target);
       post({ status: 'complete', jobId, text });
     } catch (error) {
       post({

@@ -55,18 +55,21 @@ export class AutoTranslateService {
       const bytes = groupMissingByLanguage(missing).reduce((sum, item) => sum + item.bytes, 0);
       await this.translation.ensurePacks(route, note.id, bytes);
       const current = this.notes.notes().find((item) => item.id === id) ?? note;
-      const text = await this.translation.translate(
-        current.body,
-        source,
-        target,
-        note.id,
-      );
+      const translatedTitle = current.title.trim()
+        ? (await this.translation.translate(current.title, source, target, note.id)).trim()
+        : '';
+      const midway = this.notes.notes().find((item) => item.id === id);
+      if (!midway || midway.title !== current.title || midway.body !== current.body) return;
+      const text = await this.translation.translate(midway.body, source, target, note.id);
       const after = this.notes.notes().find((item) => item.id === id);
-      if (!after || after.body !== current.body) return;
+      if (!after || after.body !== midway.body || after.title !== midway.title) return;
       this.notes.setTranslation(
         id,
         target,
-        makeTranslation(text, source, after.body, Date.now()),
+        makeTranslation(text, source, after.body, Date.now(), {
+          original: after.title,
+          translated: translatedTitle || after.title,
+        }),
       );
     } catch (error) {
       this.translation.progress.set(null);

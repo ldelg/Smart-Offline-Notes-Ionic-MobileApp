@@ -8,7 +8,12 @@ import {
 } from '../models/translation.model';
 import { languageFromNote } from './translation-detect';
 
-/** Stable hash of the original body. Used only to notice edits. */
+/** Stable hash of the original title and body. Used only to notice edits. */
+export function sourceFingerprint(title: string, body: string): string {
+  return hashText(`${title}\n${body}`);
+}
+
+/** Stable hash. Used only to notice edits. */
 export function hashText(text: string): string {
   let hash = 5381;
   for (let i = 0; i < text.length; i++) {
@@ -21,10 +26,10 @@ export function hashText(text: string): string {
 export function normalizeTranslations(
   value: unknown,
   body: string,
+  title = '',
 ): NoteTranslations | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const raw = value as Record<string, unknown>;
-  const current = hashText(body);
   const out: NoteTranslations = {};
   for (const lang of APP_LANGS) {
     const item = raw[lang];
@@ -38,13 +43,16 @@ export function normalizeTranslations(
       typeof record['createdAt'] === 'number' && Number.isFinite(record['createdAt'])
         ? record['createdAt']
         : 0;
-    out[lang] = {
+    const stored: NoteTranslation = {
       text: record['text'],
       sourceLang,
       sourceHash,
       createdAt,
-      stale: sourceHash !== current,
+      stale: false,
     };
+    if (typeof record['title'] === 'string') stored.title = record['title'];
+    stored.stale = translationIsStale(stored, title, body);
+    out[lang] = stored;
   }
   return Object.keys(out).length ? out : undefined;
 }
@@ -70,19 +78,37 @@ export function noteWithoutTranslation(note: Note, lang: AppLang): Note {
   };
 }
 
-/** Keeps every translation and marks it stale when the original body changed. */
-export function translationsAfterBodyEdit(
-  translations: NoteTranslations | undefined,
+/**
+ * A translation saved before titles were included stays current while the
+ * body is unchanged. A later title edit, or any edit once the title is stored,
+ * marks it stale. The translated text is kept.
+ */
+export function translationIsStale(
+  item: NoteTranslation,
+  title: string,
   body: string,
+): boolean {
+  if (item.sourceHash === sourceFingerprint(title, body)) return false;
+  if (item.title === undefined && item.sourceHash === hashText(body)) return false;
+  return true;
+}
+
+/** Keeps every translation and marks it stale when the original title or body changed. */
+export function translationsAfterEdit(
+  translations: NoteTranslations | undefined,
+  title: string,
+  body: string,
+  previous?: { title: string; body: string },
 ): NoteTranslations | undefined {
   if (!translations) return translations;
-  const current = hashText(body);
+  const titleChanged = !!previous && previous.title !== title;
   let changed = false;
   const next: NoteTranslations = {};
   for (const lang of APP_LANGS) {
     const item = translations[lang];
     if (!item) continue;
-    const stale = item.sourceHash !== current;
+    const stale =
+      translationIsStale(item, title, body) || (titleChanged && item.title === undefined);
     if (stale !== item.stale) changed = true;
     next[lang] = stale === item.stale ? item : { ...item, stale };
   }
@@ -103,12 +129,15 @@ export function makeTranslation(
   sourceLang: AppLang,
   body: string,
   createdAt: number,
+  title?: { original: string; translated: string },
 ): NoteTranslation {
-  return {
+  const translation: NoteTranslation = {
     text,
     sourceLang,
-    sourceHash: hashText(body),
+    sourceHash: title ? sourceFingerprint(title.original, body) : hashText(body),
     createdAt,
     stale: false,
   };
+  if (title) translation.title = title.translated;
+  return translation;
 }

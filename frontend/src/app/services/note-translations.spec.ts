@@ -5,8 +5,9 @@ import {
   normalizeTranslations,
   noteWithTranslation,
   noteWithoutTranslation,
+  sourceFingerprint,
   storedSourceLanguage,
-  translationsAfterBodyEdit,
+  translationsAfterEdit,
 } from './note-translations';
 
 const note = {
@@ -35,11 +36,47 @@ describe('translation storage', () => {
 
   it('marks every translation stale when the original changes and keeps the text', () => {
     const english = makeTranslation('Hello', 'it', note.body, 10);
-    const stale = translationsAfterBodyEdit({ en: english }, 'Testo nuovo');
+    const stale = translationsAfterEdit({ en: english }, note.title, 'Testo nuovo', {
+      title: note.title,
+      body: note.body,
+    });
     expect(stale?.en?.stale).toBeTrue();
     expect(stale?.en?.text).toBe('Hello');
     expect(stale?.en?.sourceHash).toBe(hashText(note.body));
-    expect(translationsAfterBodyEdit({ en: english }, note.body)?.en?.stale).toBeFalse();
+    expect(
+      translationsAfterEdit({ en: english }, note.title, note.body)?.en?.stale,
+    ).toBeFalse();
+  });
+
+  it('stores a translated title and marks it stale when that title changes', () => {
+    const english = makeTranslation('Hello', 'it', note.body, 10, {
+      original: note.title,
+      translated: 'Hi',
+    });
+    expect(english.title).toBe('Hi');
+    expect(english.sourceHash).toBe(sourceFingerprint(note.title, note.body));
+    expect(translationsAfterEdit({ en: english }, note.title, note.body)?.en?.stale).toBeFalse();
+    const renamed = translationsAfterEdit({ en: english }, 'Nuovo titolo', note.body, {
+      title: note.title,
+      body: note.body,
+    });
+    expect(renamed?.en?.stale).toBeTrue();
+    expect(renamed?.en?.title).toBe('Hi');
+    expect(renamed?.en?.text).toBe('Hello');
+  });
+
+  it('keeps an older body-only translation until the title itself changes', () => {
+    const english = makeTranslation('Hello', 'it', note.body, 10);
+    expect(english.title).toBeUndefined();
+    const loaded = normalizeTranslations({ en: english }, note.body, note.title);
+    expect(loaded?.en?.stale).toBeFalse();
+    expect(loaded?.en?.title).toBeUndefined();
+    const renamed = translationsAfterEdit({ en: english }, 'Nuovo titolo', note.body, {
+      title: note.title,
+      body: note.body,
+    });
+    expect(renamed?.en?.stale).toBeTrue();
+    expect(renamed?.en?.text).toBe('Hello');
   });
 
   it('loads a translation map and recomputes stale from the current body', () => {

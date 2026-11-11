@@ -396,6 +396,15 @@ html.ion-palette-dark .tag-add ion-input {
   font-weight: 600;
 }
 
+.editor-card ion-item[hidden] {
+  display: none !important;
+}
+
+.editor-card ion-input[readonly] {
+  opacity: 1;
+  --color: #1c1c1e;
+}
+
 .editor-card .picker-source,
 .editor-card .picker-meta {
   color: #3e4654;
@@ -573,6 +582,11 @@ html.ion-palette-dark .editor-card .info-pop {
 
 html.ion-palette-dark .editor-card .download-error {
   color: #ffb4bc;
+}
+
+html.ion-palette-dark .editor-card ion-input[readonly] {
+  opacity: 1;
+  --color: #ffffff;
 }
 
 html.ion-palette-dark .editor-card .picker-row {

@@ -7,7 +7,7 @@ import { AppLang, NoteTranslation } from '../models/translation.model';
 import {
   noteWithTranslation,
   noteWithoutTranslation,
-  translationsAfterBodyEdit,
+  translationsAfterEdit,
 } from '../services/note-translations';
 import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranscriptionService } from '../services/transcription.service';
@@ -204,10 +204,14 @@ export const NotesStore = signalStore(
         const notes = store.notes().map((note) => {
           if (note.id !== id) return note;
           const next = { ...note, ...changes };
-          if (typeof changes.body === 'string' && changes.body !== note.body) {
-            next.translations = translationsAfterBodyEdit(
+          const nextTitle = typeof changes.title === 'string' ? changes.title : note.title;
+          const nextBody = typeof changes.body === 'string' ? changes.body : note.body;
+          if (nextTitle !== note.title || nextBody !== note.body) {
+            next.translations = translationsAfterEdit(
               note.translations,
-              changes.body,
+              nextTitle,
+              nextBody,
+              { title: note.title, body: note.body },
             );
           }
           return next;

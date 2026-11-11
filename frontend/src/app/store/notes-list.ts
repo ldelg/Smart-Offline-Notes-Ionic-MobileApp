@@ -65,7 +65,7 @@ export function normalizeStoredNote(value: unknown): Note | null {
   } else {
     delete note.duration;
   }
-  const translations = normalizeTranslations(raw['translations'], raw['body']);
+  const translations = normalizeTranslations(raw['translations'], raw['body'], raw['title']);
   if (translations) note.translations = translations;
   else delete note.translations;
   return note;
@@ -194,9 +194,11 @@ export function filterNotes(
       if (!tags.some((item) => tagKey(item) === selected)) return false;
     }
     if (!term) return true;
-    const translated = Object.values(note.translations ?? {})
-      .map((item) => item?.text ?? '')
-      .filter(Boolean);
+    const translated: string[] = [];
+    for (const item of Object.values(note.translations ?? {})) {
+      if (item?.title) translated.push(item.title);
+      if (item?.text) translated.push(item.text);
+    }
     const haystack = [note.title, note.body, ...translated, ...(note.tags ?? [])]
       .join('\n')
       .toLocaleLowerCase();

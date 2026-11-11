@@ -19,12 +19,17 @@ export function isAppLang(value: unknown): value is AppLang {
  */
 export interface NoteTranslation {
   text: string;
+  /**
+   * Translation of note.title. Missing on translations saved before titles
+   * were translated; those stay valid until the title changes or the user updates.
+   */
+  title?: string;
   /** Language the original was translated from. Never another translation. */
   sourceLang: AppLang;
-  /** Hash of note.body when this translation was produced. */
+  /** Hash of the original title and body when this translation was produced. */
   sourceHash: string;
   createdAt: number;
-  /** True when note.body no longer matches sourceHash. */
+  /** True when the original title or body no longer matches sourceHash. */
   stale: boolean;
 }
 
