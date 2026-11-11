@@ -62,6 +62,33 @@ describe('NotesStore', () => {
     expect(saved[0].language).toBe('english');
     expect(saved[0].title).toBe('Hello');
 
+    store.setTranslation('a', 'en', {
+      text: 'Line one.\n\nLine two.',
+      sourceLang: 'it',
+      sourceHash: 'pending',
+      createdAt: 2,
+      stale: false,
+    });
+    store.setTranslation('a', 'de', {
+      text: 'Zeile',
+      sourceLang: 'it',
+      sourceHash: 'pending',
+      createdAt: 3,
+      stale: false,
+    });
+    store.updateNote('a', { title: 'Hello' });
+    expect(store.notes()[0].translations?.en?.stale).toBeFalse();
+    expect(store.notes()[0].translations?.de?.text).toBe('Zeile');
+    store.updateNote('a', { body: 'Changed body' });
+    expect(store.notes()[0].body).toBe('Changed body');
+    expect(store.notes()[0].translations?.en?.text).toBe('Line one.\n\nLine two.');
+    expect(store.notes()[0].translations?.en?.stale).toBeTrue();
+    expect(store.notes()[0].translations?.de?.stale).toBeTrue();
+    store.deleteTranslation('a', 'en');
+    expect(store.notes()[0].translations?.en).toBeUndefined();
+    expect(store.notes()[0].translations?.de?.text).toBe('Zeile');
+    expect(store.notes()[0].language).toBe('english');
+
     store.removeTag('a', 'WORK');
     expect(store.notes()[0].tags).toEqual([]);
     expect(store.notes()[0].pinned).toBeTrue();

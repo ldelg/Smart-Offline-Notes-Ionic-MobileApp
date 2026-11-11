@@ -173,6 +173,14 @@
                 >
                   <ion-icon name="trash-outline"></ion-icon>
                 </ion-button>
+                <ion-button
+                  fill="clear"
+                  class="note-translate"
+                  (click)="translateNote(note, $event)"
+                  [attr.aria-label]="translationStore.t('notes.actions.translate')"
+                >
+                  <ion-icon name="language-outline"></ion-icon>
+                </ion-button>
               </div>
             </ion-item>
             <ion-item-options side="end">
@@ -202,7 +210,7 @@
                 <p class="eyebrow">
                   {{ translationStore.t('notes.editor.editing') }}
                 </p>
-                <h2>{{ note.title }}</h2>
+                <h2>{{ headingTitle(note) }}</h2>
               </div>
               @if (activeTabId() === note.id) {
               <div class="editor-tools">
@@ -227,6 +235,14 @@
                 >
                   <ion-icon name="share-outline"></ion-icon>
                 </ion-button>
+                <ion-button
+                  fill="clear"
+                  type="button"
+                  (click)="promptTranslate(note.id)"
+                  [attr.aria-label]="translationStore.t('notes.actions.translate')"
+                >
+                  <ion-icon name="language-outline"></ion-icon>
+                </ion-button>
               </div>
               }
             </div>
@@ -237,7 +253,84 @@
               [formGroup]="editForm"
               (ngSubmit)="saveActiveNote()"
             >
-              <ion-item lines="none">
+              <div class="translate-bar" role="tablist">
+                <button
+                  type="button"
+                  class="lang-chip"
+                  [class.active]="viewLang(note) === 'original'"
+                  (click)="showOriginal(note)"
+                >
+                  {{ translationStore.t('notes.translate.original') }}
+                </button>
+                @for (lang of translationLangs(note); track lang) {
+                <button
+                  type="button"
+                  class="lang-chip"
+                  [class.active]="viewLang(note) === lang"
+                  [class.stale]="note.translations?.[lang]?.stale"
+                  (click)="showTranslation(note, lang)"
+                >
+                  {{ lang.toUpperCase() }}
+                  @if (note.translations?.[lang]?.stale) {
+                  <span class="stale-tag">{{ translationStore.t('notes.translate.outOfDate') }}</span>
+                  }
+                </button>
+                }
+                <button
+                  type="button"
+                  class="lang-chip lang-chip-add"
+                  (click)="promptTranslate(note.id)"
+                >
+                  + {{ translationStore.t('notes.translate.add') }}
+                </button>
+              </div>
+              @if (pickerFor(note.id) && !progressFor(note)) {
+              <div class="translate-picker">
+                <div class="picker-heading-row">
+                  <p class="picker-heading">{{ translationStore.t('notes.translate.pickTarget') }}</p>
+                  <button
+                    type="button"
+                    class="info-button"
+                    (click)="toggleInfo()"
+                    [attr.aria-expanded]="infoOpen()"
+                    [attr.aria-label]="translationStore.t('notes.translate.infoLabel')"
+                  >
+                    i
+                  </button>
+                  <span class="from-line">{{ fromLabel(note) }}</span>
+                  <button type="button" class="text-button" (click)="changeSource(note)">
+                    {{ translationStore.t('notes.translate.changeSource') }}
+                  </button>
+                </div>
+                @if (infoOpen()) {
+                <p class="info-pop">{{ translationStore.t('notes.translate.info') }}</p>
+                }
+                @for (choice of pickerChoices(); track choice.target) {
+                <button type="button" class="picker-row" (click)="chooseTarget(choice)">
+                  <span>{{ langName(choice.target) }}</span>
+                  <span class="picker-meta">{{ choiceLabel(choice) }}</span>
+                </button>
+                }
+              </div>
+              }
+              @if (progressFor(note); as progress) {
+              <div class="translate-progress">
+                <span>{{ progressLabel(progress) }}</span>
+                <ion-progress-bar
+                  [type]="progress.percent === null ? 'indeterminate' : 'determinate'"
+                  [value]="(progress.percent ?? 0) / 100"
+                ></ion-progress-bar>
+              </div>
+              }
+              @if (errorFor(note.id); as message) {
+              <div class="translate-progress">
+                <p class="download-error">{{ message }}</p>
+                <button type="button" class="text-button" (click)="retryDownload(note.id)">
+                  {{ translationStore.t('notes.translate.retry') }}
+                </button>
+              </div>
+              }
+              <ion-item lines="none" [hidden]="viewLang(note) !== 'original'">
                 <ion-input
                   [label]="translationStore.t('notes.editor.titleLabel')"
                   labelPlacement="stacked"
@@ -245,15 +338,43 @@
                   [placeholder]="translationStore.t('notes.editor.titlePlaceholder')"
                 ></ion-input>
               </ion-item>
+              @if (viewLang(note) !== 'original') {
               <ion-item lines="none">
-                <ion-textarea
-                  [label]="translationStore.t('notes.editor.bodyLabel')"
+                <ion-input
+                  [label]="translationStore.t('notes.editor.titleLabel')"
                   labelPlacement="stacked"
-                  formControlName="body"
-                  autoGrow="true"
-                  rows="14"
-                ></ion-textarea>
+                  [value]="headingTitle(note)"
+                  readonly="true"
+                ></ion-input>
               </ion-item>
+              }
+              <div [hidden]="viewLang(note) !== 'original'">
+                <ion-item lines="none">
+                  <ion-textarea
+                    [label]="translationStore.t('notes.editor.bodyLabel')"
+                    labelPlacement="stacked"
+                    formControlName="body"
+                    autoGrow="true"
+                    rows="14"
+                  ></ion-textarea>
+                </ion-item>
+              </div>
+              @if (viewLang(note) !== 'original') {
+              <div class="mt-panel">
+                <p class="mt-label">{{ translationStore.t('notes.translate.machine') }}</p>
+                @if (activeTranslation(note)?.stale) {
+                <p class="mt-quiet">
+                  <button type="button" class="text-button" (click)="retranslate(note)">
+                    {{ translationStore.t('notes.translate.update') }}
+                  </button>
+                </p>
+                }
+                <p class="mt-body">{{ activeTranslation(note)?.text }}</p>
+                <button type="button" class="text-button" (click)="confirmDeleteTranslation(note)">
+                  {{ translationStore.t('notes.translate.delete') }}
+                </button>
+              </div>
+              }
               <div class="tag-editor" (keydown.enter)="addActiveTag($event)">
                 @if (editorTags().length) {
                 <div class="tag-row">

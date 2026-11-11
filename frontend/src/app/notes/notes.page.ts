@@ -26,6 +26,7 @@ import {
   IonInput,
   IonReorder,
   IonReorderGroup,
+  IonProgressBar,
   AlertController,
 } from '@ionic/angular/standalone';
 import {
@@ -46,7 +47,24 @@ import {
   editorTagsAfterRemove,
   noteEditorDirty,
 } from '../store/note-editor';
-import { sharePlainText } from '../services/note-share';
+import { composeShareText, sharePlainText } from '../services/note-share';
+import { quietAlert } from '../services/quiet-alert';
+import { AutoTranslateService } from '../services/auto-translate.service';
+import {
+  TranslationCancelled,
+  TranslationOffline,
+  TranslationProgress,
+  TranslationService,
+} from '../services/translation.service';
+import { AppLang, isAppLang } from '../models/translation.model';
+import { hashText, makeTranslation, sourceFingerprint } from '../services/note-translations';
+import { resolveSourceLanguage } from '../services/translation-detect';
+import { formatBytes } from '../services/translation-catalog';
+import {
+  TranslateChoice,
+  groupMissingByLanguage,
+  translateChoices,
+} from '../services/translation-languages';
 import { addIcons } from 'ionicons';
 import {
   trashOutline,
@@ -56,6 +74,8 @@ import {
   pin,
   pinOutline,
   shareOutline,
+  languageOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 
 @Component({
@@ -83,6 +103,7 @@ import {
     IonInput,
     IonReorder,
     IonReorderGroup,
+    IonProgressBar,
     FormsModule,
     ReactiveFormsModule,
   ],
@@ -92,6 +113,9 @@ export class NotesPage {
   private readonly settings = inject(SettingsStore);
   protected readonly translationStore = inject(TranslationStore);
   private readonly alertController = inject(AlertController);
+  private readonly machine = inject(TranslationService);
+  private readonly autoTranslate = inject(AutoTranslateService);
+  protected readonly translationProgress = this.machine.progress;
   protected readonly hasNotes = computed(() => this.store.notes().length > 0);
   private readonly fb = inject(FormBuilder);
   protected readonly searchTerm = signal('');
@@ -102,9 +126,28 @@ export class NotesPage {
   private readonly loadedNoteId = signal<string | null>(null);
   protected readonly openTabIds = signal<string[]>([]);
   protected readonly activeTabId = signal<string | null>(null);
+  private readonly translationViews = signal<Record<string, AppLang | 'original'>>({});
+  protected readonly pickerOpen = signal(false);
+  protected readonly pickerChoices = signal<TranslateChoice[]>([]);
+  protected readonly pickerSource = signal<AppLang | null>(null);
+  private readonly sourceOverride = signal<{
+    noteId: string;
+    lang: AppLang;
+    hash: string;
+  } | null>(null);
+  protected readonly infoOpen = signal(false);
+  protected readonly downloadError = signal<{ noteId: string; message: string } | null>(null);
+  private readonly titleJobs = new Set<string>();
+  private retryJob: {
+    noteId: string;
+    source: AppLang;
+    target: AppLang;
+    choice?: TranslateChoice;
+  } | null = null;
   @ViewChild('noteCarousel', { static: false })
   private noteCarousel?: ElementRef<HTMLDivElement>;
   private isScrollingProgrammatically = false;
+  private shareInProgress = false;
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     body: ['', [Validators.required, Validators.minLength(1)]],
@@ -152,7 +195,10 @@ export class NotesPage {
       pin,
       pinOutline,
       shareOutline,
+      languageOutline,
+      refreshOutline,
     });
+    void this.autoTranslate;
     this.store.loadNotes();
     this.editForm.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
       this.editorFields.set({
@@ -263,13 +309,407 @@ export class NotesPage {
     this.editorTags.set(editorTagsAfterRemove(this.editorTags(), tag));
   }
 
+  protected translationLangs(note: Note): AppLang[] {
+    return (['en', 'es', 'fr', 'de', 'it'] as const).filter(
+      (lang) => !!note.translations?.[lang],
+    );
+  }
+
+  protected viewLang(note: Note): AppLang | 'original' {
+    const selected = this.translationViews()[note.id] ?? 'original';
+    if (selected !== 'original' && !note.translations?.[selected]) return 'original';
+    return selected;
+  }
+
+  protected showOriginal(note: Note): void {
+    this.translationViews.update((views) => ({ ...views, [note.id]: 'original' }));
+  }
+
+  protected showTranslation(note: Note, lang: AppLang): void {
+    this.translationViews.update((views) => ({ ...views, [note.id]: lang }));
+    void this.fillMissingTitle(note, lang);
+  }
+
+  protected headingTitle(note: Note): string {
+    const lang = this.viewLang(note);
+    if (lang === 'original') return note.title;
+    const translated = note.translations?.[lang]?.title;
+    return translated?.trim() ? translated : note.title;
+  }
+
+  protected activeTranslation(note: Note) {
+    const lang = this.viewLang(note);
+    if (lang === 'original') return null;
+    return note.translations?.[lang] ?? null;
+  }
+
+  protected progressFor(note: Note): TranslationProgress | null {
+    const progress = this.translationProgress();
+    if (!progress || progress.noteId !== note.id) return null;
+    return progress;
+  }
+
+  protected progressLabel(progress: TranslationProgress): string {
+    if (progress.phase === 'download' && progress.percent !== null && progress.totalBytes) {
+      const done = formatBytes(progress.loadedBytes ?? 0);
+      const total = formatBytes(progress.totalBytes);
+      return this.translationStore
+        .t('notes.translate.downloadingAmount')
+        .replace('{done}', done)
+        .replace('{total}', total);
+    }
+    if (progress.phase === 'download') {
+      return this.translationStore.t('notes.translate.progressDownload');
+    }
+    if (progress.phase === 'translate') {
+      return this.translationStore.t('notes.translate.progressTranslate');
+    }
+    return this.translationStore.t('notes.translate.progressLoad');
+  }
+
+  protected choiceLabel(choice: TranslateChoice): string {
+    if (choice.ready) return this.translationStore.t('notes.translate.ready');
+    return this.translationStore
+      .t('notes.translate.downloadAmount')
+      .replace('{size}', formatBytes(choice.missingBytes));
+  }
+
+  private pickerNoteId: string | null = null;
+
+  protected pickerFor(noteId: string): boolean {
+    return this.pickerOpen() && this.pickerNoteId === noteId;
+  }
+
+  protected async translateNote(note: Note, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    this.openNote(note.id);
+    await this.promptTranslate(note.id);
+  }
+
+  protected detectedSource(note: Note): AppLang {
+    const editing = this.activeTabId() === note.id;
+    const text = editing ? this.editorFields().body || note.body : note.body;
+    const override = this.sourceOverride();
+    const textHash = hashText(text);
+    return resolveSourceLanguage({
+      text,
+      savedBody: note.body,
+      noteLanguage: note.language,
+      uiLanguage: this.settings.uiLanguage(),
+      override: override?.noteId === note.id ? override.lang : null,
+      overrideHash: override?.noteId === note.id ? override.hash : undefined,
+      textHash,
+    });
+  }
+
+  protected fromLabel(note: Note): string {
+    return this.translationStore
+      .t('notes.translate.from')
+      .replace('{lang}', this.langName(this.detectedSource(note)));
+  }
+
+  protected async changeSource(note: Note): Promise<void> {
+    const current = this.detectedSource(note);
+    const picked = await this.pickLanguage(
+      this.translationStore.t('notes.translate.pickSource'),
+      ['en', 'es', 'fr', 'de', 'it'],
+      current,
+    );
+    if (!picked) return;
+    const text = this.activeTabId() === note.id ? this.editorFields().body || note.body : note.body;
+    this.sourceOverride.set({ noteId: note.id, lang: picked, hash: hashText(text) });
+    if (this.pickerFor(note.id)) await this.promptTranslate(note.id);
+  }
+
+  protected toggleInfo(): void {
+    this.infoOpen.update((open) => !open);
+  }
+
+  protected errorFor(noteId: string): string | null {
+    const error = this.downloadError();
+    return error?.noteId === noteId ? error.message : null;
+  }
+
+  protected retryDownload(noteId: string): void {
+    const job = this.retryJob;
+    if (!job || job.noteId !== noteId) return;
+    void this.runTranslation(job.noteId, job.source, job.target, job.choice);
+  }
+
+  protected async promptTranslate(noteId: string): Promise<void> {
+    const note = this.store.notes().find((item) => item.id === noteId);
+    if (!note?.body.trim()) return;
+    // The picker states the source language, so the editor must show the
+    // original text while it is open, not a translation already on screen.
+    this.showOriginal(note);
+    const source = this.detectedSource(note);
+    const already = new Set(this.translationLangs(note));
+    await this.machine.refreshInstalled();
+    const installed = new Set(this.machine.installed().map((pack) => pack.id));
+    const choices = translateChoices(source, installed).filter(
+      (choice) => !already.has(choice.target),
+    );
+    if (!choices.length) {
+      await this.showAlert(
+        this.translationStore.t('notes.translate.add'),
+        this.translationStore.t('notes.translate.noMore'),
+      );
+      return;
+    }
+    this.pickerNoteId = noteId;
+    this.pickerSource.set(source);
+    this.pickerChoices.set(choices);
+    this.pickerOpen.set(true);
+  }
+
+  protected async chooseTarget(choice: TranslateChoice): Promise<void> {
+    const source = this.pickerSource();
+    const noteId = this.pickerNoteId;
+    if (!source || !noteId) return;
+    this.pickerOpen.set(false);
+    await this.runTranslation(noteId, source, choice.target, choice);
+  }
+
+  protected async retranslate(note: Note): Promise<void> {
+    const lang = this.viewLang(note);
+    if (lang === 'original') return;
+    const source = note.translations?.[lang]?.sourceLang ?? this.detectedSource(note);
+    if (!source || source === lang) return;
+    await this.runTranslation(note.id, source, lang);
+  }
+
+  protected async confirmDeleteTranslation(note: Note): Promise<void> {
+    const lang = this.viewLang(note);
+    if (lang === 'original') return;
+    const alert = await this.alertController.create(quietAlert({
+      header: this.translationStore.t('notes.translate.deleteHeader'),
+      message: this.translationStore.t('notes.translate.deleteConfirm'),
+      mode: 'ios',
+      buttons: [
+        { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
+        { text: this.translationStore.t('notes.translate.delete'), role: 'destructive' },
+      ],
+    }));
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') return;
+    this.store.deleteTranslation(note.id, lang);
+    this.showOriginal(note);
+  }
+
+  private async runTranslation(
+    noteId: string,
+    source: AppLang,
+    target: AppLang,
+    choice?: TranslateChoice,
+  ): Promise<void> {
+    const note = this.store.notes().find((item) => item.id === noteId);
+    if (!note) return;
+    const route = this.machine.routeFor(source, target);
+    const parts =
+      choice?.missingLanguages ??
+      groupMissingByLanguage(await this.machine.missingFor(route));
+    const total = parts.reduce((sum, part) => sum + part.bytes, 0);
+    this.retryJob = { noteId, source, target, choice };
+    this.downloadError.set(null);
+    this.pickerOpen.set(false);
+    try {
+      await this.machine.ensurePacks(route, noteId, total);
+      const current = this.store.notes().find((item) => item.id === noteId) ?? note;
+      const translatedTitle = current.title.trim()
+        ? (await this.machine.translateTitle(current.title, source, target, noteId)).trim()
+        : '';
+      const midway = this.store.notes().find((item) => item.id === noteId);
+      if (!midway || midway.title !== current.title || midway.body !== current.body) return;
+      const text = await this.machine.translate(midway.body, source, target, noteId);
+      const after = this.store.notes().find((item) => item.id === noteId);
+      if (!after || after.body !== midway.body || after.title !== midway.title) return;
+      this.store.setTranslation(
+        noteId,
+        target,
+        makeTranslation(text, source, after.body, Date.now(), {
+          original: after.title,
+          translated: translatedTitle || after.title,
+        }),
+      );
+      this.showTranslation(after, target);
+    } catch (error) {
+      if (error instanceof TranslationCancelled) return;
+      const key =
+        error instanceof TranslationOffline
+          ? 'notes.translate.offlineMessage'
+          : error instanceof Error && error.message.startsWith('notes.')
+            ? error.message
+            : 'notes.translate.downloadFailed';
+      this.downloadError.set({ noteId, message: this.translationStore.t(key) });
+    }
+  }
+
+  protected langName(code: AppLang): string {
+    const label = this.translationStore.t(`languages.${code}`);
+    return label.startsWith('languages.') ? code.toUpperCase() : label;
+  }
+
+  private async pickLanguage(
+    header: string,
+    options: readonly AppLang[],
+    current: AppLang | null,
+  ): Promise<AppLang | null> {
+    const alert = await this.alertController.create({
+      header,
+      inputs: options.map((lang) => ({
+        type: 'radio' as const,
+        label: this.langName(lang),
+        value: lang,
+        checked: lang === current,
+      })),
+      buttons: [
+        { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
+        { text: this.translationStore.t('create.alerts.ok'), role: 'confirm' },
+      ],
+    });
+    await alert.present();
+    const result = await alert.onDidDismiss();
+    if (result.role !== 'confirm') return null;
+    const value =
+      result.data && typeof result.data === 'object' && 'values' in result.data
+        ? (result.data as { values?: unknown }).values
+        : undefined;
+    return isAppLang(value) ? value : current;
+  }
+
+  private translationShareText(item: { title?: string; text: string } | undefined): string {
+    if (!item) return '';
+    return [item.title?.trim(), item.text.trim()].filter(Boolean).join('\n\n');
+  }
+
+  private async fillMissingTitle(note: Note, lang: AppLang): Promise<void> {
+    const key = `${note.id}:${lang}`;
+    const item = note.translations?.[lang];
+    if (!item || item.title !== undefined || item.stale || this.titleJobs.has(key)) return;
+    if (!note.title.trim()) {
+      this.store.setTranslation(note.id, lang, {
+        ...item,
+        title: '',
+        sourceHash: sourceFingerprint(note.title, note.body),
+      });
+      return;
+    }
+    this.titleJobs.add(key);
+    try {
+      const translated = (
+        await this.machine.translateTitle(note.title, item.sourceLang, lang, note.id, true)
+      ).trim();
+      const current = this.store.notes().find((entry) => entry.id === note.id);
+      const still = current?.translations?.[lang];
+      if (!current || !still || still.title !== undefined || still.stale) return;
+      if (current.title !== note.title || current.body !== note.body) return;
+      this.store.setTranslation(note.id, lang, {
+        ...still,
+        title: translated || current.title,
+        sourceHash: sourceFingerprint(current.title, current.body),
+        stale: false,
+      });
+    } catch (error) {
+      console.warn('Title translation skipped', error);
+    } finally {
+      this.titleJobs.delete(key);
+    }
+  }
+
+  private async chooseShareText(
+    note: Note,
+    langs: readonly AppLang[],
+  ): Promise<{ text: string; title: string } | null> {
+    const alert = await this.alertController.create(quietAlert({
+      header: this.translationStore.t('notes.share.choose'),
+      message: this.translationStore.t('notes.share.include'),
+      inputs: [
+        {
+          type: 'checkbox' as const,
+          label: this.translationStore.t('notes.translate.original'),
+          value: 'original',
+          checked: true,
+        },
+        ...langs.map((lang) => ({
+          type: 'checkbox' as const,
+          label: lang.toUpperCase(),
+          value: lang,
+          checked: false,
+        })),
+      ],
+      buttons: [
+        { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
+        { text: this.translationStore.t('notes.actions.share'), role: 'confirm' },
+      ],
+    }));
+    await alert.present();
+    const result = await alert.onDidDismiss();
+    if (result.role !== 'confirm') return null;
+    const values =
+      result.data && typeof result.data === 'object' && 'values' in result.data
+        ? (result.data as { values?: unknown }).values
+        : [];
+    const selected = new Set(Array.isArray(values) ? values : []);
+    if (!selected.size) {
+      await this.showAlert(
+        this.translationStore.t('notes.share.choose'),
+        this.translationStore.t('notes.share.nothing'),
+      );
+      return null;
+    }
+    const text = composeShareText([
+      ...(selected.has('original')
+        ? [
+            {
+              heading: this.translationStore.t('notes.translate.original'),
+              text: note.body,
+              kind: 'original' as const,
+            },
+          ]
+        : []),
+      ...langs
+        .filter((lang) => selected.has(lang))
+        .map((lang) => ({
+          heading: `${lang.toUpperCase()} · ${this.translationStore.t('notes.translate.machine')}`,
+          text: this.translationShareText(note.translations?.[lang]),
+          kind: 'translation' as const,
+        })),
+    ]);
+    if (!text) return null;
+    const chosenLangs = langs.filter((lang) => selected.has(lang));
+    let title = note.title.trim();
+    if (!selected.has('original') && chosenLangs.length === 1) {
+      title = note.translations?.[chosenLangs[0]]?.title?.trim() || title;
+    }
+    return { text, title };
+  }
+
   protected async shareNote(note: Note, event?: Event): Promise<void> {
     event?.stopPropagation();
-    const text = note.body.trim() || note.title.trim();
+    if (this.shareInProgress) return;
+    this.shareInProgress = true;
+    try {
+      await this.shareNoteNow(note);
+    } finally {
+      this.shareInProgress = false;
+    }
+  }
+
+  private async shareNoteNow(note: Note): Promise<void> {
+    const langs = this.translationLangs(note);
+    let text = note.body.trim() || note.title.trim();
+    let title = note.title.trim() || text.slice(0, 60);
+    if (langs.length) {
+      const chosen = await this.chooseShareText(note, langs);
+      if (chosen === null) return;
+      text = chosen.text;
+      title = chosen.title || title;
+    }
     if (!text) return;
     try {
       const result = await sharePlainText({
-        title: note.title.trim() || text.slice(0, 60),
+        title,
         text,
         dialogTitle: this.translationStore.t('notes.share.dialogTitle'),
       });
@@ -289,11 +729,11 @@ export class NotesPage {
   }
 
   private async showAlert(header: string, message: string): Promise<void> {
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header,
       message,
       buttons: [this.translationStore.t('create.alerts.ok')],
-    });
+    }));
     await alert.present();
   }
 

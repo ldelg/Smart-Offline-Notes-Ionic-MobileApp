@@ -11,6 +11,7 @@
     "model": {
       "subtitle": "Model",
       "title": "Transcription Engine",
+      "infoLabel": "About the transcription model",
       "selectModel": "Select the model to use",
       "multilingual": "Choose language",
       "activeModel": "Active Model",
@@ -36,12 +37,9 @@
       "themeSystem": "System"
     },
     "transcription": {
-      "subtitle": "Language & Task",
+      "subtitle": "Language",
       "title": "Transcription Mode",
       "selectSource": "Select the source language",
-      "selectTask": "Select the task to perform",
-      "transcribe": "Transcribe",
-      "translate": "Translate to English",
       "languages": {
         "english": "English",
         "spanish": "Spanish",
@@ -54,7 +52,8 @@
       "subtitle": "Network Status",
       "online": "Online",
       "offline": "Offline",
-      "modelCache": "Model Cache",
+      "modelCache": "Speech models",
+      "modelsInfoLabel": "About downloaded models",
       "calculating": "Calculating...",
       "clearCache": "Delete all downloaded models",
       "deleteModel": "Delete selected model",
@@ -65,6 +64,7 @@
     "data": {
       "subtitle": "Data Management",
       "title": "Export & Import Notes",
+      "infoLabel": "About export and import",
       "description": "Export your notes as a JSON file for backup, or import notes from a previous export.",
       "export": "Export Notes",
       "import": "Import Notes"
@@ -130,6 +130,33 @@
         "deletedHeader": "Model deleted",
         "deletedMessage": "That model was removed. Your notes and any other downloaded models are kept."
       }
+    },
+    "translation": {
+      "subtitle": "On this phone",
+      "title": "Translation",
+      "auto": "Translate new notes",
+      "autoOff": "Off",
+      "autoHelp": "When a note is saved, also translate it. The original stays on the note.",
+      "packs": "Language packs",
+      "packsEmpty": "No language packs yet. They download the first time you translate.",
+      "packsNone": "No language packs yet.",
+      "infoLabel": "About translation",
+      "packDelete": "Delete",
+      "packDeleteName": "Delete {lang}",
+      "deleteHeader": "Delete language pack?",
+      "deleteMessage": "This removes the downloaded files for that language. Translations already saved on notes are kept.",
+      "engine": "Translation engine",
+      "credit": "Bergamot (Firefox Translations) runs on this phone. Language packs come from Mozilla.",
+      "languagesTitle": "Translation languages",
+      "helper": "Downloaded once, used for every pair. Works offline.",
+      "total": "Total"
+    },
+    "about": {
+      "subtitle": "About",
+      "title": "Licences",
+      "body": "Machine translation uses the Bergamot engine and Firefox Translations models from Mozilla, under the Mozilla Public License 2.0. The engine and language packs are downloaded from Mozilla. Notes stay on this phone.",
+      "source": "Project source and licence",
+      "license": "MPL 2.0 licence"
     }
   },
   "create": {
@@ -224,7 +251,8 @@
       "pin": "Pin note",
       "unpin": "Unpin note",
       "share": "Share note",
-      "delete": "Delete note"
+      "delete": "Delete note",
+      "translate": "Translate"
     },
     "pinned": "Pinned",
     "tags": {
@@ -240,7 +268,10 @@
       "copiedHeader": "Copied",
       "copiedMessage": "The note was copied to the clipboard.",
       "failedHeader": "Could not share",
-      "failedMessage": "The note could not be shared or copied."
+      "failedMessage": "The note could not be shared or copied.",
+      "choose": "Share",
+      "include": "Choose what to include",
+      "nothing": "Choose at least one part to share."
     },
     "editor": {
       "editing": "Editing",
@@ -254,6 +285,44 @@
       "minutes": "min ago",
       "hours": "hr ago",
       "days": "d ago"
+    },
+    "translate": {
+      "original": "Original",
+      "add": "Translate",
+      "machine": "Machine translation",
+      "stale": "The original note changed. This translation may be out of date.",
+      "update": "Update translation",
+      "delete": "Delete translation",
+      "pickSource": "Source language",
+      "pickTarget": "Translate to",
+      "downloadHeader": "Download language pack?",
+      "downloadMessage": "{pack} will be downloaded once from Mozilla (about {size}) and saved on this phone. After that, translation works offline.",
+      "downloadConfirm": "Download",
+      "cancel": "Cancel",
+      "progressDownload": "Downloading language pack",
+      "progressLoad": "Loading translation",
+      "progressTranslate": "Translating",
+      "failedHeader": "Translation failed",
+      "failedMessage": "The note could not be translated. If the language pack is not on the phone yet, check your connection.",
+      "offlineHeader": "Offline",
+      "offlineMessage": "You are offline and this language pack is not on the phone yet.",
+      "noMore": "This note already has a translation for every other language.",
+      "outOfDate": "Out of date",
+      "ready": "Ready",
+      "downloadAmount": "Download {size}",
+      "needs": "{from} → {to} needs {langs}.",
+      "and": "and",
+      "downloadingAmount": "Downloading {done} / {total}, one time only",
+      "deleteHeader": "Delete translation?",
+      "deleteConfirm": "This removes the translation. The original note stays.",
+      "noteIn": "Note in {lang}",
+      "downloadFailed": "The language could not be downloaded. Check your connection and try again.",
+      "checksumFailed": "The download did not match Mozilla’s file and was discarded.",
+      "retry": "Retry",
+      "from": "From {lang}",
+      "changeSource": "Change",
+      "infoLabel": "About language downloads",
+      "info": "A language is downloaded once and then works offline for every translation."
     }
   }
 }

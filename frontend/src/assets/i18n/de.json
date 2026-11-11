@@ -19,6 +19,7 @@
       "downloadedHint": "Bereits heruntergeladen und einsatzbereit",
       "willBeUsedHint": "Wird bei der nächsten Transkription verwendet",
       "onThisPhone": "Auf diesem Telefon",
+      "infoLabel": "Info zum Transkriptionsmodell",
       "downloadsFirst": "Wird beim ersten Aufnehmen heruntergeladen.",
       "badgeMultilingual": "Mehrsprachig",
       "badgeEnglish": "Nur Englisch",
@@ -36,18 +37,16 @@
       "themeSystem": "System"
     },
     "transcription": {
-      "subtitle": "Sprache und Aufgabe",
+      "subtitle": "Sprache",
       "title": "Transkriptionsmodus",
-      "selectSource": "Wählen Sie die Quellsprache",
-      "selectTask": "Wählen Sie die Aufgabe",
-      "transcribe": "Transkribieren",
-      "translate": "Ins Englische übersetzen"
+      "selectSource": "Wählen Sie die Quellsprache"
     },
     "network": {
       "subtitle": "Netzwerkstatus",
       "online": "Online",
       "offline": "Offline",
-      "modelCache": "Modellcache",
+      "modelCache": "Sprachmodelle",
+      "modelsInfoLabel": "Über heruntergeladene Modelle",
       "calculating": "Berechnung...",
       "clearCache": "Alle heruntergeladenen Modelle löschen",
       "deleteModel": "Ausgewähltes Modell löschen",
@@ -58,6 +57,7 @@
     "data": {
       "subtitle": "Datenverwaltung",
       "title": "Notizen exportieren und importieren",
+      "infoLabel": "Info zu Export und Import",
       "description": "Exportieren Sie Ihre Notizen als JSON zur Sicherung oder importieren Sie Notizen aus einem früheren Export.",
       "export": "Notizen exportieren",
       "import": "Notizen importieren"
@@ -123,6 +123,33 @@
         "deletedHeader": "Modell gelöscht",
         "deletedMessage": "Dieses Modell wurde entfernt. Ihre Notizen und die anderen heruntergeladenen Modelle bleiben erhalten."
       }
+    },
+    "translation": {
+      "subtitle": "Auf diesem Telefon",
+      "title": "Übersetzung",
+      "auto": "Neue Notizen übersetzen",
+      "autoOff": "Aus",
+      "autoHelp": "Beim Speichern einer Notiz wird sie zusätzlich übersetzt. Das Original bleibt erhalten.",
+      "packs": "Sprachpakete",
+      "packsEmpty": "Noch keine Sprachpakete. Sie werden beim ersten Übersetzen geladen.",
+      "packsNone": "Noch keine Sprachpakete.",
+      "infoLabel": "Über die Übersetzung",
+      "packDelete": "Löschen",
+      "packDeleteName": "{lang} löschen",
+      "deleteHeader": "Sprachpaket löschen?",
+      "deleteMessage": "Die heruntergeladenen Dateien für diese Sprache werden entfernt. Übersetzungen, die schon in Notizen gespeichert sind, bleiben erhalten.",
+      "engine": "Übersetzungsmodul",
+      "credit": "Bergamot (Firefox Translations) läuft auf diesem Telefon. Die Sprachpakete kommen von Mozilla.",
+      "languagesTitle": "Übersetzungssprachen",
+      "helper": "Einmal geladen, für jedes Paar nutzbar. Funktioniert offline.",
+      "total": "Gesamt"
+    },
+    "about": {
+      "subtitle": "Info",
+      "title": "Lizenzen",
+      "body": "Die maschinelle Übersetzung nutzt die Bergamot-Engine und die Firefox-Translations-Modelle von Mozilla unter der Mozilla Public License 2.0. Engine und Sprachpakete werden von Mozilla geladen. Notizen bleiben auf diesem Telefon.",
+      "source": "Quellcode und Lizenz",
+      "license": "MPL-2.0-Lizenz"
     }
   },
   "create": {
@@ -217,7 +244,8 @@
       "pin": "Notiz anheften",
       "unpin": "Anheftung aufheben",
       "share": "Notiz teilen",
-      "delete": "Notiz löschen"
+      "delete": "Notiz löschen",
+      "translate": "Übersetzen"
     },
     "pinned": "Angeheftet",
     "tags": {
@@ -233,7 +261,10 @@
       "copiedHeader": "Kopiert",
       "copiedMessage": "Die Notiz wurde in die Zwischenablage kopiert.",
       "failedHeader": "Teilen fehlgeschlagen",
-      "failedMessage": "Die Notiz konnte weder geteilt noch kopiert werden."
+      "failedMessage": "Die Notiz konnte weder geteilt noch kopiert werden.",
+      "choose": "Teilen",
+      "include": "Auswählen, was geteilt wird",
+      "nothing": "Wähle mindestens einen Teil zum Teilen."
     },
     "editor": {
       "editing": "Bearbeiten",
@@ -247,6 +278,44 @@
       "minutes": "Min.",
       "hours": "Std.",
       "days": "T."
+    },
+    "translate": {
+      "original": "Original",
+      "add": "Übersetzen",
+      "machine": "Maschinelle Übersetzung",
+      "stale": "Die ursprüngliche Notiz hat sich geändert. Diese Übersetzung kann veraltet sein.",
+      "update": "Übersetzung aktualisieren",
+      "delete": "Übersetzung löschen",
+      "pickSource": "Ausgangssprache",
+      "pickTarget": "Übersetzen nach",
+      "downloadHeader": "Sprachpaket herunterladen?",
+      "downloadMessage": "{pack} wird einmal von Mozilla geladen (etwa {size}) und auf diesem Telefon gespeichert. Danach funktioniert die Übersetzung offline.",
+      "downloadConfirm": "Herunterladen",
+      "cancel": "Abbrechen",
+      "progressDownload": "Sprachpaket wird geladen",
+      "progressLoad": "Übersetzung wird geladen",
+      "progressTranslate": "Übersetzen",
+      "failedHeader": "Übersetzung fehlgeschlagen",
+      "failedMessage": "Die Notiz konnte nicht übersetzt werden. Wenn das Sprachpaket noch nicht auf dem Telefon ist, prüfe die Verbindung.",
+      "offlineHeader": "Offline",
+      "offlineMessage": "Du bist offline und dieses Sprachpaket ist noch nicht auf dem Telefon.",
+      "noMore": "Diese Notiz hat schon eine Übersetzung für jede andere Sprache.",
+      "outOfDate": "Veraltet",
+      "ready": "Bereit",
+      "downloadAmount": "{size} laden",
+      "needs": "{from} → {to} braucht {langs}.",
+      "and": "und",
+      "downloadingAmount": "Lädt {done} / {total}, nur einmal",
+      "deleteHeader": "Übersetzung löschen?",
+      "deleteConfirm": "Die Übersetzung wird entfernt. Die ursprüngliche Notiz bleibt.",
+      "noteIn": "Notiz auf {lang}",
+      "downloadFailed": "Die Sprache konnte nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+      "checksumFailed": "Der Download stimmte nicht mit Mozillas Datei überein und wurde verworfen.",
+      "retry": "Erneut versuchen",
+      "from": "Quelle: {lang}",
+      "changeSource": "Ändern",
+      "infoLabel": "Info zu Sprachdownloads",
+      "info": "Eine Sprache wird einmal geladen und funktioniert danach offline für jede Übersetzung."
     }
   }
 }

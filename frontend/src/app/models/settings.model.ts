@@ -1,3 +1,5 @@
+import { AppLang } from './translation.model';
+
 export type TranscriptionTask = 'transcribe' | 'translate';
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -7,9 +9,12 @@ export interface SettingsState {
   quantized: boolean;
   language: string;
   uiLanguage: string;
+  /** Always stored as transcribe. The old Whisper translate task is no longer used. */
   task: TranscriptionTask;
   lastUsedModel: string | null;
   theme: ThemePreference;
+  /** Target language for new notes. Null means auto-translate is off. */
+  autoTranslateTo: AppLang | null;
 }
 
 export const SETTINGS_STORAGE_KEY = 'whisper-settings';

@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { pipeline, env } from '@huggingface/transformers';
+import { BERGAMOT_CACHE } from './bergamot-cache';
 
 env.allowLocalModels = false;
 
@@ -138,6 +139,7 @@ const transcribe = async (
     try {
       const cacheNames = await caches.keys();
       for (const cacheName of cacheNames) {
+        if (cacheName === BERGAMOT_CACHE) continue;
         await caches.delete(cacheName);
       }
     } catch (error) {

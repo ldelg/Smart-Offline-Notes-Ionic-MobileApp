@@ -1,5 +1,15 @@
 import { Share } from '@capacitor/share';
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return String(error ?? '');
+}
+
+/** A dismissed sheet, or a second share while Android still has one open. */
 export function shareWasCancelled(error: unknown): boolean {
   if (
     error &&
@@ -9,11 +19,11 @@ export function shareWasCancelled(error: unknown): boolean {
   ) {
     return true;
   }
-  const message = error instanceof Error ? error.message : String(error ?? '');
+  const message = errorMessage(error).toLowerCase();
   return (
     message.includes('cancel') ||
-    message.includes('User') ||
-    message.toLowerCase().includes('abort')
+    message.includes('abort') ||
+    message.includes('in progress')
   );
 }
 
@@ -36,6 +46,26 @@ export async function copyText(text: string): Promise<void> {
   const copied = document.execCommand('copy');
   document.body.removeChild(area);
   if (!copied) throw new Error('Clipboard is not available');
+}
+
+export interface SharePiece {
+  heading: string;
+  text: string;
+  kind: 'original' | 'translation';
+}
+
+/** One original part is shared as plain text. Anything else is labelled. */
+export function composeShareText(parts: readonly SharePiece[]): string {
+  const usable = parts
+    .map((part) => ({
+      heading: part.heading.trim(),
+      text: part.text.trim(),
+      kind: part.kind,
+    }))
+    .filter((part) => part.text);
+  if (!usable.length) return '';
+  if (usable.length === 1 && usable[0].kind === 'original') return usable[0].text;
+  return usable.map((part) => `${part.heading}\n${part.text}`).join('\n\n');
 }
 
 /**

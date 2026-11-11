@@ -119,14 +119,60 @@ ion-note {
   --color: var(--app-text);
 }
 
-.danger-row ion-label h2,
-.danger-row ion-note {
-  color: var(--app-danger);
+.delete-list ion-item.item-disabled {
+  opacity: 1;
+}
+
+.delete-list ion-item.item-disabled ion-label h2 {
+  color: var(--app-text-muted);
 }
 
 .status-online {
   color: var(--app-success);
   font-weight: 600;
+}
+
+.title-with-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.title-with-info .info-button {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--app-text-muted);
+  background: transparent;
+  color: var(--app-text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.settings-info {
+  margin: 0 16px 12px;
+  padding: 0.55rem 0.7rem;
+  color: var(--app-text);
+  background: var(--app-bg-elevated);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.settings-info p {
+  margin: 0 0 0.45rem;
+}
+
+.settings-info p:last-child {
+  margin-bottom: 0;
+}
+
+.models-info {
+  margin-top: 0;
 }
 
 .model-status {
