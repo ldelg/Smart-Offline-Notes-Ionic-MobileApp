@@ -6,6 +6,7 @@ on:
   push:
     tags:
       - "test-pr12-debug"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -66,16 +67,15 @@ jobs:
           cp "$SRC" SmartNotes-Debug-pr12.apk
 
       - name: Publish prerelease
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: test-pr12-debug
-          name: "Test build: punctuation, pin, tags"
-          prerelease: true
-          make_latest: false
-          overwrite_files: true
-          generate_release_notes: false
-          body: |
-            Side-by-side debug build for pull request 12.
-            Install SmartNotes-Debug-pr12.apk directly. Package id io.ldelg.smartofflinenotes.debug, launcher name SmartNotes Debug.
-            This prerelease is not Latest and does not publish to Play.
-          files: SmartNotes-Debug-pr12.apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload test-pr12-debug SmartNotes-Debug-pr12.apk --clobber
+          gh release edit test-pr12-debug \
+            --prerelease \
+            --latest=false \
+            --draft=false \
+            --title "Test build: punctuation, pin, tags" \
+            --target "${GITHUB_SHA}" \
+            --notes "Side-by-side debug build for pull request 12. Install SmartNotes-Debug-pr12.apk directly. Package id io.ldelg.smartofflinenotes.debug, launcher name SmartNotes Debug. This prerelease is not Latest and does not publish to Play."
