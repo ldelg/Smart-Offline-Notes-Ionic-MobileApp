@@ -11,10 +11,24 @@
         <ion-card-subtitle
           >{{ 'settings.model.subtitle' | translate }}</ion-card-subtitle
         >
-        <ion-card-title
-          >{{ 'settings.model.title' | translate }}</ion-card-title
-        >
+        <div class="title-with-info">
+          <ion-card-title>{{ 'settings.model.title' | translate }}</ion-card-title>
+          <button
+            type="button"
+            class="info-button"
+            (click)="modelInfoOpen.set(!modelInfoOpen())"
+            [attr.aria-expanded]="modelInfoOpen()"
+            [attr.aria-label]="'settings.model.infoLabel' | translate"
+          >
+            i
+          </button>
+        </div>
       </ion-card-header>
+      @if (modelInfoOpen()) {
+      <div class="settings-info models-info">
+        <p>{{ 'settings.model.downloadsFirst' | translate }}</p>
+      </div>
+      }
       <ion-card-content>
         <ion-item
           button
@@ -29,7 +43,9 @@
           </ion-label>
           <ion-badge slot="end">{{ selectedModelBadge() }}</ion-badge>
         </ion-item>
+        @if (lastUsedModel() === model() && lastUsedModel()) {
         <p class="model-status">{{ modelStatus() }}</p>
+        }
 
         @if (isMultilingualModel()) {
         <ion-item lines="none">
@@ -145,7 +161,6 @@
         <div class="settings-info">
           <p>{{ 'settings.translation.autoHelp' | translate }}</p>
           <p>{{ 'settings.translation.helper' | translate }}</p>
-          <p>{{ 'settings.translation.packsEmpty' | translate }}</p>
           <p>{{ 'settings.translation.credit' | translate }}</p>
         </div>
         }
@@ -276,12 +291,25 @@
         <ion-card-subtitle
           >{{ 'settings.data.subtitle' | translate }}</ion-card-subtitle
         >
-        <ion-card-title>{{ 'settings.data.title' | translate }}</ion-card-title>
+        <div class="title-with-info">
+          <ion-card-title>{{ 'settings.data.title' | translate }}</ion-card-title>
+          <button
+            type="button"
+            class="info-button"
+            (click)="dataInfoOpen.set(!dataInfoOpen())"
+            [attr.aria-expanded]="dataInfoOpen()"
+            [attr.aria-label]="'settings.data.infoLabel' | translate"
+          >
+            i
+          </button>
+        </div>
       </ion-card-header>
+      @if (dataInfoOpen()) {
+      <div class="settings-info models-info">
+        <p>{{ 'settings.data.description' | translate }}</p>
+      </div>
+      }
       <ion-card-content>
-        <p class="data-description">
-          {{ 'settings.data.description' | translate }}
-        </p>
 
         <div class="data-actions">
           <ion-button

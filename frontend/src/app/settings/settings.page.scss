@@ -119,9 +119,12 @@ ion-note {
   --color: var(--app-text);
 }
 
-.danger-row ion-label h2,
-.danger-row ion-note {
-  color: var(--app-danger);
+.delete-list ion-item.item-disabled {
+  opacity: 1;
+}
+
+.delete-list ion-item.item-disabled ion-label h2 {
+  color: var(--app-text-muted);
 }
 
 .status-online {

@@ -48,6 +48,7 @@ import {
   noteEditorDirty,
 } from '../store/note-editor';
 import { composeShareText, sharePlainText } from '../services/note-share';
+import { quietAlert } from '../services/quiet-alert';
 import { AutoTranslateService } from '../services/auto-translate.service';
 import {
   TranslationCancelled,
@@ -437,6 +438,9 @@ export class NotesPage {
   protected async promptTranslate(noteId: string): Promise<void> {
     const note = this.store.notes().find((item) => item.id === noteId);
     if (!note?.body.trim()) return;
+    // The picker states the source language, so the editor must show the
+    // original text while it is open, not a translation already on screen.
+    this.showOriginal(note);
     const source = this.detectedSource(note);
     const already = new Set(this.translationLangs(note));
     await this.machine.refreshInstalled();
@@ -476,14 +480,15 @@ export class NotesPage {
   protected async confirmDeleteTranslation(note: Note): Promise<void> {
     const lang = this.viewLang(note);
     if (lang === 'original') return;
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header: this.translationStore.t('notes.translate.deleteHeader'),
       message: this.translationStore.t('notes.translate.deleteConfirm'),
+      mode: 'ios',
       buttons: [
         { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
         { text: this.translationStore.t('notes.translate.delete'), role: 'destructive' },
       ],
-    });
+    }));
     await alert.present();
     const { role } = await alert.onDidDismiss();
     if (role !== 'destructive') return;
@@ -615,7 +620,7 @@ export class NotesPage {
     note: Note,
     langs: readonly AppLang[],
   ): Promise<{ text: string; title: string } | null> {
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header: this.translationStore.t('notes.share.choose'),
       message: this.translationStore.t('notes.share.include'),
       inputs: [
@@ -636,7 +641,7 @@ export class NotesPage {
         { text: this.translationStore.t('notes.translate.cancel'), role: 'cancel' },
         { text: this.translationStore.t('notes.actions.share'), role: 'confirm' },
       ],
-    });
+    }));
     await alert.present();
     const result = await alert.onDidDismiss();
     if (result.role !== 'confirm') return null;
@@ -713,11 +718,11 @@ export class NotesPage {
   }
 
   private async showAlert(header: string, message: string): Promise<void> {
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header,
       message,
       buttons: [this.translationStore.t('create.alerts.ok')],
-    });
+    }));
     await alert.present();
   }
 

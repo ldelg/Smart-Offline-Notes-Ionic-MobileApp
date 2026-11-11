@@ -19,6 +19,7 @@
       "downloadedHint": "Bereits heruntergeladen und einsatzbereit",
       "willBeUsedHint": "Wird bei der nächsten Transkription verwendet",
       "onThisPhone": "Auf diesem Telefon",
+      "infoLabel": "Info zum Transkriptionsmodell",
       "downloadsFirst": "Wird beim ersten Aufnehmen heruntergeladen.",
       "badgeMultilingual": "Mehrsprachig",
       "badgeEnglish": "Nur Englisch",
@@ -56,6 +57,7 @@
     "data": {
       "subtitle": "Datenverwaltung",
       "title": "Notizen exportieren und importieren",
+      "infoLabel": "Info zu Export und Import",
       "description": "Exportieren Sie Ihre Notizen als JSON zur Sicherung oder importieren Sie Notizen aus einem früheren Export.",
       "export": "Notizen exportieren",
       "import": "Notizen importieren"

@@ -22,6 +22,12 @@ describe('number protection', () => {
   it('restores a placeholder the model spaced out', () => {
     expect(restoreNumbers('Total __ N0 __ euros', ['1,500'])).toBe('Total 1,500 euros');
   });
+
+  it('restores a placeholder when the model adds an underscore', () => {
+    expect(restoreNumbers('oder __N0___.', ['12,345.67'], 'en', 'de')).toBe(
+      'oder 12.345,67.',
+    );
+  });
 });
 
 describe('number localisation', () => {

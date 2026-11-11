@@ -73,6 +73,7 @@ import { languageRows } from '../services/translation-languages';
 import { AppLang } from '../models/translation.model';
 import { isAppLang } from '../models/translation.model';
 import { BERGAMOT_CACHE } from '../services/bergamot-cache';
+import { quietAlert } from '../services/quiet-alert';
 
 @Component({
   selector: 'app-settings',
@@ -178,6 +179,8 @@ export class SettingsPage implements ViewWillEnter {
   readonly autoTranslateTo = computed(() => this.settings.autoTranslateTo());
   protected readonly translationInfoOpen = signal(false);
   protected readonly modelsInfoOpen = signal(false);
+  protected readonly dataInfoOpen = signal(false);
+  protected readonly modelInfoOpen = signal(false);
   readonly translationLanguages = computed(() => languageRows(this.machine.installed()));
   readonly translationTotal = computed(() =>
     this.translationLanguages().reduce((sum, row) => sum + row.bytes, 0),
@@ -305,7 +308,7 @@ export class SettingsPage implements ViewWillEnter {
   }
 
   async deleteTranslationLanguage(lang: AppLang) {
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header: this.t('settings.translation.deleteHeader'),
       message: `${this.langLabel(lang)}. ${this.t('settings.translation.deleteMessage')}`,
       mode: 'ios',
@@ -313,7 +316,7 @@ export class SettingsPage implements ViewWillEnter {
         { text: this.t('settings.messages.common.cancel'), role: 'cancel' },
         { text: this.t('settings.translation.packDelete'), role: 'destructive' },
       ],
-    });
+    }));
     await alert.present();
     const { role } = await alert.onDidDismiss();
     if (role !== 'destructive' && role !== 'confirm') return;
@@ -607,9 +610,10 @@ export class SettingsPage implements ViewWillEnter {
   }
 
   async clearCache() {
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header: this.t('settings.messages.network.clearCacheHeader'),
       message: `${this.t('settings.messages.network.clearCacheMessagePrefix')} (${this.cacheSize()}). ${this.t('settings.messages.network.clearCacheMessageSuffix')}`,
+      mode: 'ios',
       buttons: [
         {
           text: this.t('settings.messages.common.cancel'),
@@ -623,7 +627,7 @@ export class SettingsPage implements ViewWillEnter {
           },
         },
       ],
-    });
+    }));
     await alert.present();
   }
 
@@ -640,9 +644,10 @@ export class SettingsPage implements ViewWillEnter {
     const model = this.settings.model();
     const label =
       modelOptions.find((option) => option.value === model)?.label ?? model;
-    const alert = await this.alertController.create({
+    const alert = await this.alertController.create(quietAlert({
       header: this.t('settings.messages.network.deleteModelHeader'),
       message: `${this.t('settings.messages.network.deleteModelMessage')} ${label}.`,
+      mode: 'ios',
       buttons: [
         {
           text: this.t('settings.messages.common.cancel'),
@@ -656,7 +661,7 @@ export class SettingsPage implements ViewWillEnter {
           },
         },
       ],
-    });
+    }));
     await alert.present();
   }
 

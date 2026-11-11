@@ -364,7 +364,6 @@
                 <p class="mt-label">{{ translationStore.t('notes.translate.machine') }}</p>
                 @if (activeTranslation(note)?.stale) {
                 <p class="mt-quiet">
-                  <span class="stale-tag">{{ translationStore.t('notes.translate.outOfDate') }}</span>
                   <button type="button" class="text-button" (click)="retranslate(note)">
                     {{ translationStore.t('notes.translate.update') }}
                   </button>

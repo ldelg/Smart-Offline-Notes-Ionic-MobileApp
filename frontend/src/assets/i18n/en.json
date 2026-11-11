@@ -11,6 +11,7 @@
     "model": {
       "subtitle": "Model",
       "title": "Transcription Engine",
+      "infoLabel": "About the transcription model",
       "selectModel": "Select the model to use",
       "multilingual": "Choose language",
       "activeModel": "Active Model",
@@ -63,6 +64,7 @@
     "data": {
       "subtitle": "Data Management",
       "title": "Export & Import Notes",
+      "infoLabel": "About export and import",
       "description": "Export your notes as a JSON file for backup, or import notes from a previous export.",
       "export": "Export Notes",
       "import": "Import Notes"

@@ -11,7 +11,8 @@ import { AppLang } from '../models/translation.model';
 const TOKEN_RE =
   /(?<![A-Za-zÀ-ÿ\d])(?:\d{4}-\d{2}-\d{2}|\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{1,2}:\d{2}(?::\d{2})?|\d{1,3}(?:\.\d{1,3}){3}|\+\d[\d ().-]{5,}\d|\d{2,4}(?:-\d{2,4}){2,}|(?:\d{1,3}(?:[.,\u00a0\u202f\u2009 ]\d{3})+(?:[.,]\d+)?|\d+[.,]\d+)\s*[-–—]\s*(?:\d{1,3}(?:[.,\u00a0\u202f\u2009 ]\d{3})+(?:[.,]\d+)?|\d+[.,]\d+)|\d+(?:\.\d+){2,}|\d{1,3}(?:[\u00a0\u202f\u2009 ]\d{3})+(?:,\d+)?|\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+[.,]\d+)(?![A-Za-zÀ-ÿ\d])/g;
 
-const PLACEHOLDER_RE = /__\s*N\s*(\d+)\s*__/g;
+// Models sometimes keep an extra underscore on the placeholder (__N0___).
+const PLACEHOLDER_RE = /_+\s*N\s*(\d+)\s*_+/g;
 
 const GROUP_SPACE = /[\u00a0\u202f\u2009 ]/;
 

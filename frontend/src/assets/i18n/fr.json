@@ -19,6 +19,7 @@
       "downloadedHint": "Déjà téléchargé et prêt à l'emploi",
       "willBeUsedHint": "Sera utilisé lors de la prochaine transcription",
       "onThisPhone": "Sur ce téléphone",
+      "infoLabel": "À propos du modèle de transcription",
       "downloadsFirst": "Téléchargé la première fois que vous enregistrez.",
       "badgeMultilingual": "Multilingue",
       "badgeEnglish": "Anglais seulement",
@@ -56,6 +57,7 @@
     "data": {
       "subtitle": "Gestion des données",
       "title": "Exporter et importer des notes",
+      "infoLabel": "À propos de l’export et de l’import",
       "description": "Exportez vos notes au format JSON pour sauvegarde, ou importez des notes depuis une exportation précédente.",
       "export": "Exporter les notes",
       "import": "Importer des notes"
