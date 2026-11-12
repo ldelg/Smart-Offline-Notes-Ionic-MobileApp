@@ -41,7 +41,12 @@
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
             "browser": "src/main.ts",
-            "allowedCommonJsDependencies": ["@huggingface/transformers"]
+            "allowedCommonJsDependencies": [
+              "@huggingface/transformers",
+              "mammoth",
+              "turndown",
+              "turndown-plugin-gfm"
+            ]
           },
           "configurations": {
             "production": {

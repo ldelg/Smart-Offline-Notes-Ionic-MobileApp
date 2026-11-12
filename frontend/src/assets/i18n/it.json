@@ -160,8 +160,8 @@
     "modelLabel": "Modello",
     "upload": {
       "label": "Carica",
-      "caption": "Carica un file audio",
-      "aria": "Carica file audio"
+      "caption": "Carica audio o un documento",
+      "aria": "Carica audio o un documento"
     },
     "transcribing": "Trascrizione in corso...",
     "progress": {
@@ -271,7 +271,27 @@
       "titleLabel": "Titolo",
       "titlePlaceholder": "Titolo della nota",
       "bodyLabel": "Contenuto",
-      "save": "Salva modifiche"
+      "save": "Salva modifiche",
+      "editText": "Modifica testo",
+      "doneEditing": "Fine",
+      "markdownInfoLabel": "Sulle note formattate",
+      "markdownInfo": "Le note sono mostrate con la formattazione, come titoli, elenchi e tabelle. Le interruzioni di riga restano. Modifica testo cambia l'originale."
+    },
+    "import": {
+      "savedHeader": "Importata",
+      "failedHeader": "Non importata",
+      "savedOne": "Salvata come nota.",
+      "savedMany": "Salvate {count} note.",
+      "tooLarge": "Questo file è troppo grande per essere importato.",
+      "unsupported": "Questo tipo di file non può essere importato. Usa un file .txt, .md, .csv o .docx.",
+      "legacyDoc": "I vecchi file Word (.doc) non sono supportati. Salvalo come .docx e riprova.",
+      "empty": "Questo file è vuoto.",
+      "unreadable": "Impossibile leggere questo file.",
+      "failed": "Impossibile importare questo file.",
+      "csvTruncated": "Mostro le prime {shown} di {total} righe.",
+      "csvTruncatedColumns": "Mostro le prime {shown} di {total} colonne.",
+      "sharedTitle": "Testo condiviso",
+      "importedTitle": "Nota importata"
     },
     "meta": {
       "justNow": "Adesso",
@@ -292,6 +312,7 @@
       "downloadMessage": "{pack} verrà scaricato una volta da Mozilla (circa {size}) e salvato su questo telefono. Poi la traduzione funziona offline.",
       "downloadConfirm": "Scarica",
       "cancel": "Annulla",
+      "closePicker": "Chiudi l'elenco delle lingue",
       "progressDownload": "Download del pacchetto lingua",
       "progressLoad": "Caricamento della traduzione",
       "progressTranslate": "Traduzione",

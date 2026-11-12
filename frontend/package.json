@@ -1,6 +1,6 @@
 {
   "name": "smart-offline-notes",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "author": "ldelg",
   "homepage": "https://github.com/ldelg/Smart-Offline-Notes-Ionic-MobileApp",
   "scripts": {
@@ -36,10 +36,15 @@
     "@huggingface/transformers": "^3.8.1",
     "@ionic/angular": "^8.0.0",
     "@ngrx/signals": "^20.1.0",
+    "dompurify": "^3.4.17",
     "fzstd": "^0.1.1",
     "ionicons": "^7.0.0",
+    "mammoth": "^1.13.0",
+    "marked": "^18.2.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "turndown": "^7.2.5",
+    "turndown-plugin-gfm": "^1.0.2",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -54,7 +59,9 @@
     "@angular/language-service": "^20.0.0",
     "@capacitor/cli": "7.4.4",
     "@ionic/angular-toolkit": "^12.0.0",
+    "@types/dompurify": "^3.0.5",
     "@types/jasmine": "~5.1.0",
+    "@types/turndown": "^5.0.6",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
     "concurrently": "^9.2.1",

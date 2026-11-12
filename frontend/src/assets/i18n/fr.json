@@ -160,8 +160,8 @@
     "modelLabel": "Modèle",
     "upload": {
       "label": "Téléverser",
-      "caption": "Téléverser un fichier audio",
-      "aria": "Téléverser un fichier audio"
+      "caption": "Téléverser un audio ou un document",
+      "aria": "Téléverser un audio ou un document"
     },
     "transcribing": "Transcription en cours...",
     "progress": {
@@ -271,7 +271,27 @@
       "titleLabel": "Titre",
       "titlePlaceholder": "Titre de la note",
       "bodyLabel": "Contenu",
-      "save": "Enregistrer les modifications"
+      "save": "Enregistrer les modifications",
+      "editText": "Modifier le texte",
+      "doneEditing": "Terminé",
+      "markdownInfoLabel": "À propos des notes mises en forme",
+      "markdownInfo": "Les notes s'affichent avec une mise en forme : titres, listes et tableaux. Les sauts de ligne restent. Modifier le texte change l'original."
+    },
+    "import": {
+      "savedHeader": "Importé",
+      "failedHeader": "Non importé",
+      "savedOne": "Enregistré comme note.",
+      "savedMany": "{count} notes enregistrées.",
+      "tooLarge": "Ce fichier est trop volumineux pour être importé.",
+      "unsupported": "Ce type de fichier ne peut pas être importé. Utilise un fichier .txt, .md, .csv ou .docx.",
+      "legacyDoc": "Les anciens fichiers Word (.doc) ne sont pas pris en charge. Enregistre-le en .docx et réessaie.",
+      "empty": "Ce fichier est vide.",
+      "unreadable": "Impossible de lire ce fichier.",
+      "failed": "Impossible d'importer ce fichier.",
+      "csvTruncated": "Affichage des {shown} premières lignes sur {total}.",
+      "csvTruncatedColumns": "Affichage des {shown} premières colonnes sur {total}.",
+      "sharedTitle": "Texte partagé",
+      "importedTitle": "Note importée"
     },
     "meta": {
       "justNow": "À l'instant",
@@ -292,6 +312,7 @@
       "downloadMessage": "{pack} sera téléchargé une fois depuis Mozilla (environ {size}) et enregistré sur ce téléphone. Ensuite, la traduction fonctionne hors ligne.",
       "downloadConfirm": "Télécharger",
       "cancel": "Annuler",
+      "closePicker": "Fermer la liste des langues",
       "progressDownload": "Téléchargement du pack de langue",
       "progressLoad": "Chargement de la traduction",
       "progressTranslate": "Traduction",

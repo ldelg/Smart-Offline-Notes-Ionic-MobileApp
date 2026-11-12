@@ -1,6 +1,7 @@
 import { Injectable, effect, inject } from '@angular/core';
 import { NotesStore } from '../store/notes.store';
 import { SettingsStore } from '../store/settings.store';
+import { translateNoteBody } from './markdown-translate';
 import { hashText, makeTranslation } from './note-translations';
 import { resolveSourceLanguage } from './translation-detect';
 import { translationRoute } from './translation-route';
@@ -60,7 +61,7 @@ export class AutoTranslateService {
         : '';
       const midway = this.notes.notes().find((item) => item.id === id);
       if (!midway || midway.title !== current.title || midway.body !== current.body) return;
-      const text = await this.translation.translate(midway.body, source, target, note.id);
+      const text = await translateNoteBody(this.translation, midway.body, source, target, note.id);
       const after = this.notes.notes().find((item) => item.id === id);
       if (!after || after.body !== midway.body || after.title !== midway.title) return;
       this.notes.setTranslation(

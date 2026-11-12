@@ -160,8 +160,8 @@
     "modelLabel": "Modelo",
     "upload": {
       "label": "Subir",
-      "caption": "Sube un archivo de audio",
-      "aria": "Subir archivo de audio"
+      "caption": "Sube audio o un documento",
+      "aria": "Subir audio o un documento"
     },
     "transcribing": "Transcribiendo...",
     "progress": {
@@ -271,7 +271,27 @@
       "titleLabel": "Titulo",
       "titlePlaceholder": "Titulo de la nota",
       "bodyLabel": "Contenido",
-      "save": "Guardar cambios"
+      "save": "Guardar cambios",
+      "editText": "Editar texto",
+      "doneEditing": "Listo",
+      "markdownInfoLabel": "Sobre las notas con formato",
+      "markdownInfo": "Las notas se muestran con formato, como títulos, listas y tablas. Los saltos de línea se conservan. Editar texto cambia el original."
+    },
+    "import": {
+      "savedHeader": "Importado",
+      "failedHeader": "No importado",
+      "savedOne": "Guardado como nota.",
+      "savedMany": "Se guardaron {count} notas.",
+      "tooLarge": "Este archivo es demasiado grande para importarlo.",
+      "unsupported": "Este tipo de archivo no se puede importar. Usa un archivo .txt, .md, .csv o .docx.",
+      "legacyDoc": "Los archivos antiguos de Word (.doc) no son compatibles. Guárdalo como .docx e inténtalo de nuevo.",
+      "empty": "Este archivo está vacío.",
+      "unreadable": "No se pudo leer este archivo.",
+      "failed": "No se pudo importar este archivo.",
+      "csvTruncated": "Se muestran las primeras {shown} de {total} filas.",
+      "csvTruncatedColumns": "Se muestran las primeras {shown} de {total} columnas.",
+      "sharedTitle": "Texto compartido",
+      "importedTitle": "Nota importada"
     },
     "meta": {
       "justNow": "Ahora mismo",
@@ -292,6 +312,7 @@
       "downloadMessage": "{pack} se descargará una vez desde Mozilla (unos {size}) y se guardará en este teléfono. Después, la traducción funciona sin conexión.",
       "downloadConfirm": "Descargar",
       "cancel": "Cancelar",
+      "closePicker": "Cerrar la lista de idiomas",
       "progressDownload": "Descargando paquete de idioma",
       "progressLoad": "Cargando traducción",
       "progressTranslate": "Traduciendo",

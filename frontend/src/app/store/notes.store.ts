@@ -47,6 +47,19 @@ export const NotesStore = signalStore(
       settings = inject(SettingsStore),
     ) => {
       let readySeq = 0;
+      const readStoredNotes = (): Note[] => {
+        try {
+          const stored = localStorage.getItem('whisper-notes');
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (!Array.isArray(parsed)) return [];
+          return parsed
+            .map((item) => noteFromStorage(item))
+            .filter((item): item is Note => item !== null);
+        } catch (e) {
+          console.error('Corrupt whisper-notes in localStorage', e);
+          return [];
+        }
+      };
       const persist = (notes: Note[]) => {
         patchState(store, { notes });
         localStorage.setItem('whisper-notes', JSON.stringify(notes));
@@ -80,6 +93,30 @@ export const NotesStore = signalStore(
         const notes = [...store.notes(), note];
         persist(notes);
         markReady(note.id);
+      },
+      /**
+       * Appends notes from a share or open intent. Merges memory and the saved
+       * list so a load that started earlier cannot drop the new notes.
+       */
+      addImportedNotes: (incoming: Note[]) => {
+        if (!incoming.length) return;
+        const disk = readStoredNotes();
+        const memory = store.notes();
+        const map = new Map<string, Note>();
+        const order: string[] = [];
+        const push = (note: Note) => {
+          if (!map.has(note.id)) order.push(note.id);
+          map.set(note.id, note);
+        };
+        const base = disk.length >= memory.length ? disk : memory;
+        const extra = base === disk ? memory : disk;
+        for (const note of base) push(note);
+        for (const note of extra) push(note);
+        for (const note of incoming) push(note);
+        persist(order.map((id) => map.get(id) as Note));
+        incoming.forEach((note, index) => {
+          setTimeout(() => markReady(note.id), index * 50);
+        });
       },
       deleteNote: (id: string) => {
         const notes = store.notes().filter((n) => n.id !== id);
@@ -214,6 +251,7 @@ export const NotesStore = signalStore(
               { title: note.title, body: note.body },
             );
           }
+          if (nextBody !== note.body) delete next.csvLimit;
           return next;
         });
         persist(notes);

@@ -1,4 +1,4 @@
-import { Note } from '../models/note.model';
+import { CsvLimit, Note } from '../models/note.model';
 import { normalizeTranslations } from '../services/note-translations';
 
 const MAX_TAG_LENGTH = 40;
@@ -68,7 +68,32 @@ export function normalizeStoredNote(value: unknown): Note | null {
   const translations = normalizeTranslations(raw['translations'], raw['body'], raw['title']);
   if (translations) note.translations = translations;
   else delete note.translations;
+  const csvLimit = normalizeCsvLimit(raw['csvLimit']);
+  if (csvLimit) note.csvLimit = csvLimit;
+  else delete note.csvLimit;
   return note;
+}
+
+function normalizeCsvLimit(value: unknown): CsvLimit | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const raw = value as Record<string, unknown>;
+  if (!isCount(raw['shown']) || !isCount(raw['total']) || raw['total'] < raw['shown']) {
+    return undefined;
+  }
+  const limit: CsvLimit = { shown: raw['shown'], total: raw['total'] };
+  if (
+    isCount(raw['columnsShown']) &&
+    isCount(raw['columnsTotal']) &&
+    raw['columnsTotal'] >= raw['columnsShown']
+  ) {
+    limit.columnsShown = raw['columnsShown'];
+    limit.columnsTotal = raw['columnsTotal'];
+  }
+  return limit;
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
 /** Keeps unreadable records that still have an id so a later save cannot delete them. */

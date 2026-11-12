@@ -17,4 +17,16 @@ export interface Note {
    * Missing on notes saved before translation existed.
    */
   translations?: NoteTranslations;
+  /**
+   * Set when a CSV import kept only part of the sheet.
+   * Counts are data rows and columns, not counting the header row.
+   */
+  csvLimit?: CsvLimit;
+}
+
+export interface CsvLimit {
+  shown: number;
+  total: number;
+  columnsShown?: number;
+  columnsTotal?: number;
 }

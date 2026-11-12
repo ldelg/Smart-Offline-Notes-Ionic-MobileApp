@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   ViewChild,
   computed,
@@ -7,6 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   IonHeader,
   IonToolbar,
@@ -49,6 +51,10 @@ import {
 } from '../store/note-editor';
 import { composeShareText, sharePlainText } from '../services/note-share';
 import { quietAlert } from '../services/quiet-alert';
+import { renderMarkdown } from '../services/markdown-render';
+import { notePreview } from '../services/note-preview';
+import { translateNoteBody } from '../services/markdown-translate';
+import { DocumentInboxService } from '../services/document-inbox';
 import { AutoTranslateService } from '../services/auto-translate.service';
 import {
   TranslationCancelled,
@@ -110,6 +116,9 @@ import {
 })
 export class NotesPage {
   private readonly store = inject(NotesStore);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly inbox = inject(DocumentInboxService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly settings = inject(SettingsStore);
   protected readonly translationStore = inject(TranslationStore);
   private readonly alertController = inject(AlertController);
@@ -122,7 +131,7 @@ export class NotesPage {
   protected readonly activeTag = signal<string | null>(null);
   protected readonly tagDraft = signal('');
   protected readonly editorTags = signal<string[]>([]);
-  private readonly editorFields = signal({ title: '', body: '' });
+  protected readonly editorFields = signal({ title: '', body: '' });
   private readonly loadedNoteId = signal<string | null>(null);
   protected readonly openTabIds = signal<string[]>([]);
   protected readonly activeTabId = signal<string | null>(null);
@@ -136,6 +145,9 @@ export class NotesPage {
     hash: string;
   } | null>(null);
   protected readonly infoOpen = signal(false);
+  protected readonly markdownInfoOpen = signal(false);
+  private readonly rawEditId = signal<string | null>(null);
+  private readonly markdownCache = new Map<string, SafeHtml>();
   protected readonly downloadError = signal<{ noteId: string; message: string } | null>(null);
   private readonly titleJobs = new Set<string>();
   private retryJob: {
@@ -200,6 +212,7 @@ export class NotesPage {
     });
     void this.autoTranslate;
     this.store.loadNotes();
+    this.watchTranslatePicker();
     this.editForm.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
       this.editorFields.set({
         title: value.title ?? '',
@@ -214,6 +227,18 @@ export class NotesPage {
         (tag) => tag.toLocaleLowerCase() === selected.toLocaleLowerCase(),
       );
       if (!stillThere) this.activeTag.set(null);
+    });
+
+    effect(() => {
+      const id = this.inbox.noteToOpen();
+      if (!id) return;
+      if (!this.store.notes().some((note) => note.id === id)) return;
+      this.inbox.noteToOpen.set(null);
+      // One open note, so the carousel cannot settle on a different tab.
+      this.rawEditId.set(null);
+      this.openTabIds.set([id]);
+      this.activeTabId.set(id);
+      queueMicrotask(() => this.syncCarouselToActive());
     });
 
     effect(() => {
@@ -236,6 +261,44 @@ export class NotesPage {
         { emitEvent: false },
       );
     });
+  }
+
+  protected preview(body: string): string {
+    return notePreview(body);
+  }
+
+  /** Row and column caps stay behind the formatting info control. */
+  protected csvNotice(note: Note): string | null {
+    const limit = note.csvLimit;
+    if (!limit) return null;
+    const parts: string[] = [];
+    if (limit.total > limit.shown) {
+      parts.push(
+        this.phrase('notes.import.csvTruncated', 'Showing the first {shown} of {total} rows.')
+          .replace('{shown}', String(limit.shown))
+          .replace('{total}', String(limit.total)),
+      );
+    }
+    if (
+      limit.columnsShown !== undefined &&
+      limit.columnsTotal !== undefined &&
+      limit.columnsTotal > limit.columnsShown
+    ) {
+      parts.push(
+        this.phrase(
+          'notes.import.csvTruncatedColumns',
+          'Showing the first {shown} of {total} columns.',
+        )
+          .replace('{shown}', String(limit.columnsShown))
+          .replace('{total}', String(limit.columnsTotal)),
+      );
+    }
+    return parts.length ? parts.join(' ') : null;
+  }
+
+  private phrase(key: string, fallback: string): string {
+    const value = this.translationStore.t(key);
+    return value && value !== key ? value : fallback;
   }
 
   protected noteMeta(note: Note): string {
@@ -375,9 +438,38 @@ export class NotesPage {
   }
 
   private pickerNoteId: string | null = null;
+  private pickerRequest = 0;
 
   protected pickerFor(noteId: string): boolean {
     return this.pickerOpen() && this.pickerNoteId === noteId;
+  }
+
+  protected closePicker(): void {
+    this.pickerRequest += 1;
+    this.pickerOpen.set(false);
+    this.infoOpen.set(false);
+  }
+
+  private watchTranslatePicker(): void {
+    const dismiss = () => this.closePicker();
+    const outside = (event: Event) => {
+      if (!this.pickerOpen()) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.translate-picker, .picker-backdrop, [data-translate-trigger]')) return;
+      this.closePicker();
+    };
+    document.addEventListener('smartnotes-dismiss-translate', dismiss);
+    document.addEventListener('pointerdown', outside, true);
+    this.destroyRef.onDestroy(() => {
+      document.removeEventListener('smartnotes-dismiss-translate', dismiss);
+      document.removeEventListener('pointerdown', outside, true);
+    });
+    effect(() => {
+      const id = this.activeTabId();
+      if (!this.pickerOpen()) return;
+      if (id !== this.pickerNoteId) this.closePicker();
+    });
   }
 
   protected async translateNote(note: Note, event?: Event): Promise<void> {
@@ -425,6 +517,28 @@ export class NotesPage {
     this.infoOpen.update((open) => !open);
   }
 
+  protected rawEditing(id: string): boolean {
+    return this.rawEditId() === id;
+  }
+
+  protected toggleRawEdit(id: string): void {
+    this.rawEditId.update((current) => (current === id ? null : id));
+  }
+
+  protected toggleMarkdownInfo(): void {
+    this.markdownInfoOpen.update((open) => !open);
+  }
+
+  protected markdownHtml(text: string | null | undefined): SafeHtml {
+    const source = text ?? '';
+    const cached = this.markdownCache.get(source);
+    if (cached) return cached;
+    const safe = this.sanitizer.bypassSecurityTrustHtml(renderMarkdown(source));
+    if (this.markdownCache.size > 40) this.markdownCache.clear();
+    this.markdownCache.set(source, safe);
+    return safe;
+  }
+
   protected errorFor(noteId: string): string | null {
     const error = this.downloadError();
     return error?.noteId === noteId ? error.message : null;
@@ -437,8 +551,15 @@ export class NotesPage {
   }
 
   protected async promptTranslate(noteId: string): Promise<void> {
+    if (this.pickerOpen() && this.pickerNoteId === noteId) {
+      this.closePicker();
+      return;
+    }
+    const progress = this.translationProgress();
+    if (progress?.noteId === noteId) return;
     const note = this.store.notes().find((item) => item.id === noteId);
     if (!note?.body.trim()) return;
+    const request = ++this.pickerRequest;
     // The picker states the source language, so the editor must show the
     // original text while it is open, not a translation already on screen.
     this.showOriginal(note);
@@ -449,6 +570,7 @@ export class NotesPage {
     const choices = translateChoices(source, installed).filter(
       (choice) => !already.has(choice.target),
     );
+    if (request !== this.pickerRequest) return;
     if (!choices.length) {
       await this.showAlert(
         this.translationStore.t('notes.translate.add'),
@@ -466,7 +588,7 @@ export class NotesPage {
     const source = this.pickerSource();
     const noteId = this.pickerNoteId;
     if (!source || !noteId) return;
-    this.pickerOpen.set(false);
+    this.closePicker();
     await this.runTranslation(noteId, source, choice.target, choice);
   }
 
@@ -512,7 +634,7 @@ export class NotesPage {
     const total = parts.reduce((sum, part) => sum + part.bytes, 0);
     this.retryJob = { noteId, source, target, choice };
     this.downloadError.set(null);
-    this.pickerOpen.set(false);
+    this.closePicker();
     try {
       await this.machine.ensurePacks(route, noteId, total);
       const current = this.store.notes().find((item) => item.id === noteId) ?? note;
@@ -521,7 +643,7 @@ export class NotesPage {
         : '';
       const midway = this.store.notes().find((item) => item.id === noteId);
       if (!midway || midway.title !== current.title || midway.body !== current.body) return;
-      const text = await this.machine.translate(midway.body, source, target, noteId);
+      const text = await translateNoteBody(this.machine, midway.body, source, target, noteId);
       const after = this.store.notes().find((item) => item.id === noteId);
       if (!after || after.body !== midway.body || after.title !== midway.title) return;
       this.store.setTranslation(

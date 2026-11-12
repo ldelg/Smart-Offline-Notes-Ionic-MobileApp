@@ -15,6 +15,8 @@ To install the APK: open the link on your Android phone, tap the downloaded file
 ## Features
 
 - On-device Whisper speech-to-text, with punctuation and paragraphs
+- Import a .txt, .md, .csv, or .docx as a note from Share, Open with, or Upload
+- Notes show Markdown, including tables, and the original text stays editable
 - Pin a note, tag it, share it, and drag to reorder
 - On-device translation between English, Spanish, French, German, and Italian
 - More than one translation on a note, including the title, with numbers written for the language you are reading

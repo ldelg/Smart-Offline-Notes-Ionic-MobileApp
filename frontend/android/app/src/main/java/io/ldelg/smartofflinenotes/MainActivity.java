@@ -24,10 +24,13 @@ public class MainActivity extends BridgeActivity {
         "(function(){var nodes=document.querySelectorAll('ion-alert,ion-action-sheet,ion-modal,ion-popover,ion-loading,ion-picker');"
             + "var open=nodes.length?nodes[nodes.length-1]:null;"
             + "if(open&&typeof open.dismiss==='function'){open.dismiss();return 'overlay';}"
+            + "if(document.querySelector('.translate-picker')){document.dispatchEvent(new CustomEvent('smartnotes-dismiss-translate'));return 'overlay';}"
             + "return '';})()";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        DocumentIntentPlugin.freshLaunch = savedInstanceState == null;
+        registerPlugin(DocumentIntentPlugin.class);
         super.onCreate(savedInstanceState);
         applySystemBarStyle();
         registerPredictiveBack();

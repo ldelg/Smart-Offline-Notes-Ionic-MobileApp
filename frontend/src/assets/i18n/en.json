@@ -167,8 +167,8 @@
     "modelLabel": "Model",
     "upload": {
       "label": "Upload",
-      "caption": "Upload an audio file",
-      "aria": "Upload audio file"
+      "caption": "Upload audio or a document",
+      "aria": "Upload audio or a document"
     },
     "transcribing": "Transcribing...",
     "progress": {
@@ -278,7 +278,27 @@
       "titleLabel": "Title",
       "titlePlaceholder": "Note title",
       "bodyLabel": "Body",
-      "save": "Save changes"
+      "save": "Save changes",
+      "editText": "Edit text",
+      "doneEditing": "Done",
+      "markdownInfoLabel": "About formatted notes",
+      "markdownInfo": "Notes are shown with formatting such as headings, lists, and tables. Line breaks stay as written. Edit text to change the original."
+    },
+    "import": {
+      "savedHeader": "Imported",
+      "failedHeader": "Not imported",
+      "savedOne": "Saved as a note.",
+      "savedMany": "Saved {count} notes.",
+      "tooLarge": "This file is too large to import.",
+      "unsupported": "This file type can't be imported. Use a .txt, .md, .csv, or .docx file.",
+      "legacyDoc": "Older Word .doc files aren't supported. Save as .docx and try again.",
+      "empty": "This file is empty.",
+      "unreadable": "This file could not be read.",
+      "failed": "This file could not be imported.",
+      "csvTruncated": "Showing the first {shown} of {total} rows.",
+      "csvTruncatedColumns": "Showing the first {shown} of {total} columns.",
+      "sharedTitle": "Shared text",
+      "importedTitle": "Imported note"
     },
     "meta": {
       "justNow": "Just now",
@@ -299,6 +319,7 @@
       "downloadMessage": "{pack} will be downloaded once from Mozilla (about {size}) and saved on this phone. After that, translation works offline.",
       "downloadConfirm": "Download",
       "cancel": "Cancel",
+      "closePicker": "Close language list",
       "progressDownload": "Downloading language pack",
       "progressLoad": "Loading translation",
       "progressTranslate": "Translating",

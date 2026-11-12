@@ -38,6 +38,8 @@ import { NO_SPEECH_ERROR } from '../models/transcription.service.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { TranslationStore } from '../store/translation.store';
 import { AutoTranslateService } from '../services/auto-translate.service';
+import { DocumentInboxService } from '../services/document-inbox';
+import { isDocumentFile } from '../services/document-import';
 
 @Component({
   selector: 'app-create',
@@ -70,6 +72,7 @@ export class CreatePage {
   private readonly transcriptionService = inject(TranscriptionService);
   private readonly alertController = inject(AlertController);
   private readonly translationStore = inject(TranslationStore);
+  private readonly inbox = inject(DocumentInboxService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly isRecording = signal(false);
@@ -300,6 +303,10 @@ export class CreatePage {
     const file = input?.files?.[0];
     if (!file) return;
     input.value = '';
+    if (isDocumentFile(file.name, file.type)) {
+      void this.inbox.importBrowserFile(file);
+      return;
+    }
     void this.processFile(file, 'Upload');
   }
 

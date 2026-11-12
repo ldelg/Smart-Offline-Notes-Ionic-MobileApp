@@ -119,7 +119,7 @@
                   }
                   <h2>{{ note.title }}</h2>
                 </div>
-                <p class="note-body">{{ note.body }}</p>
+                <p class="note-body">{{ preview(note.body) }}</p>
                 @if (note.tags?.length) {
                 <div class="tag-row">
                   @for (tag of note.tags; track tag) {
@@ -176,6 +176,7 @@
                 <ion-button
                   fill="clear"
                   class="note-translate"
+                  data-translate-trigger
                   (click)="translateNote(note, $event)"
                   [attr.aria-label]="translationStore.t('notes.actions.translate')"
                 >
@@ -238,6 +239,7 @@
                 <ion-button
                   fill="clear"
                   type="button"
+                  data-translate-trigger
                   (click)="promptTranslate(note.id)"
                   [attr.aria-label]="translationStore.t('notes.actions.translate')"
                 >
@@ -279,12 +281,19 @@
                 <button
                   type="button"
                   class="lang-chip lang-chip-add"
+                  data-translate-trigger
                   (click)="promptTranslate(note.id)"
                 >
                   + {{ translationStore.t('notes.translate.add') }}
                 </button>
               </div>
               @if (pickerFor(note.id) && !progressFor(note)) {
+              <button
+                type="button"
+                class="picker-backdrop"
+                (click)="closePicker()"
+                [attr.aria-label]="translationStore.t('notes.translate.closePicker')"
+              ></button>
               <div class="translate-picker">
                 <div class="picker-heading-row">
                   <p class="picker-heading">{{ translationStore.t('notes.translate.pickTarget') }}</p>
@@ -349,7 +358,42 @@
               </ion-item>
               }
               <div [hidden]="viewLang(note) !== 'original'">
-                <ion-item lines="none">
+                <div class="body-toolbar">
+                  @if (!rawEditing(note.id)) {
+                  <span class="body-label">{{ translationStore.t('notes.editor.bodyLabel') }}</span>
+                  }
+                  <button
+                    type="button"
+                    class="info-button"
+                    [class.push-end]="rawEditing(note.id)"
+                    (click)="toggleMarkdownInfo()"
+                    [attr.aria-expanded]="markdownInfoOpen()"
+                    [attr.aria-label]="translationStore.t('notes.editor.markdownInfoLabel')"
+                  >
+                    i
+                  </button>
+                  <button type="button" class="text-button" (click)="toggleRawEdit(note.id)">
+                    {{
+                      translationStore.t(
+                        rawEditing(note.id) ? 'notes.editor.doneEditing' : 'notes.editor.editText'
+                      )
+                    }}
+                  </button>
+                </div>
+                @if (markdownInfoOpen()) {
+                <p class="info-pop">
+                  @if (csvNotice(note); as limitNote) {
+                  <span class="csv-limit">{{ limitNote }}</span>
+                  }
+                  {{ translationStore.t('notes.editor.markdownInfo') }}
+                </p>
+                }
+                <div
+                  class="md-body"
+                  [hidden]="rawEditing(note.id)"
+                  [innerHTML]="markdownHtml(editorFields().body)"
+                ></div>
+                <ion-item lines="none" [hidden]="!rawEditing(note.id)">
                   <ion-textarea
                     [label]="translationStore.t('notes.editor.bodyLabel')"
                     labelPlacement="stacked"
@@ -369,7 +413,7 @@
                   </button>
                 </p>
                 }
-                <p class="mt-body">{{ activeTranslation(note)?.text }}</p>
+                <div class="mt-body md-body" [innerHTML]="markdownHtml(activeTranslation(note)?.text)"></div>
                 <button type="button" class="text-button" (click)="confirmDeleteTranslation(note)">
                   {{ translationStore.t('notes.translate.delete') }}
                 </button>

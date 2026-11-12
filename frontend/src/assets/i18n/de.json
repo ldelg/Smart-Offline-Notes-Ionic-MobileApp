@@ -160,8 +160,8 @@
     "modelLabel": "Modell",
     "upload": {
       "label": "Hochladen",
-      "caption": "Lade eine Audiodatei hoch",
-      "aria": "Audiodatei hochladen"
+      "caption": "Audio oder ein Dokument hochladen",
+      "aria": "Audio oder ein Dokument hochladen"
     },
     "transcribing": "Transkribierung...",
     "progress": {
@@ -271,7 +271,27 @@
       "titleLabel": "Titel",
       "titlePlaceholder": "Notiztitel",
       "bodyLabel": "Inhalt",
-      "save": "Änderungen speichern"
+      "save": "Änderungen speichern",
+      "editText": "Text bearbeiten",
+      "doneEditing": "Fertig",
+      "markdownInfoLabel": "Über formatierte Notizen",
+      "markdownInfo": "Notizen werden mit Formatierung gezeigt, etwa Überschriften, Listen und Tabellen. Zeilenumbrüche bleiben erhalten. Text bearbeiten ändert den Originaltext."
+    },
+    "import": {
+      "savedHeader": "Importiert",
+      "failedHeader": "Nicht importiert",
+      "savedOne": "Als Notiz gespeichert.",
+      "savedMany": "{count} Notizen gespeichert.",
+      "tooLarge": "Diese Datei ist zu groß zum Importieren.",
+      "unsupported": "Dieser Dateityp kann nicht importiert werden. Verwende eine .txt-, .md-, .csv- oder .docx-Datei.",
+      "legacyDoc": "Ältere Word-Dateien (.doc) werden nicht unterstützt. Speichere sie als .docx und versuche es erneut.",
+      "empty": "Diese Datei ist leer.",
+      "unreadable": "Diese Datei konnte nicht gelesen werden.",
+      "failed": "Diese Datei konnte nicht importiert werden.",
+      "csvTruncated": "Die ersten {shown} von {total} Zeilen werden gezeigt.",
+      "csvTruncatedColumns": "Die ersten {shown} von {total} Spalten werden gezeigt.",
+      "sharedTitle": "Geteilter Text",
+      "importedTitle": "Importierte Notiz"
     },
     "meta": {
       "justNow": "Gerade eben",
@@ -292,6 +312,7 @@
       "downloadMessage": "{pack} wird einmal von Mozilla geladen (etwa {size}) und auf diesem Telefon gespeichert. Danach funktioniert die Übersetzung offline.",
       "downloadConfirm": "Herunterladen",
       "cancel": "Abbrechen",
+      "closePicker": "Sprachliste schließen",
       "progressDownload": "Sprachpaket wird geladen",
       "progressLoad": "Übersetzung wird geladen",
       "progressTranslate": "Übersetzen",
